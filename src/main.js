@@ -206,8 +206,16 @@ function draw() {
     drawBoy(250, 200);
     drawPlayer(280, 200);
 
-    if (state.currentCutsceneIndex >= 3 && state.currentCutsceneIndex < 6) {
+    // Ladybug appears on beat 3 ("A tiny ladybug landed...") and stays through beat 4
+    if (state.currentCutsceneIndex === 3 || state.currentCutsceneIndex === 4) {
       drawLadybug(265, 198);
+    }
+    // Beat 5: ladybug takes flight - animate flying away
+    else if (state.currentCutsceneIndex === 5) {
+      const progress = state.cutsceneTimer / 240; // 240 = beat 5 duration
+      const flyX = 265 + progress * 100;
+      const flyY = 198 - progress * 150;
+      if (flyY > 0) drawLadybug(flyX, flyY);
     }
     return;
   }
