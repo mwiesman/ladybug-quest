@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ladybug Quest</title>
+    <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+
+        <div id="inventory">
+            <div id="inventoryTitle">INVENTORY</div>
+            <div id="inventoryItems">
+                <div class="inventory-item">Empty</div>
+            </div>
+        </div>
+
+        <div id="dialogBox">
+            <canvas id="dialogPortrait" width="80" height="80"></canvas>
+            <div id="dialogContent">
+                <div id="dialogText"></div>
+                <div id="dialogPrompt">▼ Press SPACE</div>
+            </div>
+        </div>
+
+        <div id="cutsceneOverlay">
+            <div id="cutsceneText"></div>
+            <button id="skipButton">Press SPACE to continue</button>
+        </div>
+
+        <div id="credits">
+            <div class="fade-in">
+                <h1>The Ladybug Quest</h1>
+                <p>A story of infinite pursuit</p>
+                <p style="margin-top: 40px;">Created with Love</p>
+                <p style="margin-top: 60px; font-size: 8px;">Press R to restart</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
