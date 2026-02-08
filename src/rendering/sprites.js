@@ -574,6 +574,24 @@ export function drawTree(x, y) {
   ctx.fillRect(x + 10, y + 10, 12, 8);
 }
 
+export function drawLargeTree(x, y) {
+  // Large oak tree - 3x scale
+  const scale = 3;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x + 9 * scale, y + 15 * scale, 14 * scale, 18 * scale);
+  ctx.fillRect(x + 5 * scale, y + 5 * scale, 22 * scale, 16 * scale);
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(x + 10 * scale, y + 16 * scale, 12 * scale, 16 * scale);
+  ctx.fillStyle = '#4a2f1a';
+  ctx.fillRect(x + 10 * scale, y + 16 * scale, 4 * scale, 16 * scale);
+  ctx.fillStyle = '#2d5016';
+  ctx.fillRect(x + 6 * scale, y + 6 * scale, 20 * scale, 14 * scale);
+  ctx.fillStyle = '#3a6b1f';
+  ctx.fillRect(x + 8 * scale, y + 8 * scale, 16 * scale, 10 * scale);
+  ctx.fillStyle = '#4a7c2f';
+  ctx.fillRect(x + 10 * scale, y + 10 * scale, 12 * scale, 8 * scale);
+}
+
 export function drawFlowers(x, y, color) {
   ctx.fillStyle = '#000';
   ctx.fillRect(x - 1, y - 1, 8, 8);

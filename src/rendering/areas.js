@@ -2,7 +2,7 @@
 
 import { state } from '../game/state.js';
 import {
-  drawGroundTexture, drawTree, drawFlowers, drawRock, drawNPC,
+  drawGroundTexture, drawTree, drawLargeTree, drawFlowers, drawRock, drawNPC,
   drawBoy, drawGate, drawLogs, drawLeafPile, drawLadybug,
   drawNavigationIndicator
 } from './sprites.js';
@@ -23,7 +23,7 @@ export function drawCompleteArea(area) {
   drawGroundTexture(canvasWidth, canvasHeight);
 
   if (area === 'meadow') {
-    drawTree(270, 170);
+    drawLargeTree(220, 100);
     drawTree(80, 100);
     drawTree(480, 120);
     drawTree(50, 380);

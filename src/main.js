@@ -11,7 +11,7 @@ import { inventory } from './systems/inventory.js';
 import { showDialog, advanceDialog } from './systems/dialog.js';
 import { checkInteraction, checkNearInteractable } from './systems/interaction.js';
 import { checkCollision } from './systems/collision.js';
-import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLadybug } from './rendering/sprites.js';
+import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
 import { setContext as setUICtx, drawInteractionPrompt } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
@@ -39,7 +39,8 @@ skipButton.addEventListener('click', skipCutscene);
 function handleSpacePress() {
   if (state.currentState === GAME_STATE.CUTSCENE_INTRO ||
       state.currentState === GAME_STATE.CUTSCENE_ENDING) {
-    skipCutscene();
+    // Advance to next cutscene beat
+    advanceCutscene();
   } else if (state.currentState === GAME_STATE.DIALOG || state.currentDialog) {
     // Handle dialog in DIALOG state or during INTRO_ANIMATION (static dialog)
     advanceDialog();
@@ -51,6 +52,21 @@ function handleSpacePress() {
 function handleRestart() {
   if (state.currentState === GAME_STATE.CREDITS) {
     restartGame();
+  }
+}
+
+function advanceCutscene() {
+  state.cutsceneTimer = 0;
+  state.currentCutsceneIndex++;
+
+  if (state.currentCutsceneIndex >= state.currentCutscene.length) {
+    if (state.currentState === GAME_STATE.CUTSCENE_INTRO) {
+      startIntroAnimation();
+    } else {
+      showCredits();
+    }
+  } else {
+    updateCutsceneText();
   }
 }
 
@@ -119,8 +135,8 @@ function update() {
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     state.animationPhase++;
     if (state.animationPhase < 60) {
-      // Girl stands up and steps away from tree (240 → 270)
-      player.y = 240 + (state.animationPhase / 60) * 30;
+      // Girl stands up and steps away from tree (200 → 270)
+      player.y = 200 + (state.animationPhase / 60) * 70;
     } else if (state.animationPhase === 60) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
@@ -186,12 +202,12 @@ function draw() {
   if (state.currentState === GAME_STATE.CUTSCENE_INTRO) {
     ctx.fillStyle = '#6b8e23';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    drawTree(270, 170);
-    drawBoy(280, 240);
-    drawPlayer(310, 240);
+    drawLargeTree(220, 100);
+    drawBoy(250, 200);
+    drawPlayer(280, 200);
 
     if (state.currentCutsceneIndex >= 3 && state.currentCutsceneIndex < 6) {
-      drawLadybug(295, 238);
+      drawLadybug(265, 198);
     }
     return;
   }

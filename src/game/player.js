@@ -1,8 +1,8 @@
 // Player object and movement logic
 
 export const player = {
-  x: 310,
-  y: 240,
+  x: 280,
+  y: 200,
   width: 24,
   height: 32,
   speed: 3.5,
@@ -13,8 +13,8 @@ export const player = {
 };
 
 export function resetPlayer() {
-  player.x = 310;
-  player.y = 240;
+  player.x = 280;
+  player.y = 200;
   player.direction = 'down';
   player.animFrame = 0;
   player.animTimer = 0;
