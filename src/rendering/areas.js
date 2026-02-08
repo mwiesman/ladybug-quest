@@ -24,6 +24,9 @@ export function drawCompleteArea(area) {
 
   if (area === 'meadow') {
     drawTree(270, 170);
+    drawTree(80, 100);
+    drawTree(480, 120);
+    drawTree(50, 380);
     drawBoy(state.boy.x, state.boy.y);
 
     drawFlowers(100, 350, '#ff69b4');
@@ -33,6 +36,8 @@ export function drawCompleteArea(area) {
     drawFlowers(420, 365, '#ff6347');
     drawFlowers(150, 330, '#ff69b4');
     drawFlowers(500, 380, '#ffa500');
+    drawFlowers(140, 200, '#ff6347');
+    drawFlowers(400, 260, '#ffff00');
 
     drawRock(120, 280);
     drawRock(480, 320);
@@ -69,6 +74,9 @@ export function drawCompleteArea(area) {
     drawFlowers(300, 110, '#ffa500');
     drawFlowers(440, 270, '#ff1493');
     drawFlowers(500, 270, '#ffff00');
+    drawFlowers(80, 350, '#ff6347');
+    drawFlowers(560, 380, '#ffa500');
+    drawFlowers(180, 90, '#ffff00');
 
     drawNPC(npcs.coffeeCart, npcs.coffeeCart.x, npcs.coffeeCart.y);
     drawNPC(npcs.hippie, npcs.hippie.x, npcs.hippie.y);

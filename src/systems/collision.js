@@ -18,10 +18,11 @@ export function checkCollision(x, y, w, h) {
   const area = state.currentArea;
 
   if (area === 'meadow') {
-    // Main oak tree
-    if (x < 318 && x + w > 270 && y < 218 && y + h > 170) {
-      return true;
-    }
+    // Trees
+    if (x < 318 && x + w > 270 && y < 218 && y + h > 170) return true; // Main oak tree at (270, 170)
+    if (x < 128 && x + w > 80 && y < 148 && y + h > 100) return true; // Tree at (80, 100)
+    if (x < 528 && x + w > 480 && y < 168 && y + h > 120) return true; // Tree at (480, 120)
+    if (x < 98 && x + w > 50 && y < 428 && y + h > 380) return true; // Tree at (50, 380)
     // Rocks
     if (x < 146 && x + w > 118 && y < 302 && y + h > 278) return true; // Rock at (120, 280)
     if (x < 506 && x + w > 478 && y < 342 && y + h > 318) return true; // Rock at (480, 320)
