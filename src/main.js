@@ -40,7 +40,8 @@ function handleSpacePress() {
   if (state.currentState === GAME_STATE.CUTSCENE_INTRO ||
       state.currentState === GAME_STATE.CUTSCENE_ENDING) {
     skipCutscene();
-  } else if (state.currentState === GAME_STATE.DIALOG) {
+  } else if (state.currentState === GAME_STATE.DIALOG || state.currentDialog) {
+    // Handle dialog in DIALOG state or during INTRO_ANIMATION (static dialog)
     advanceDialog();
   } else if (state.currentState === GAME_STATE.PLAYING) {
     checkInteraction();
@@ -118,7 +119,8 @@ function update() {
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     state.animationPhase++;
     if (state.animationPhase < 60) {
-      player.y = 280 - (state.animationPhase / 60) * 10;
+      // Girl stands up and steps away from tree (240 → 270)
+      player.y = 240 + (state.animationPhase / 60) * 30;
     } else if (state.animationPhase === 60) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
@@ -185,11 +187,11 @@ function draw() {
     ctx.fillStyle = '#6b8e23';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawTree(270, 170);
-    drawBoy(290, 280);
-    drawPlayer(330, 280);
+    drawBoy(280, 240);
+    drawPlayer(310, 240);
 
     if (state.currentCutsceneIndex >= 3 && state.currentCutsceneIndex < 6) {
-      drawLadybug(310, 278);
+      drawLadybug(295, 238);
     }
     return;
   }

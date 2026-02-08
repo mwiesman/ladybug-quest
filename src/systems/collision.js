@@ -22,6 +22,9 @@ export function checkCollision(x, y, w, h) {
     if (x < 318 && x + w > 270 && y < 218 && y + h > 170) {
       return true;
     }
+    // Rocks
+    if (x < 146 && x + w > 118 && y < 302 && y + h > 278) return true; // Rock at (120, 280)
+    if (x < 506 && x + w > 478 && y < 342 && y + h > 318) return true; // Rock at (480, 320)
   } else if (area === 'gate_area') {
     if (!state.gateUnlocked) {
       if (x < GATE_X + 24 && x + w > GATE_X &&
@@ -36,6 +39,10 @@ export function checkCollision(x, y, w, h) {
         return true;
       }
     }
+    // Rocks
+    if (x < 126 && x + w > 98 && y < 372 && y + h > 348) return true; // Rock at (100, 350)
+    if (x < 426 && x + w > 398 && y < 402 && y + h > 378) return true; // Rock at (400, 380)
+    if (x < 276 && x + w > 248 && y < 182 && y + h > 158) return true; // Rock at (250, 160)
   } else if (area === 'boathouse') {
     if (x < 600 && x + w > 480 &&
         y < 300 && y + h > 200) {

@@ -8,7 +8,15 @@ const dialogText = document.getElementById('dialogText');
 const portraitCtx = document.getElementById('dialogPortrait').getContext('2d');
 
 export function showDialog(npc) {
-  state.currentState = GAME_STATE.DIALOG;
+  // Store previous state for static dialogs (intro animation)
+  if (!npc.isStatic) {
+    state.previousState = state.currentState;
+    state.currentState = GAME_STATE.DIALOG;
+  } else {
+    // For static dialogs, store that we're showing a dialog but keep animation running
+    state.previousState = state.currentState;
+  }
+
   dialogBox.classList.add('active');
   state.currentDialog = npc;
   state.dialogIndex = 0;
@@ -32,7 +40,8 @@ export function advanceDialog() {
 }
 
 export function closeDialog() {
-  state.currentState = GAME_STATE.PLAYING;
+  // Restore previous state (could be PLAYING or INTRO_ANIMATION)
+  state.currentState = state.previousState || GAME_STATE.PLAYING;
   dialogBox.classList.remove('active');
   state.currentDialog = null;
   state.dialogIndex = 0;

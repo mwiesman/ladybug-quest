@@ -33,6 +33,7 @@ function initWorldItems() {
 
 export const state = {
   currentState: GAME_STATE.CUTSCENE_INTRO,
+  previousState: null,
   currentArea: 'meadow',
 
   // Cutscene

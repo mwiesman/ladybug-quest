@@ -605,17 +605,19 @@ export function drawGroundTexture(canvasWidth, canvasHeight) {
   ctx.fillStyle = '#7cb342';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   ctx.fillStyle = '#689f38';
+  // Static pattern using modulo for deterministic placement
   for (let x = 0; x < canvasWidth; x += 16) {
     for (let y = 0; y < canvasHeight; y += 16) {
-      if (Math.random() > 0.6) {
-        ctx.fillRect(x + Math.random() * 8, y + Math.random() * 8, 4, 4);
+      if ((x + y) % 48 < 20) {
+        ctx.fillRect(x + ((x * 7 + y * 11) % 8), y + ((x * 13 + y * 5) % 8), 4, 4);
       }
     }
   }
   ctx.fillStyle = '#558b2f';
+  // Static darker grass blades using deterministic positions
   for (let i = 0; i < 50; i++) {
-    const tx = Math.random() * canvasWidth;
-    const ty = Math.random() * canvasHeight;
+    const tx = (i * 137) % canvasWidth;
+    const ty = (i * 219) % canvasHeight;
     ctx.fillRect(tx, ty, 2, 3);
     ctx.fillRect(tx + 2, ty + 1, 2, 3);
   }
