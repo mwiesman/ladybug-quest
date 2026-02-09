@@ -18,22 +18,22 @@ export const NPC_DATA = {
     completed: false
   },
   dog: {
-    x: 400, y: 250, area: 'woods',
+    x: 350, y: 350, area: 'park',
     dialog: [
       "*Woof!* Hey there!",
       "I could help you with that rope situation...",
-      "But I really miss having a toy! *whimpers*"
+      "But I lost my ball somewhere! *whimpers*"
     ],
     dialogBefore: [
       "*Woof woof!* *tail wagging*",
       "*sniffs you* I've got this leash but...",
-      "I'm so bored without my toy!"
+      "I'm so bored without my ball!"
     ],
     dialogComplete: [
-      "*Happy bark!* Thanks! Here, take my leash!",
+      "*Happy bark!* My ball! Here, take my leash!",
       "I'm a good dog! *tail wagging intensifies*"
     ],
-    needsItem: 'Dog Toy',
+    needsItem: 'Ball',
     givesItem: 'Rope',
     completed: false
   },
@@ -42,7 +42,7 @@ export const NPC_DATA = {
     dialog: [
       "*runs up* Hi! Hi!",
       "Wow, that's so pretty! For me?!",
-      "Thank you! Here, I found this earlier!",
+      "Thank you! Here, I found this heavy thing earlier!",
       "*runs off giggling*"
     ],
     dialogBefore: [
@@ -50,11 +50,11 @@ export const NPC_DATA = {
       "Are you looking for something? I like flowers!"
     ],
     dialogComplete: [
-      "*playing with toy* Wheee!",
+      "*smelling the flower* Wheee!",
       "This is the best day ever!"
     ],
     needsItem: 'Flower',
-    givesItem: 'Dog Toy',
+    givesItem: 'Axe',
     completed: false
   },
   hippie: {
@@ -84,8 +84,8 @@ export const NPC_DATA = {
       "*CHITTER!* Oh thank goodness!",
       "My acorns! I can finally get to them!",
       "*happy dance*",
-      "Here! Take this heavy thing.",
-      "I've got teeth! *shows teeth proudly*"
+      "Here! I found this ball in my stash!",
+      "No use to me! *shows teeth proudly*"
     ],
     dialogBefore: [
       "*desperate chittering behind gate*",
@@ -97,7 +97,7 @@ export const NPC_DATA = {
       "*happy chittering sounds*"
     ],
     needsItem: 'Gate Unlocked',
-    givesItem: 'Axe',
+    givesItem: 'Ball',
     completed: false,
     behindGate: true
   },

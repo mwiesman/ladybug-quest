@@ -50,8 +50,8 @@ export function checkInteraction() {
     }
   }
 
-  // Gold doubloons pickup (behind logs in woods)
-  if (!worldItems.doubloons.collected && currentArea === 'woods' && logsCleared) {
+  // Gold doubloons pickup (behind logs in gate_area)
+  if (!worldItems.doubloons.collected && currentArea === 'gate_area' && logsCleared) {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       worldItems.doubloons.collected = true;
@@ -74,9 +74,9 @@ export function checkInteraction() {
     }
   }
 
-  // Logs interaction
-  if (!logsCleared && currentArea === 'woods') {
-    if (Math.abs(player.x - 450) < 40 && Math.abs(player.y - 200) < 40) {
+  // Logs interaction (in gate_area, blocking north exit to woods)
+  if (!logsCleared && currentArea === 'gate_area') {
+    if (Math.abs(player.x - 300) < 40 && Math.abs(player.y - 35) < 40) {
       if (inventory.hasItem('Axe')) {
         // Clear logs with axe
         state.logsCleared = true;
@@ -122,15 +122,15 @@ export function checkNearInteractable() {
     }
   }
 
-  // Logs in woods
-  if (!state.logsCleared && currentArea === 'woods') {
-    if (Math.abs(player.x - 450) < 40 && Math.abs(player.y - 200) < 40) {
+  // Logs in gate_area
+  if (!state.logsCleared && currentArea === 'gate_area') {
+    if (Math.abs(player.x - 300) < 40 && Math.abs(player.y - 35) < 40) {
       return true;
     }
   }
 
-  // Doubloons in woods (behind logs)
-  if (!worldItems.doubloons.collected && currentArea === 'woods' && state.logsCleared) {
+  // Doubloons in gate_area (behind logs)
+  if (!worldItems.doubloons.collected && currentArea === 'gate_area' && state.logsCleared) {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       return true;

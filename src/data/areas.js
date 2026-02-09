@@ -14,10 +14,10 @@ export const AREA_DATA = {
     name: 'Park Path',
     exits: {
       left: 'meadow',
-      up: 'gate_area',
+      up: 'boathouse',
       down: 'playground'
     },
-    npcs: ['hippie', 'coffeeCart'],
+    npcs: ['hippie', 'coffeeCart', 'dog'],
     description: 'The main park path. Life in motion.'
   },
   playground: {
@@ -28,30 +28,30 @@ export const AREA_DATA = {
     npcs: ['kid', 'parent'],
     description: 'Bright and full of energy.'
   },
+  boathouse: {
+    name: 'Boathouse',
+    exits: {
+      down: 'park',
+      right: 'gate_area'
+    },
+    npcs: ['fisherman'],
+    description: 'Water and openness.'
+  },
   gate_area: {
     name: 'Gate Area',
     exits: {
-      down: 'park',
-      // left: 'woods' — only when gate is unlocked (handled in world.js)
+      left: 'boathouse',
+      // up: 'woods' — only when logs are cleared (handled in world.js)
     },
     npcs: ['bird', 'squirrel'],
-    description: 'A locked gate blocks the path.'
+    description: 'A locked gate blocks half the area. Logs block the path north.'
   },
   woods: {
     name: 'Woods',
     exits: {
-      right: 'gate_area',
-      // up: 'boathouse' — only when logs are cleared (handled in world.js)
+      down: 'gate_area'
     },
-    npcs: ['dog'],
-    description: 'Dense trees, nature uncontrolled.'
-  },
-  boathouse: {
-    name: 'Boathouse',
-    exits: {
-      down: 'woods'
-    },
-    npcs: ['fisherman'],
-    description: 'Water and openness. The journey\'s end.'
+    npcs: [],
+    description: 'Dense trees, nature uncontrolled. A fleeting red glimpse.'
   }
 };

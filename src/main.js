@@ -5,7 +5,7 @@ import './styles.css';
 
 import { state, GAME_STATE, resetState } from './game/state.js';
 import { player, resetPlayer } from './game/player.js';
-import { checkAreaTransition } from './game/world.js';
+import { checkAreaTransition, updateTransition } from './game/world.js';
 import { initInput, keys } from './systems/input.js';
 import { inventory } from './systems/inventory.js';
 import { showDialog, advanceDialog, closeDialog } from './systems/dialog.js';
@@ -13,7 +13,7 @@ import { checkInteraction, checkNearInteractable } from './systems/interaction.j
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
-import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification } from './rendering/ui.js';
+import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification, drawMap } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
 import { initSprites } from './rendering/spriteLoader.js';
 import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
@@ -26,7 +26,7 @@ const ctx = canvas.getContext('2d');
 // Pass canvas context to all rendering modules
 setSpritesCtx(ctx);
 setAreasCtx(ctx, canvas.width, canvas.height);
-setUICtx(ctx, canvas.width);
+setUICtx(ctx, canvas.width, canvas.height);
 
 // DOM references
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
@@ -38,7 +38,7 @@ const savePrompt = document.getElementById('savePrompt');
 let showingSavePrompt = false;
 
 // Input
-initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape, handleManualSave, handleContinue, handleNewGame);
+initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape, handleManualSave, handleContinue, handleNewGame, handleMapToggle);
 
 skipButton.addEventListener('click', skipCutscene);
 
@@ -104,6 +104,16 @@ function handleNewGame() {
   showingSavePrompt = false;
   updateCutsceneText();
   playMusic('cutscene');
+}
+
+function handleMapToggle() {
+  if (state.currentState === GAME_STATE.PLAYING) {
+    state.previousState = GAME_STATE.PLAYING;
+    state.currentState = GAME_STATE.MAP;
+  } else if (state.currentState === GAME_STATE.MAP) {
+    state.currentState = state.previousState || GAME_STATE.PLAYING;
+    state.previousState = null;
+  }
 }
 
 function advanceCutscene() {
@@ -226,7 +236,23 @@ function update() {
     return;
   }
 
+  if (state.currentState === GAME_STATE.MAP) return;
+
   if (state.currentState !== GAME_STATE.PLAYING) return;
+
+  // Screen transition fade
+  if (state.transitioning) {
+    updateTransition();
+    return;
+  }
+
+  // Woods ladybug sighting animation
+  if (state.woodsSightingPhase >= 0) {
+    state.woodsSightingPhase++;
+    if (state.woodsSightingPhase > 90) {
+      state.woodsSightingPhase = -1;
+    }
+  }
 
   // Player movement
   let newX = player.x;
@@ -336,6 +362,11 @@ function draw() {
     return;
   }
 
+  if (state.currentState === GAME_STATE.MAP) {
+    drawMap();
+    return;
+  }
+
   if (state.currentState !== GAME_STATE.PLAYING &&
       state.currentState !== GAME_STATE.DIALOG) return;
 
@@ -347,6 +378,15 @@ function draw() {
   }
 
   drawSaveNotification();
+
+  // Transition fade overlay
+  if (state.transitioning && state.transitionAlpha > 0) {
+    ctx.save();
+    ctx.globalAlpha = state.transitionAlpha;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
 }
 
 // Main loop

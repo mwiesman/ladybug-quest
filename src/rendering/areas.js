@@ -106,6 +106,7 @@ export function drawCompleteArea(area) {
 
     drawNPC(npcs.coffeeCart, npcs.coffeeCart.x, npcs.coffeeCart.y);
     drawNPC(npcs.hippie, npcs.hippie.x, npcs.hippie.y);
+    drawNPC(npcs.dog, npcs.dog.x, npcs.dog.y);
 
     if (!worldItems.birdseed.collected) {
       ctx.fillStyle = '#d2691e';
@@ -119,7 +120,7 @@ export function drawCompleteArea(area) {
     }
 
     drawNavigationIndicator(30, 240, 'left', 'Meadow');
-    drawNavigationIndicator(320, 30, 'up', 'Gate');
+    drawNavigationIndicator(320, 30, 'up', 'Boat');
     drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Play');
 
   } else if (area === 'playground') {
@@ -193,6 +194,14 @@ export function drawCompleteArea(area) {
 
     drawGate(360, 120);
 
+    // Logs blocking north exit to woods
+    drawLogs(290, 20);
+
+    // Doubloons hidden behind logs (visible after clearing)
+    if (state.logsCleared && !worldItems.doubloons.collected) {
+      drawLeafPile(worldItems.doubloons.x, worldItems.doubloons.y);
+    }
+
     drawLeafPile(150, 250);
     drawLeafPile(450, 280);
     drawLeafPile(220, 380);
@@ -215,9 +224,9 @@ export function drawCompleteArea(area) {
       }
     }
 
-    drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Park');
-    if (state.gateUnlocked) {
-      drawNavigationIndicator(canvasWidth - 30, 240, 'right', 'Woods');
+    drawNavigationIndicator(30, 240, 'left', 'Boat');
+    if (state.logsCleared) {
+      drawNavigationIndicator(320, 30, 'up', 'Woods');
     }
 
   } else if (area === 'woods') {
@@ -245,15 +254,6 @@ export function drawCompleteArea(area) {
     ctx.fillRect(340, 300, 6, 4);
     ctx.fillRect(345, 296, 2, 4);
 
-    drawLogs(450, 200);
-
-    // Doubloons behind logs (only visible after clearing)
-    if (state.logsCleared && !worldItems.doubloons.collected) {
-      drawLeafPile(worldItems.doubloons.x, worldItems.doubloons.y);
-    }
-
-    drawNPC(npcs.dog, npcs.dog.x, npcs.dog.y);
-
     drawRock(100, 350);
     drawRock(400, 380);
     drawRock(250, 160);
@@ -265,10 +265,23 @@ export function drawCompleteArea(area) {
     drawFirefly(350, 130, state.frameCount);
     drawFirefly(550, 200, state.frameCount);
 
-    drawNavigationIndicator(30, 240, 'left', 'Gate');
-    if (state.logsCleared) {
-      drawNavigationIndicator(320, 30, 'up', 'Water');
+    // Ladybug sighting animation (first entry only)
+    if (state.woodsSightingPhase >= 0 && state.woodsSightingPhase < 90) {
+      const p = state.woodsSightingPhase / 90;
+      const lbX = 200 + p * 300;
+      const lbY = 300 - p * 400;
+      if (lbY > -20) {
+        drawLadybug(lbX, lbY);
+      }
+      // Extra fireflies burst during sighting
+      for (let i = 0; i < 4; i++) {
+        const fx = 150 + i * 100 + Math.sin(state.frameCount * 0.03 + i) * 30;
+        const fy = 250 - p * 200 + Math.cos(state.frameCount * 0.02 + i * 2) * 40;
+        if (fy > 0) drawFirefly(fx, fy, state.frameCount + i * 50);
+      }
     }
+
+    drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Gate');
 
   } else if (area === 'boathouse') {
     ctx.fillStyle = '#4682b4';
@@ -318,6 +331,7 @@ export function drawCompleteArea(area) {
 
     drawNPC(npcs.fisherman, npcs.fisherman.x, npcs.fisherman.y);
 
-    drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Woods');
+    drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Park');
+    drawNavigationIndicator(canvasWidth - 30, 240, 'right', 'Gate');
   }
 }

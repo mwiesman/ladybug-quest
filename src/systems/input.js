@@ -3,7 +3,7 @@
 export const keys = {};
 export let spacePressed = false;
 
-export function initInput(onSpace, onRestart, onMuteToggle, onEscape, onManualSave, onContinue, onNewGame) {
+export function initInput(onSpace, onRestart, onMuteToggle, onEscape, onManualSave, onContinue, onNewGame, onMapToggle) {
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
       if (!spacePressed) {
@@ -35,6 +35,11 @@ export function initInput(onSpace, onRestart, onMuteToggle, onEscape, onManualSa
 
     if (e.key === 'n' || e.key === 'N') {
       if (onNewGame) onNewGame();
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (onMapToggle) onMapToggle();
     }
   });
 

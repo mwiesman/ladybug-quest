@@ -8,7 +8,7 @@ export const WORLD_ITEMS = {
     collected: false
   },
   doubloons: {
-    x: 470, y: 180, area: 'woods',
+    x: 520, y: 160, area: 'gate_area',
     name: 'Gold Doubloons',
     collected: false
     // Easter egg - completely useless, NPCs ignore it

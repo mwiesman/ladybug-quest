@@ -47,6 +47,8 @@ npm run preview
 - **Arrow Keys** or **WASD**: Move
 - **Space**: Interact with NPCs and objects / Advance dialog / Skip cutscenes
 - **ESC**: Decline a trade
+- **Tab**: Open/close world map
+- **P**: Manual save (during gameplay)
 - **M**: Toggle audio mute
 - **R** (on credits screen): Restart game
 
@@ -112,3 +114,7 @@ src/
 - Opening and ending cutscene sequences
 - Pokemon GBA-inspired pixel art aesthetic
 - Contemplative, story-driven experience (no combat)
+- Save system with auto-save and manual save
+- Smooth fade-to-black screen transitions
+- World map overlay (Tab key)
+- Environmental animations (butterflies, fireflies, water ripples)

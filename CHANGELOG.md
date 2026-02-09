@@ -4,6 +4,49 @@ All notable changes to The Ladybug Quest project.
 
 ## [Unreleased]
 
+### World Rework, Transitions & Map
+**Date:** 2026-02-08
+
+#### Added
+- **World Layout Rework**: Restructured map so Boathouse is accessible early
+  - New layout: Meadow ↔ Park ↔ Boathouse ↔ Gate Area ↔ Woods (+ Playground below Park)
+  - Fisherman quest feels natural since you can reach him immediately
+  - Woods/Forest is now an optional late-game area behind the logs
+
+- **Quest Chain Restructure**:
+  - Main path: Birdseed → Bird → Key → Gate → Squirrel → Ball → Dog → Rope → Fisherman → Net → Ladybug
+  - Side path: Gum → Hippie → Flower → Kid → Axe → clear logs → Woods (optional exploration)
+  - Dog moved to Park, Kid now gives Axe, Squirrel now gives Ball
+
+- **Screen Fade Transitions**: Smooth fade-to-black between area transitions
+  - ~0.5s fade out, area swap, ~0.5s fade in
+
+- **Map Overlay** (Tab key): Canvas-drawn map showing all 6 areas
+  - Current area highlighted in pink
+  - Connections between areas shown as lines
+  - Blocked paths (logs) shown as dashed/dimmed
+
+- **Ladybug Woods Sighting**: First-time Woods entry triggers a brief animation
+  - Ladybug flies across the screen among a burst of extra fireflies
+
+- **Save System**:
+  - Auto-saves at area transitions, item pickups, NPC trades, gate unlock, logs cleared
+  - Manual save with P key (shows "Game Saved" notification)
+  - Continue / New Game prompt on launch when a save exists
+  - LocalStorage persistence with version checking
+
+#### Changed
+- Dog NPC relocated from Woods to Park
+- Doubloons hidden in Gate Area (behind logs) instead of Woods
+- Gate Area now has stone walls forming gated corner + log blockade to Woods
+- Save version bumped to 2 (old saves invalidated by layout change)
+
+#### Technical
+- Build: 21 modules → ~46KB JS bundle
+- Zero build errors
+
+---
+
 ### Modular Restructure (v3 → Vite Project)
 **Date:** 2026-02-08
 
@@ -94,10 +137,6 @@ All notable changes to The Ladybug Quest project.
 
 ## Future Roadmap
 
-### Save System
-- LocalStorage persistence
-- Save/load game state
-- Continue from last position
-
 ### Additional Polish
 - Character scaling (larger/boxier sprites for faster feel)
+- Mobile/touch controls

@@ -12,7 +12,8 @@ export const GAME_STATE = {
   DIALOG: 'dialog',
   ENDING_ANIMATION: 'ending_animation',
   CUTSCENE_ENDING: 'cutscene_ending',
-  CREDITS: 'credits'
+  CREDITS: 'credits',
+  MAP: 'map'
 };
 
 // Deep-clone NPC data so runtime state doesn't mutate the definitions
@@ -80,6 +81,16 @@ export const state = {
   // Interaction hint
   nearInteractable: false,
 
+  // Woods first entry (ladybug sighting animation)
+  woodsFirstEntry: true,
+  woodsSightingPhase: -1, // -1 = not active, 0+ = animation frame counter
+
+  // Screen transition
+  transitioning: false,
+  transitionAlpha: 0,
+  transitionTarget: null,
+  transitionPhase: 'out',
+
   // Global frame counter for environmental animations
   frameCount: 0
 };
@@ -103,5 +114,11 @@ export function resetState() {
   state.dialogIndex = 0;
   state.dialogSpeaker = null;
   state.nearInteractable = false;
+  state.woodsFirstEntry = true;
+  state.woodsSightingPhase = -1;
+  state.transitioning = false;
+  state.transitionAlpha = 0;
+  state.transitionTarget = null;
+  state.transitionPhase = 'out';
   state.frameCount = 0;
 }
