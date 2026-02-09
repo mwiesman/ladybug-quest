@@ -157,11 +157,29 @@ export function drawCompleteArea(area) {
     drawTree(200, 320);
     drawTree(500, 350);
 
+    // Stone walls forming gated corner (upper-right)
     ctx.fillStyle = '#808080';
-    for (let x = 300; x < 400; x += 16) {
-      for (let y = 80; y < 160; y += 16) {
-        ctx.fillRect(x + Math.random() * 4, y + Math.random() * 4, 12, 12);
-      }
+    // Vertical wall on right side
+    for (let y = 0; y < 200; y += 16) {
+      ctx.fillRect(canvasWidth - 60 + ((y * 7) % 8), y + ((y * 13) % 8), 14, 14);
+    }
+    // Horizontal wall across top
+    for (let x = 400; x < canvasWidth; x += 16) {
+      ctx.fillRect(x + ((x * 11) % 8), 40 + ((x * 5) % 8), 14, 14);
+    }
+    // Wall connecting to gate
+    for (let y = 40; y < 140; y += 16) {
+      ctx.fillRect(400 + ((y * 9) % 8), y + ((y * 7) % 8), 14, 14);
+    }
+
+    // Acorns scattered in gated area (if squirrel hasn't gotten them yet)
+    if (!state.gateUnlocked || npcs.squirrel.behindGate) {
+      ctx.fillStyle = '#8b4513';
+      const acornPositions = [[500, 80], [550, 100], [520, 130], [480, 110], [560, 140]];
+      acornPositions.forEach(([ax, ay]) => {
+        ctx.fillRect(ax, ay, 4, 6);
+        ctx.fillRect(ax + 1, ay - 2, 2, 2);
+      });
     }
 
     drawGate(360, 120);

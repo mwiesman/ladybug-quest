@@ -51,12 +51,20 @@ export function checkCollision(x, y, w, h) {
     if (x < 146 && x + w > 118 && y < 302 && y + h > 278) return true; // Rock at (120, 280)
     if (x < 506 && x + w > 478 && y < 342 && y + h > 318) return true; // Rock at (480, 320)
   } else if (area === 'gate_area') {
+    // Gate collision
     if (!state.gateUnlocked) {
       if (x < GATE_X + 24 && x + w > GATE_X &&
           y < GATE_Y + 32 && y + h > GATE_Y) {
         return true;
       }
     }
+    // Stone walls forming gated corner
+    // Right wall
+    if (x + w > 580 && y < 200) return true;
+    // Top wall
+    if (y < 54 && x > 400) return true;
+    // Left connecting wall
+    if (x < 414 && x + w > 400 && y < 140 && y + h > 40) return true;
   } else if (area === 'woods') {
     if (!state.logsCleared) {
       if (x < LOGS_X + 50 && x + w > LOGS_X &&
