@@ -6,6 +6,7 @@ import { inventory } from './inventory.js';
 import { showDialog } from './dialog.js';
 import { ENDING_CUTSCENE } from '../data/cutscenes.js';
 import { playSFX } from './audio.js';
+import { saveGame } from './save.js';
 
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
@@ -44,6 +45,7 @@ export function checkInteraction() {
       worldItems.birdseed.collected = true;
       playSFX('pickup');
       inventory.addItem('Birdseed');
+      saveGame();
       return;
     }
   }
@@ -55,6 +57,7 @@ export function checkInteraction() {
       worldItems.doubloons.collected = true;
       playSFX('pickup');
       inventory.addItem('Gold Doubloons');
+      saveGame();
       return;
     }
   }
@@ -66,6 +69,7 @@ export function checkInteraction() {
       playSFX('gate_unlock');
       inventory.removeItem('Key');
       npcs.squirrel.behindGate = false;
+      saveGame();
       return;
     }
   }
@@ -78,6 +82,7 @@ export function checkInteraction() {
         state.logsCleared = true;
         playSFX('logs_clear');
         inventory.removeItem('Axe');
+        saveGame();
       } else {
         // Show "need more than arms" message
         showDialog({

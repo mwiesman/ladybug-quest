@@ -189,6 +189,30 @@ canvas {
     margin: 10px 0;
 }
 
+#savePrompt {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+#savePrompt.active {
+    display: flex;
+}
+
+.save-prompt-title {
+    color: #ff6b9d;
+    font-size: 14px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.save-prompt-options {
+    color: #ffff00;
+    font-size: 10px;
+    text-shadow: 2px 2px 0 #000;
+}
+
 .fade-in {
     animation: fadeIn 2s ease-in;
 }

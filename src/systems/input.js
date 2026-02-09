@@ -3,7 +3,7 @@
 export const keys = {};
 export let spacePressed = false;
 
-export function initInput(onSpace, onRestart, onMuteToggle, onEscape) {
+export function initInput(onSpace, onRestart, onMuteToggle, onEscape, onManualSave, onContinue, onNewGame) {
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
       if (!spacePressed) {
@@ -23,6 +23,18 @@ export function initInput(onSpace, onRestart, onMuteToggle, onEscape) {
 
     if (e.key === 'm' || e.key === 'M') {
       if (onMuteToggle) onMuteToggle();
+    }
+
+    if (e.key === 'p' || e.key === 'P') {
+      if (onManualSave) onManualSave();
+    }
+
+    if (e.key === 'c' || e.key === 'C') {
+      if (onContinue) onContinue();
+    }
+
+    if (e.key === 'n' || e.key === 'N') {
+      if (onNewGame) onNewGame();
     }
   });
 

@@ -4,6 +4,7 @@
 import { state, GAME_STATE } from './state.js';
 import { player } from './player.js';
 import { playMusic, playSFX } from '../systems/audio.js';
+import { saveGame } from '../systems/save.js';
 
 // Transition player to a new area, repositioning them at the correct edge
 export function transitionToArea(newArea) {
@@ -37,6 +38,8 @@ export function transitionToArea(newArea) {
   } else {
     player.x = 320; player.y = 240;
   }
+
+  saveGame();
 }
 
 // Check if player is at an area boundary and transition if needed

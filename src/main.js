@@ -13,10 +13,11 @@ import { checkInteraction, checkNearInteractable } from './systems/interaction.j
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
-import { setContext as setUICtx, drawInteractionPrompt } from './rendering/ui.js';
+import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
 import { initSprites } from './rendering/spriteLoader.js';
 import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
+import { saveGame, loadSaveData, applySaveData, hasSave, deleteSave } from './systems/save.js';
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
@@ -32,9 +33,12 @@ const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
 const skipButton = document.getElementById('skipButton');
 const credits = document.getElementById('credits');
+const savePrompt = document.getElementById('savePrompt');
+
+let showingSavePrompt = false;
 
 // Input
-initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape);
+initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape, handleManualSave, handleContinue, handleNewGame);
 
 skipButton.addEventListener('click', skipCutscene);
 
@@ -68,6 +72,38 @@ function handleEscape() {
     state.tradePrompted = false;
     closeDialog();
   }
+}
+
+function handleManualSave() {
+  if (state.currentState === GAME_STATE.PLAYING) {
+    saveGame();
+    showSaveNotification();
+  }
+}
+
+function handleContinue() {
+  if (!showingSavePrompt) return;
+  resumeAudioOnInteraction();
+  const data = loadSaveData();
+  if (data) {
+    applySaveData(data);
+    cutsceneOverlay.classList.remove('active');
+    inventory.updateDisplay();
+    playMusic(state.currentArea);
+    showingSavePrompt = false;
+  }
+}
+
+function handleNewGame() {
+  if (!showingSavePrompt) return;
+  resumeAudioOnInteraction();
+  deleteSave();
+  savePrompt.classList.remove('active');
+  cutsceneText.style.display = '';
+  skipButton.style.display = '';
+  showingSavePrompt = false;
+  updateCutsceneText();
+  playMusic('cutscene');
 }
 
 function advanceCutscene() {
@@ -110,9 +146,11 @@ function showCredits() {
   cutsceneOverlay.classList.remove('active');
   credits.classList.add('active');
   stopMusic();
+  deleteSave();
 }
 
 function restartGame() {
+  deleteSave();
   resetState();
   resetPlayer();
   inventory.reset();
@@ -307,6 +345,8 @@ function draw() {
   if (checkNearInteractable() && state.currentState === GAME_STATE.PLAYING) {
     drawInteractionPrompt();
   }
+
+  drawSaveNotification();
 }
 
 // Main loop
@@ -319,10 +359,22 @@ function gameLoop() {
 // Initialize
 async function init() {
   await Promise.all([initSprites(), initAudio()]);
-  cutsceneOverlay.classList.add('active');
-  updateCutsceneText();
+
+  if (hasSave()) {
+    // Show Continue / New Game prompt
+    cutsceneOverlay.classList.add('active');
+    cutsceneText.style.display = 'none';
+    skipButton.style.display = 'none';
+    savePrompt.classList.add('active');
+    showingSavePrompt = true;
+  } else {
+    // Normal intro cutscene
+    cutsceneOverlay.classList.add('active');
+    updateCutsceneText();
+    playMusic('cutscene');
+  }
+
   inventory.updateDisplay();
-  playMusic('cutscene');
   gameLoop();
 }
 

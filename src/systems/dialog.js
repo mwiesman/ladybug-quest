@@ -4,6 +4,7 @@ import { state, GAME_STATE } from '../game/state.js';
 import { inventory } from './inventory.js';
 import { getSprite } from '../rendering/spriteLoader.js';
 import { playSFX } from './audio.js';
+import { saveGame } from './save.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
@@ -147,6 +148,7 @@ export function processNPCTrade(npc) {
     playSFX('trade');
     inventory.addItem(npc.givesItem);
     npc.completed = true;
+    saveGame();
     return;
   }
 
@@ -156,6 +158,7 @@ export function processNPCTrade(npc) {
     inventory.addItem(npc.givesItem);
     npc.completed = true;
     npc.behindGate = false;
+    saveGame();
     return;
   }
 
@@ -165,5 +168,6 @@ export function processNPCTrade(npc) {
     inventory.removeItem(npc.needsItem);
     inventory.addItem(npc.givesItem);
     npc.completed = true;
+    saveGame();
   }
 }
