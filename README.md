@@ -65,6 +65,17 @@ src/
 - **Vanilla JS** - ES6 modules
 - **Canvas API** - 2D rendering (procedural pixel art)
 
-## Design Documentation
+## Documentation
 
-See the design docs in the parent directory for full game design, story, and mechanics details.
+- **[DESIGN.md](../DESIGN.md)** - Complete game design document (story, characters, world design, mechanics)
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and roadmap
+- **[SPRITE_REQUIREMENTS.md](SPRITE_REQUIREMENTS.md)** - Sprite asset specifications for future sprite system
+
+## Game Features
+
+- 6 interconnected areas to explore
+- 8 unique NPCs with personality and purpose
+- Item-based quest chain with meaningful trades
+- Opening and ending cutscene sequences
+- Pokemon GBA-inspired pixel art aesthetic
+- Contemplative, story-driven experience (no combat)
