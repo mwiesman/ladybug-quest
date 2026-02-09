@@ -46,8 +46,8 @@ export function checkInteraction() {
     }
   }
 
-  // Gold doubloons pickup
-  if (!worldItems.doubloons.collected && currentArea === 'gate_area') {
+  // Gold doubloons pickup (behind logs in woods)
+  if (!worldItems.doubloons.collected && currentArea === 'woods' && logsCleared) {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       worldItems.doubloons.collected = true;
@@ -66,11 +66,20 @@ export function checkInteraction() {
     }
   }
 
-  // Logs clearing with axe
-  if (!logsCleared && currentArea === 'woods' && inventory.hasItem('Axe')) {
+  // Logs interaction
+  if (!logsCleared && currentArea === 'woods') {
     if (Math.abs(player.x - 450) < 40 && Math.abs(player.y - 200) < 40) {
-      state.logsCleared = true;
-      inventory.removeItem('Axe');
+      if (inventory.hasItem('Axe')) {
+        // Clear logs with axe
+        state.logsCleared = true;
+        inventory.removeItem('Axe');
+      } else {
+        // Show "need more than arms" message
+        showDialog({
+          dialog: ["*Looks like you'll need more than just your arms to get past these logs.*"],
+          isStatic: true
+        });
+      }
       return;
     }
   }
@@ -99,6 +108,21 @@ export function checkNearInteractable() {
   if (!worldItems.birdseed.collected && currentArea === 'park') {
     if (Math.abs(player.x - worldItems.birdseed.x) < 30 &&
         Math.abs(player.y - worldItems.birdseed.y) < 30) {
+      return true;
+    }
+  }
+
+  // Logs in woods
+  if (!state.logsCleared && currentArea === 'woods') {
+    if (Math.abs(player.x - 450) < 40 && Math.abs(player.y - 200) < 40) {
+      return true;
+    }
+  }
+
+  // Doubloons in woods (behind logs)
+  if (!worldItems.doubloons.collected && currentArea === 'woods' && state.logsCleared) {
+    if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
+        Math.abs(player.y - worldItems.doubloons.y) < 30) {
       return true;
     }
   }

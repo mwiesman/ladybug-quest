@@ -183,7 +183,6 @@ export function drawCompleteArea(area) {
     }
 
     drawGate(360, 120);
-    drawLeafPile(worldItems.doubloons.x, worldItems.doubloons.y);
 
     drawLeafPile(150, 250);
     drawLeafPile(450, 280);
@@ -225,8 +224,8 @@ export function drawCompleteArea(area) {
     drawTree(420, 360);
 
     for (let i = 0; i < 20; i++) {
-      const x = Math.random() * canvasWidth;
-      const y = Math.random() * canvasHeight;
+      const x = (i * 137) % canvasWidth;
+      const y = (i * 219) % canvasHeight;
       ctx.fillStyle = '#5a7c1f';
       ctx.fillRect(x, y, 4, 4);
     }
@@ -238,6 +237,12 @@ export function drawCompleteArea(area) {
     ctx.fillRect(345, 296, 2, 4);
 
     drawLogs(450, 200);
+
+    // Doubloons behind logs (only visible after clearing)
+    if (state.logsCleared && !worldItems.doubloons.collected) {
+      drawLeafPile(worldItems.doubloons.x, worldItems.doubloons.y);
+    }
+
     drawNPC(npcs.dog, npcs.dog.x, npcs.dog.y);
 
     drawRock(100, 350);

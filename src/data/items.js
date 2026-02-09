@@ -8,10 +8,11 @@ export const WORLD_ITEMS = {
     collected: false
   },
   doubloons: {
-    x: 300, y: 200, area: 'gate_area',
+    x: 470, y: 180, area: 'woods',
     name: 'Gold Doubloons',
     collected: false
     // Easter egg - completely useless, NPCs ignore it
+    // Hidden behind logs until cleared
   }
 };
 
