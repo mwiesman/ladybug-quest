@@ -75,6 +75,7 @@ export const state = {
   currentDialog: null,
   dialogIndex: 0,
   dialogSpeaker: null,
+  tradePrompted: false,
 
   // Interaction hint
   nearInteractable: false

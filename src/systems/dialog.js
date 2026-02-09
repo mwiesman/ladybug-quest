@@ -29,11 +29,25 @@ export function advanceDialog() {
   state.dialogIndex++;
 
   const dialogArray = resolveDialogArray(state.currentDialog);
+  const npc = state.currentDialog;
 
+  // Check if we've reached the end of dialog
   if (state.dialogIndex >= dialogArray.length) {
-    const npc = state.currentDialog;
-    closeDialog();
-    processNPCTrade(npc);
+    // Check if trade is available and not yet prompted
+    if (shouldPromptTrade(npc) && !state.tradePrompted) {
+      // Show trade confirmation prompt
+      state.tradePrompted = true;
+      state.dialogIndex = dialogArray.length; // Stay at end
+      showTradePrompt(npc);
+    } else {
+      // Close dialog and execute trade if confirmed
+      const shouldTrade = state.tradePrompted;
+      state.tradePrompted = false;
+      closeDialog();
+      if (shouldTrade) {
+        processNPCTrade(npc);
+      }
+    }
   } else {
     updateDialogText();
   }
@@ -51,6 +65,34 @@ function updateDialogText() {
   const dialogArray = resolveDialogArray(state.currentDialog);
   if (state.dialogIndex < dialogArray.length) {
     dialogText.textContent = dialogArray[state.dialogIndex];
+  }
+}
+
+function shouldPromptTrade(npc) {
+  if (!npc || npc.completed || npc.isVendor) return false;
+
+  // Squirrel special case
+  if (npc.needsItem === 'Gate Unlocked') {
+    return state.gateUnlocked && !npc.completed;
+  }
+
+  // Standard trade: check if player has needed item
+  return npc.needsItem && inventory.hasItem(npc.needsItem);
+}
+
+function showTradePrompt(npc) {
+  const itemName = npc.needsItem === 'Gate Unlocked' ? 'gate unlocked' : npc.needsItem;
+  const npcName = npc === state.npcs.dog ? 'dog' :
+                  npc === state.npcs.bird ? 'bird' :
+                  npc === state.npcs.squirrel ? 'squirrel' :
+                  npc === state.npcs.hippie ? 'hippie' :
+                  npc === state.npcs.kid ? 'kid' :
+                  npc === state.npcs.fisherman ? 'fisherman' : 'them';
+
+  if (npc.needsItem === 'Gate Unlocked') {
+    dialogText.textContent = `*The gate is unlocked. The squirrel can get its acorns now!*`;
+  } else {
+    dialogText.textContent = `*Give ${npcName} the ${itemName}?*`;
   }
 }
 
