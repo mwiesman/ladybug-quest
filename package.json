@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "description": "The Ladybug Quest - A story of infinite pursuit",
   "type": "module",
+  "author": "Mathew Wiesman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwiesman/ladybug-quest.git"
+  },
+  "keywords": [
+    "game",
+    "pixel-art",
+    "adventure",
+    "canvas",
+    "javascript",
+    "pokemon-inspired"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
