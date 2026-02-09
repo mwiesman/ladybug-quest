@@ -42,6 +42,23 @@ export function drawCompleteArea(area) {
     drawRock(120, 280);
     drawRock(480, 320);
 
+    // Ladybug resting on a leaf near the tree
+    if (!state.ladybug.found) {
+      // Draw simple green leaf
+      ctx.fillStyle = '#228b22';
+      ctx.beginPath();
+      ctx.ellipse(state.ladybug.x, state.ladybug.y - 5, 15, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#1a5012';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(state.ladybug.x, state.ladybug.y - 10);
+      ctx.lineTo(state.ladybug.x, state.ladybug.y);
+      ctx.stroke();
+
+      drawLadybug(state.ladybug.x, state.ladybug.y);
+    }
+
     ctx.fillStyle = '#d2b48c';
     for (let y = 150; y < 300; y += 20) {
       ctx.fillRect(canvasWidth - 60, y, 30, 10);
@@ -259,22 +276,6 @@ export function drawCompleteArea(area) {
     ctx.fillRect(179, 280, 5, 6);
 
     drawNPC(npcs.fisherman, npcs.fisherman.x, npcs.fisherman.y);
-
-    if (!state.ladybug.found) {
-      ctx.fillStyle = '#228b22';
-      ctx.beginPath();
-      ctx.ellipse(state.ladybug.x, state.ladybug.y - 5, 15, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = '#1a5012';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(state.ladybug.x, state.ladybug.y - 10);
-      ctx.lineTo(state.ladybug.x, state.ladybug.y);
-      ctx.stroke();
-
-      drawLadybug(state.ladybug.x, state.ladybug.y);
-    }
 
     drawNavigationIndicator(320, canvasHeight - 30, 'down', 'Woods');
   }

@@ -9,7 +9,9 @@ export const NPC_DATA = {
       "But I need rope first. Broke my line on the big one."
     ],
     dialogComplete: [
-      "Here's the net. Hope it helps you catch what you're looking for."
+      "Here's the net. Hope it helps you catch what you're looking for.",
+      "Oh, and I saw a little red ladybug resting on a leaf...",
+      "Near that big old oak tree back in the meadow."
     ],
     needsItem: 'Rope',
     givesItem: 'Net',

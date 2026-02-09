@@ -155,6 +155,19 @@ function update() {
     return;
   }
 
+  if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
+    state.endingPhase++;
+    // Phase 0-60: Girl misses with net, ladybug flies up
+    // Phase 60-100: Ladybug flies to boy's hand
+    // Phase 100-140: Girl reaches for it
+    // Phase 140-180: Ladybug flies away
+    // Phase 180+: Roll credits
+    if (state.endingPhase > 180) {
+      showCredits();
+    }
+    return;
+  }
+
   if (state.currentState !== GAME_STATE.PLAYING) return;
 
   // Player movement
@@ -231,6 +244,36 @@ function draw() {
       const flyX = 295 + progress * 150;
       const flyY = 198 - progress * 200;
       if (flyY > 0) drawLadybug(flyX, flyY);
+    }
+    return;
+  }
+
+  if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
+    drawCompleteArea('meadow');
+    drawPlayer(player.x, player.y);
+    drawBoy(state.boy.x, state.boy.y);
+
+    // Animate ending sequence
+    if (state.endingPhase < 60) {
+      // Ladybug still on leaf, girl approaches
+      const ladybugX = 295;
+      const ladybugY = 195;
+      drawLadybug(ladybugX, ladybugY);
+    } else if (state.endingPhase < 100) {
+      // Ladybug flies to boy's hand
+      const progress = (state.endingPhase - 60) / 40;
+      const ladybugX = 295 - progress * (295 - state.boy.x);
+      const ladybugY = 195 - progress * (195 - (state.boy.y - 10));
+      drawLadybug(ladybugX, ladybugY);
+    } else if (state.endingPhase < 140) {
+      // Ladybug on boy's hand
+      drawLadybug(state.boy.x, state.boy.y - 10);
+    } else if (state.endingPhase < 180) {
+      // Ladybug flies away
+      const progress = (state.endingPhase - 140) / 40;
+      const ladybugX = state.boy.x + progress * 150;
+      const ladybugY = state.boy.y - 10 - progress * 200;
+      if (ladybugY > 0) drawLadybug(ladybugX, ladybugY);
     }
     return;
   }

@@ -10,6 +10,7 @@ export const GAME_STATE = {
   INTRO_ANIMATION: 'intro_animation',
   PLAYING: 'playing',
   DIALOG: 'dialog',
+  ENDING_ANIMATION: 'ending_animation',
   CUTSCENE_ENDING: 'cutscene_ending',
   CREDITS: 'credits'
 };
@@ -40,6 +41,7 @@ export const state = {
   cutsceneFrame: 0,
   cutsceneTimer: 0,
   animationPhase: 0,
+  endingPhase: 0,
   currentCutscene: INTRO_CUTSCENE,
   currentCutsceneIndex: 0,
 
@@ -53,10 +55,10 @@ export const state = {
   // World items (collectibles)
   worldItems: initWorldItems(),
 
-  // Ladybug
+  // Ladybug - resting on a leaf near the big tree
   ladybug: {
-    x: 580,
-    y: 120,
+    x: 295,
+    y: 195,
     size: 12,
     found: false,
     pulse: 0

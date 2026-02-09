@@ -75,12 +75,12 @@ export function checkInteraction() {
     }
   }
 
-  // Ladybug interaction - triggers ending cutscene
-  if (inventory.hasItem('Net') && currentArea === 'boathouse') {
+  // Ladybug interaction - triggers ending animation
+  if (inventory.hasItem('Net') && currentArea === 'meadow') {
     const dx = player.x - ladybug.x;
     const dy = player.y - ladybug.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 50) {
-      triggerEndingCutscene();
+    if (Math.sqrt(dx * dx + dy * dy) < 60) {
+      triggerEndingAnimation();
     }
   }
 }
@@ -106,11 +106,9 @@ export function checkNearInteractable() {
   return false;
 }
 
-function triggerEndingCutscene() {
-  state.currentState = GAME_STATE.CUTSCENE_ENDING;
-  state.currentCutscene = ENDING_CUTSCENE;
-  state.currentCutsceneIndex = 0;
-  state.cutsceneTimer = 0;
-  cutsceneOverlay.classList.add('active');
-  cutsceneText.textContent = state.currentCutscene[0].text;
+function triggerEndingAnimation() {
+  state.currentState = GAME_STATE.ENDING_ANIMATION;
+  state.endingPhase = 0;
+  state.ladybug.found = true;
+  inventory.removeItem('Net');
 }
