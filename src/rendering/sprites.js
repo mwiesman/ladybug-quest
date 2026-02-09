@@ -592,6 +592,31 @@ export function drawLargeTree(x, y) {
   ctx.fillRect(x + 10 * scale, y + 10 * scale, 12 * scale, 8 * scale);
 }
 
+export function drawCamperdownElm(x, y) {
+  // Camperdown Elm - weeping/drooping canopy
+  // Trunk
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x + 14, y + 20, 8, 16);
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(x + 15, y + 21, 6, 14);
+
+  // Wide, low, drooping canopy
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x - 2, y + 8, 40, 20);
+  ctx.fillStyle = '#2d5016';
+  ctx.fillRect(x, y + 10, 36, 16);
+  ctx.fillStyle = '#3a6b1f';
+  ctx.fillRect(x + 2, y + 12, 32, 12);
+
+  // Plaque
+  ctx.fillStyle = '#8b7355';
+  ctx.fillRect(x + 8, y + 38, 20, 8);
+  ctx.fillStyle = '#000';
+  ctx.font = '6px "Press Start 2P"';
+  ctx.fillText('Camperdown', x + 9, y + 43);
+  ctx.fillText('Elm', x + 13, y + 48);
+}
+
 export function drawFlowers(x, y, color) {
   ctx.fillStyle = '#000';
   ctx.fillRect(x - 1, y - 1, 8, 8);

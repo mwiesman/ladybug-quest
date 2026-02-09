@@ -2,7 +2,7 @@
 
 import { state } from '../game/state.js';
 import {
-  drawGroundTexture, drawTree, drawLargeTree, drawFlowers, drawRock, drawNPC,
+  drawGroundTexture, drawTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
   drawBoy, drawGate, drawLogs, drawLeafPile, drawLadybug,
   drawNavigationIndicator
 } from './sprites.js';
@@ -267,6 +267,7 @@ export function drawCompleteArea(area) {
     drawTree(100, 80);
     drawTree(300, 100);
     drawTree(50, 200);
+    drawCamperdownElm(400, 60);
 
     ctx.fillStyle = '#8b4513';
     ctx.fillRect(160, 290, 3, 20);

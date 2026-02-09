@@ -49,6 +49,10 @@ export const NPC_DATA = {
       "*running around* Wheeee!",
       "Are you looking for something? I like flowers!"
     ],
+    dialogComplete: [
+      "*playing with toy* Wheee!",
+      "This is the best day ever!"
+    ],
     needsItem: 'Flower',
     givesItem: 'Dog Toy',
     completed: false
@@ -65,6 +69,10 @@ export const NPC_DATA = {
       "*sketching peacefully*",
       "Beautiful day. Perfect for existing.",
       "You seem like you're on a mission though."
+    ],
+    dialogComplete: [
+      "*still sketching*",
+      "The flower found its way. Cool."
     ],
     needsItem: 'Gum',
     givesItem: 'Flower',
@@ -84,6 +92,10 @@ export const NPC_DATA = {
       "*points at acorns on the other side*",
       "Please! I need my acorns!"
     ],
+    dialogComplete: [
+      "*munching happily on acorns*",
+      "*happy chittering sounds*"
+    ],
     needsItem: 'Gate Unlocked',
     givesItem: 'Axe',
     completed: false,
@@ -102,6 +114,10 @@ export const NPC_DATA = {
       "*Chirp chirp!* *hops around*",
       "*eyes the birdseed hopefully*"
     ],
+    dialogComplete: [
+      "*content chirping*",
+      "*pecking at seeds happily*"
+    ],
     needsItem: 'Birdseed',
     givesItem: 'Key',
     completed: false
@@ -113,6 +129,10 @@ export const NPC_DATA = {
       "Perfect day for the park.",
       "*hands you a warm cup*"
     ],
+    dialogComplete: [
+      "Enjoy the coffee!",
+      "Come back anytime."
+    ],
     givesItem: 'Coffee',
     completed: false,
     isVendor: true
@@ -123,9 +143,9 @@ export const NPC_DATA = {
       "*watching their kid*",
       "Beautiful day, isn't it?"
     ],
-    dialogAfterToy: [
-      "*looking around* Where'd that toy go?",
-      "Kids... *shrugs*"
+    dialogComplete: [
+      "*still watching their kid*",
+      "Kids have so much energy!"
     ]
   }
 };
