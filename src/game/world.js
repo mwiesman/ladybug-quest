@@ -23,9 +23,9 @@ export function transitionToArea(newArea) {
   } else if (old === 'gate_area' && newArea === 'park') {
     player.x = 320; player.y = 30;
   } else if (old === 'gate_area' && newArea === 'woods') {
-    player.x = 610; player.y = 240;
-  } else if (old === 'woods' && newArea === 'gate_area') {
     player.x = 30; player.y = 240;
+  } else if (old === 'woods' && newArea === 'gate_area') {
+    player.x = 610; player.y = 240;
   } else if (old === 'woods' && newArea === 'boathouse') {
     player.x = 320; player.y = 450;
   } else if (old === 'boathouse' && newArea === 'woods') {

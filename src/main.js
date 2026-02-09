@@ -134,15 +134,22 @@ function update() {
 
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     state.animationPhase++;
-    if (state.animationPhase < 60) {
-      // Girl stands up and steps away from tree (200 → 270)
-      player.y = 200 + (state.animationPhase / 60) * 70;
-    } else if (state.animationPhase === 60) {
+
+    // Phase 0-40: Ladybug flies off
+    // Phase 40-80: Girl walks down away from tree
+    // Phase 80: Boy's dialog appears
+    // Phase 120+: Start game
+
+    if (state.animationPhase >= 40 && state.animationPhase < 80) {
+      // Girl walks down (200 → 270)
+      const walkProgress = (state.animationPhase - 40) / 40;
+      player.y = 200 + walkProgress * 70;
+    } else if (state.animationPhase === 80) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
         isStatic: true
       });
-    } else if (state.animationPhase > 100) {
+    } else if (state.animationPhase > 120) {
       startGame();
     }
     return;
@@ -203,19 +210,13 @@ function draw() {
     ctx.fillStyle = '#6b8e23';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawLargeTree(220, 100);
-    drawBoy(250, 200);
-    drawPlayer(280, 200);
+    // Both start together under the tree
+    drawBoy(280, 200);
+    drawPlayer(310, 200);
 
-    // Ladybug appears on beat 3 ("A tiny ladybug landed...") and stays through beat 4
-    if (state.currentCutsceneIndex === 3 || state.currentCutsceneIndex === 4) {
-      drawLadybug(265, 198);
-    }
-    // Beat 5: ladybug takes flight - animate flying away
-    else if (state.currentCutsceneIndex === 5) {
-      const progress = state.cutsceneTimer / 240; // 240 = beat 5 duration
-      const flyX = 265 + progress * 100;
-      const flyY = 198 - progress * 150;
-      if (flyY > 0) drawLadybug(flyX, flyY);
+    // Ladybug appears on beat 3 ("A tiny ladybug landed...") through beat 5
+    if (state.currentCutsceneIndex >= 3 && state.currentCutsceneIndex <= 5) {
+      drawLadybug(295, 198);
     }
     return;
   }
@@ -223,6 +224,14 @@ function draw() {
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     drawCompleteArea('meadow');
     drawPlayer(player.x, player.y);
+
+    // Ladybug flies off during first 40 frames
+    if (state.animationPhase < 40) {
+      const progress = state.animationPhase / 40;
+      const flyX = 295 + progress * 150;
+      const flyY = 198 - progress * 200;
+      if (flyY > 0) drawLadybug(flyX, flyY);
+    }
     return;
   }
 
