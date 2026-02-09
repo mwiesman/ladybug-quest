@@ -3,11 +3,15 @@
 
 import { state, GAME_STATE } from './state.js';
 import { player } from './player.js';
+import { playMusic, playSFX } from '../systems/audio.js';
 
 // Transition player to a new area, repositioning them at the correct edge
 export function transitionToArea(newArea) {
   const old = state.currentArea;
   state.currentArea = newArea;
+
+  playSFX('area_transition');
+  playMusic(newArea);
 
   // Position player at the entry edge of the new area
   if (old === 'meadow' && newArea === 'park') {

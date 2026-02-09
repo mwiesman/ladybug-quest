@@ -5,6 +5,7 @@ import { player } from '../game/player.js';
 import { inventory } from './inventory.js';
 import { showDialog } from './dialog.js';
 import { ENDING_CUTSCENE } from '../data/cutscenes.js';
+import { playSFX } from './audio.js';
 
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
@@ -41,6 +42,7 @@ export function checkInteraction() {
     if (Math.abs(player.x - worldItems.birdseed.x) < 30 &&
         Math.abs(player.y - worldItems.birdseed.y) < 30) {
       worldItems.birdseed.collected = true;
+      playSFX('pickup');
       inventory.addItem('Birdseed');
       return;
     }
@@ -51,6 +53,7 @@ export function checkInteraction() {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       worldItems.doubloons.collected = true;
+      playSFX('pickup');
       inventory.addItem('Gold Doubloons');
       return;
     }
@@ -60,6 +63,7 @@ export function checkInteraction() {
   if (!gateUnlocked && currentArea === 'gate_area' && inventory.hasItem('Key')) {
     if (Math.abs(player.x - 360) < 40 && Math.abs(player.y - 120) < 40) {
       state.gateUnlocked = true;
+      playSFX('gate_unlock');
       inventory.removeItem('Key');
       npcs.squirrel.behindGate = false;
       return;
@@ -72,6 +76,7 @@ export function checkInteraction() {
       if (inventory.hasItem('Axe')) {
         // Clear logs with axe
         state.logsCleared = true;
+        playSFX('logs_clear');
         inventory.removeItem('Axe');
       } else {
         // Show "need more than arms" message

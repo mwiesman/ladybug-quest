@@ -78,7 +78,10 @@ export const state = {
   tradePrompted: false,
 
   // Interaction hint
-  nearInteractable: false
+  nearInteractable: false,
+
+  // Global frame counter for environmental animations
+  frameCount: 0
 };
 
 // Reset entire state (for restart)
@@ -100,4 +103,5 @@ export function resetState() {
   state.dialogIndex = 0;
   state.dialogSpeaker = null;
   state.nearInteractable = false;
+  state.frameCount = 0;
 }

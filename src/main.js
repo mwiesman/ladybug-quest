@@ -8,13 +8,15 @@ import { player, resetPlayer } from './game/player.js';
 import { checkAreaTransition } from './game/world.js';
 import { initInput, keys } from './systems/input.js';
 import { inventory } from './systems/inventory.js';
-import { showDialog, advanceDialog } from './systems/dialog.js';
+import { showDialog, advanceDialog, closeDialog } from './systems/dialog.js';
 import { checkInteraction, checkNearInteractable } from './systems/interaction.js';
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
 import { setContext as setUICtx, drawInteractionPrompt } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
+import { initSprites } from './rendering/spriteLoader.js';
+import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
@@ -32,11 +34,13 @@ const skipButton = document.getElementById('skipButton');
 const credits = document.getElementById('credits');
 
 // Input
-initInput(handleSpacePress, handleRestart);
+initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape);
 
 skipButton.addEventListener('click', skipCutscene);
 
 function handleSpacePress() {
+  resumeAudioOnInteraction();
+
   if (state.currentState === GAME_STATE.CUTSCENE_INTRO ||
       state.currentState === GAME_STATE.CUTSCENE_ENDING) {
     // Advance to next cutscene beat
@@ -52,6 +56,17 @@ function handleSpacePress() {
 function handleRestart() {
   if (state.currentState === GAME_STATE.CREDITS) {
     restartGame();
+  }
+}
+
+function handleMuteToggle() {
+  toggleMute();
+}
+
+function handleEscape() {
+  if (state.tradePrompted) {
+    state.tradePrompted = false;
+    closeDialog();
   }
 }
 
@@ -87,12 +102,14 @@ function startIntroAnimation() {
 function startGame() {
   state.currentState = GAME_STATE.PLAYING;
   inventory.updateDisplay();
+  playMusic(state.currentArea);
 }
 
 function showCredits() {
   state.currentState = GAME_STATE.CREDITS;
   cutsceneOverlay.classList.remove('active');
   credits.classList.add('active');
+  stopMusic();
 }
 
 function restartGame() {
@@ -102,6 +119,7 @@ function restartGame() {
   credits.classList.remove('active');
   cutsceneOverlay.classList.add('active');
   updateCutsceneText();
+  playMusic('cutscene');
 }
 
 function updateCutsceneText() {
@@ -112,6 +130,8 @@ function updateCutsceneText() {
 
 // Game update
 function update() {
+  state.frameCount++;
+
   if (state.currentState === GAME_STATE.CUTSCENE_INTRO ||
       state.currentState === GAME_STATE.CUTSCENE_ENDING) {
     state.cutsceneTimer++;
@@ -297,7 +317,13 @@ function gameLoop() {
 }
 
 // Initialize
-cutsceneOverlay.classList.add('active');
-updateCutsceneText();
-inventory.updateDisplay();
-gameLoop();
+async function init() {
+  await Promise.all([initSprites(), initAudio()]);
+  cutsceneOverlay.classList.add('active');
+  updateCutsceneText();
+  inventory.updateDisplay();
+  playMusic('cutscene');
+  gameLoop();
+}
+
+init();

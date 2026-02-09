@@ -4,7 +4,7 @@ import { state } from '../game/state.js';
 import {
   drawGroundTexture, drawTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
   drawBoy, drawGate, drawLogs, drawLeafPile, drawLadybug,
-  drawNavigationIndicator
+  drawNavigationIndicator, drawButterfly, drawFirefly
 } from './sprites.js';
 
 let ctx;
@@ -41,6 +41,11 @@ export function drawCompleteArea(area) {
 
     drawRock(120, 280);
     drawRock(480, 320);
+
+    // Butterflies drifting through the meadow
+    drawButterfly(200, 300, state.frameCount);
+    drawButterfly(450, 250, state.frameCount);
+    drawButterfly(350, 340, state.frameCount);
 
     // Ladybug resting on a leaf near the tree
     if (!state.ladybug.found) {
@@ -94,6 +99,10 @@ export function drawCompleteArea(area) {
     drawFlowers(80, 350, '#ff6347');
     drawFlowers(560, 380, '#ffa500');
     drawFlowers(180, 90, '#ffff00');
+
+    // Butterflies in the park
+    drawButterfly(300, 250, state.frameCount);
+    drawButterfly(120, 300, state.frameCount);
 
     drawNPC(npcs.coffeeCart, npcs.coffeeCart.x, npcs.coffeeCart.y);
     drawNPC(npcs.hippie, npcs.hippie.x, npcs.hippie.y);
@@ -249,6 +258,13 @@ export function drawCompleteArea(area) {
     drawRock(400, 380);
     drawRock(250, 160);
 
+    // Fireflies in the woods
+    drawFirefly(130, 200, state.frameCount);
+    drawFirefly(280, 280, state.frameCount);
+    drawFirefly(470, 320, state.frameCount);
+    drawFirefly(350, 130, state.frameCount);
+    drawFirefly(550, 200, state.frameCount);
+
     drawNavigationIndicator(30, 240, 'left', 'Gate');
     if (state.logsCleared) {
       drawNavigationIndicator(320, 30, 'up', 'Water');
@@ -259,10 +275,11 @@ export function drawCompleteArea(area) {
     ctx.fillRect(0, 300, canvasWidth, canvasHeight - 300);
 
     ctx.fillStyle = '#5a9bd4';
+    const wt = state.frameCount * 0.03;
     for (let x = 0; x < canvasWidth; x += 40) {
-      ctx.fillRect(x, 320 + Math.sin(x * 0.1) * 10, 30, 3);
-      ctx.fillRect(x + 10, 360 + Math.cos(x * 0.1) * 10, 25, 3);
-      ctx.fillRect(x + 5, 400 + Math.sin(x * 0.15) * 8, 28, 3);
+      ctx.fillRect(x, 320 + Math.sin(x * 0.1 + wt) * 10, 30, 3);
+      ctx.fillRect(x + 10, 360 + Math.cos(x * 0.1 + wt * 0.8) * 10, 25, 3);
+      ctx.fillRect(x + 5, 400 + Math.sin(x * 0.15 + wt * 1.2) * 8, 28, 3);
     }
 
     ctx.fillStyle = '#8b4513';

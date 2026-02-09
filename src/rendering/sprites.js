@@ -1,8 +1,10 @@
 // All sprite drawing functions - procedural pixel art (Pokemon GBA style)
 // All sprites use black outlines (#000000) - see DESIGN.md Visual Style section
+// Each function checks for a loaded sprite image first; falls back to procedural drawing.
 
 import { state } from '../game/state.js';
 import { player } from '../game/player.js';
+import { getSprite, getPlayerFrame, getFlowerSpriteKey } from './spriteLoader.js';
 
 let ctx; // Set by renderer.js via setContext()
 
@@ -18,6 +20,15 @@ export function drawOutlinedRect(x, y, w, h, fillColor, outlineColor = '#000') {
 }
 
 export function drawPlayer(x, y) {
+  const sprite = getSprite('player');
+  if (sprite) {
+    const frame = getPlayerFrame(player.direction, player.animFrame);
+    if (frame) {
+      ctx.drawImage(sprite, frame.sx, frame.sy, frame.sw, frame.sh, x, y, frame.sw, frame.sh);
+      return;
+    }
+  }
+
   const dir = player.direction;
   const frame = player.animFrame;
   const legOffset = player.isMoving && frame === 1 ? 2 : 0;
@@ -189,6 +200,9 @@ export function drawPlayer(x, y) {
 }
 
 export function drawBoy(x, y) {
+  const sprite = getSprite('boy');
+  if (sprite) { ctx.drawImage(sprite, x, y); return; }
+
   ctx.save();
   ctx.fillStyle = '#000';
   ctx.fillRect(x + 4, y + 1, 16, 31);
@@ -237,6 +251,27 @@ export function drawBoy(x, y) {
 
 export function drawNPC(npc, x, y) {
   const npcs = state.npcs;
+
+  // Subtle idle bob animation (each NPC gets a unique phase from their x position)
+  const bobOffset = Math.round(Math.sin(Date.now() * 0.002 + (npc.x || 0)) * 1.5);
+  y += bobOffset;
+
+  // Try sprite lookup by NPC identity
+  let spriteKey = null;
+  if (npc === npcs.dog) spriteKey = 'dog';
+  else if (npc === npcs.bird) spriteKey = 'bird';
+  else if (npc === npcs.squirrel) spriteKey = 'squirrel';
+  else if (npc === npcs.hippie) spriteKey = 'hippie';
+  else if (npc === npcs.fisherman) spriteKey = 'fisherman';
+  else if (npc === npcs.kid) spriteKey = 'kid';
+  else if (npc === npcs.parent) spriteKey = 'parent';
+  else if (npc === npcs.coffeeCart) spriteKey = 'coffeeCart';
+
+  if (spriteKey) {
+    const sprite = getSprite(spriteKey);
+    if (sprite) { ctx.drawImage(sprite, x, y); return; }
+  }
+
   ctx.save();
 
   if (npc === npcs.dog) {
@@ -486,6 +521,16 @@ export function drawLadybug(x, y) {
   const scale = 1 + Math.sin(state.ladybug.pulse) * 0.2;
   const size = state.ladybug.size * scale;
 
+  const sprite = getSprite('ladybug');
+  if (sprite) {
+    ctx.save();
+    ctx.translate(x, y);
+    const drawSize = size;
+    ctx.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
   ctx.translate(x, y);
 
@@ -519,6 +564,9 @@ export function drawLadybug(x, y) {
 
 export function drawGate(x, y) {
   if (!state.gateUnlocked) {
+    const sprite = getSprite('gate');
+    if (sprite) { ctx.drawImage(sprite, x - 2, y - 2); return; }
+
     ctx.fillStyle = '#000';
     ctx.fillRect(x - 2, y - 2, 28, 36);
     ctx.fillStyle = '#8b4513';
@@ -535,6 +583,9 @@ export function drawGate(x, y) {
 
 export function drawLogs(x, y) {
   if (!state.logsCleared) {
+    const sprite = getSprite('logs');
+    if (sprite) { ctx.drawImage(sprite, x - 22, y - 2); return; }
+
     ctx.fillStyle = '#000';
     ctx.fillRect(x - 22, y - 2, 54, 34);
     ctx.fillStyle = '#8b4513';
@@ -549,6 +600,9 @@ export function drawLogs(x, y) {
 }
 
 export function drawLeafPile(x, y) {
+  const sprite = getSprite('leaf_pile');
+  if (sprite) { ctx.drawImage(sprite, x - 8, y - 6); return; }
+
   const colors = ['#d2691e', '#ff6347', '#ffa500', '#8b4513'];
   for (let i = 0; i < 8; i++) {
     ctx.fillStyle = colors[i % colors.length];
@@ -559,6 +613,9 @@ export function drawLeafPile(x, y) {
 }
 
 export function drawTree(x, y) {
+  const sprite = getSprite('tree');
+  if (sprite) { ctx.drawImage(sprite, x, y); return; }
+
   ctx.fillStyle = '#000';
   ctx.fillRect(x + 9, y + 15, 14, 18);
   ctx.fillRect(x + 5, y + 5, 22, 16);
@@ -575,6 +632,9 @@ export function drawTree(x, y) {
 }
 
 export function drawLargeTree(x, y) {
+  const sprite = getSprite('tree_large');
+  if (sprite) { ctx.drawImage(sprite, x, y); return; }
+
   // Large oak tree - 3x scale
   const scale = 3;
   ctx.fillStyle = '#000';
@@ -593,6 +653,9 @@ export function drawLargeTree(x, y) {
 }
 
 export function drawCamperdownElm(x, y) {
+  const sprite = getSprite('camperdown_elm');
+  if (sprite) { ctx.drawImage(sprite, x - 2, y + 8); return; }
+
   // Camperdown Elm - weeping/drooping canopy
   // Trunk
   ctx.fillStyle = '#000';
@@ -618,6 +681,12 @@ export function drawCamperdownElm(x, y) {
 }
 
 export function drawFlowers(x, y, color) {
+  const spriteKey = getFlowerSpriteKey(color);
+  if (spriteKey) {
+    const sprite = getSprite(spriteKey);
+    if (sprite) { ctx.drawImage(sprite, x - 1, y - 1); return; }
+  }
+
   ctx.fillStyle = '#000';
   ctx.fillRect(x - 1, y - 1, 8, 8);
   ctx.fillStyle = color;
@@ -632,6 +701,9 @@ export function drawFlowers(x, y, color) {
 }
 
 export function drawRock(x, y) {
+  const sprite = getSprite('rock');
+  if (sprite) { ctx.drawImage(sprite, x - 2, y - 2); return; }
+
   ctx.fillStyle = '#000';
   ctx.fillRect(x - 2, y - 2, 28, 24);
   ctx.fillStyle = '#696969';
@@ -716,4 +788,42 @@ export function drawNavigationIndicator(x, y, direction, text) {
   }
 
   ctx.restore();
+}
+
+// Environmental animation helpers
+
+export function drawButterfly(x, y, frameCount) {
+  const t = frameCount * 0.03 + x * 0.1;
+  const bx = x + Math.sin(t) * 20;
+  const by = y + Math.cos(t * 0.7) * 12;
+  const wingSpread = Math.abs(Math.sin(frameCount * 0.15 + x)) * 3;
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(bx - wingSpread, by, wingSpread, 2);
+  ctx.fillRect(bx + 1, by, wingSpread, 2);
+  ctx.fillStyle = '#ffeb3b';
+  ctx.fillRect(bx - wingSpread + 1, by - 1, Math.max(wingSpread - 1, 1), 1);
+  ctx.fillRect(bx + 2, by - 1, Math.max(wingSpread - 1, 1), 1);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(bx, by, 1, 2);
+}
+
+export function drawFirefly(x, y, frameCount) {
+  const t = frameCount * 0.02 + x * 0.3 + y * 0.2;
+  const fx = x + Math.sin(t) * 15;
+  const fy = y + Math.cos(t * 0.6) * 10;
+  const glow = Math.max(0, Math.sin(frameCount * 0.05 + x * 0.5));
+
+  if (glow > 0.3) {
+    ctx.save();
+    ctx.globalAlpha = glow * 0.4;
+    ctx.fillStyle = '#ffff88';
+    ctx.beginPath();
+    ctx.arc(fx, fy, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = glow;
+    ctx.fillStyle = '#ffffcc';
+    ctx.fillRect(fx - 1, fy - 1, 2, 2);
+    ctx.restore();
+  }
 }

@@ -3,7 +3,7 @@
 export const keys = {};
 export let spacePressed = false;
 
-export function initInput(onSpace, onRestart) {
+export function initInput(onSpace, onRestart, onMuteToggle, onEscape) {
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
       if (!spacePressed) {
@@ -11,12 +11,18 @@ export function initInput(onSpace, onRestart) {
         onSpace();
       }
       e.preventDefault();
+    } else if (e.key === 'Escape') {
+      if (onEscape) onEscape();
     } else {
       keys[e.key] = true;
     }
 
     if (e.key === 'r' || e.key === 'R') {
       onRestart();
+    }
+
+    if (e.key === 'm' || e.key === 'M') {
+      if (onMuteToggle) onMuteToggle();
     }
   });
 

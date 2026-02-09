@@ -2,6 +2,8 @@
 
 import { state, GAME_STATE } from '../game/state.js';
 import { inventory } from './inventory.js';
+import { getSprite } from '../rendering/spriteLoader.js';
+import { playSFX } from './audio.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
@@ -21,11 +23,13 @@ export function showDialog(npc) {
   state.currentDialog = npc;
   state.dialogIndex = 0;
 
+  playSFX('dialog_open');
   drawPortrait(resolvePortraitChar(npc));
   updateDialogText();
 }
 
 export function advanceDialog() {
+  playSFX('dialog_advance');
   state.dialogIndex++;
 
   const dialogArray = resolveDialogArray(state.currentDialog);
@@ -90,9 +94,9 @@ function showTradePrompt(npc) {
                   npc === state.npcs.fisherman ? 'fisherman' : 'them';
 
   if (npc.needsItem === 'Gate Unlocked') {
-    dialogText.textContent = `*The gate is unlocked. The squirrel can get its acorns now!*`;
+    dialogText.textContent = `*The gate is unlocked. The squirrel can get its acorns now!* [SPACE] Yes  [ESC] No`;
   } else {
-    dialogText.textContent = `*Give ${npcName} the ${itemName}?*`;
+    dialogText.textContent = `*Give ${npcName} the ${itemName}?* [SPACE] Yes  [ESC] No`;
   }
 }
 
@@ -118,10 +122,17 @@ function resolvePortraitChar(npc) {
 }
 
 function drawPortrait(character) {
+  portraitCtx.clearRect(0, 0, 80, 80);
+
+  const sprite = getSprite('portrait_' + character);
+  if (sprite) {
+    portraitCtx.drawImage(sprite, 0, 0, 80, 80);
+    return;
+  }
+
+  // Placeholder portraits - fallback when sprite not available
   portraitCtx.fillStyle = '#2a2a3e';
   portraitCtx.fillRect(0, 0, 80, 80);
-
-  // Placeholder portraits - to be replaced with sprite art (see SPRITE_REQUIREMENTS.md)
   portraitCtx.fillStyle = '#fff';
   portraitCtx.font = '8px "Press Start 2P"';
   const label = { girl: 'Girl', boy: 'Boy', dog: 'Dog' }[character] || '?';
@@ -133,6 +144,7 @@ export function processNPCTrade(npc) {
 
   // Vendor (coffee cart) - free item, no trade needed
   if (npc.isVendor) {
+    playSFX('trade');
     inventory.addItem(npc.givesItem);
     npc.completed = true;
     return;
@@ -140,6 +152,7 @@ export function processNPCTrade(npc) {
 
   // Squirrel special case: rewards when gate has been unlocked
   if (npc.needsItem === 'Gate Unlocked' && state.gateUnlocked) {
+    playSFX('trade');
     inventory.addItem(npc.givesItem);
     npc.completed = true;
     npc.behindGate = false;
@@ -148,6 +161,7 @@ export function processNPCTrade(npc) {
 
   // Standard item trade
   if (npc.needsItem && inventory.hasItem(npc.needsItem)) {
+    playSFX('trade');
     inventory.removeItem(npc.needsItem);
     inventory.addItem(npc.givesItem);
     npc.completed = true;
