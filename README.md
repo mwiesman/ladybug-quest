@@ -46,7 +46,40 @@ npm run preview
 
 - **Arrow Keys** or **WASD**: Move
 - **Space**: Interact with NPCs and objects / Advance dialog / Skip cutscenes
+- **ESC**: Decline a trade
+- **M**: Toggle audio mute
 - **R** (on credits screen): Restart game
+
+## Adding Sprites & Audio
+
+The game uses a **drop-in asset system**. Place properly-named files in the right folder and they load automatically. No code changes needed. If a file is missing, the game falls back to procedural art / silent operation.
+
+### Sprites
+Place PNGs in `public/sprites/`:
+```
+public/sprites/
+├── characters/    girl.png, boy.png, dog.png, bird.png, squirrel.png,
+│                  hippie.png, fisherman.png, kid.png, parent.png,
+│                  coffee_cart.png, ladybug.png
+├── environment/   tree.png, tree_large.png, camperdown_elm.png, rock.png,
+│                  gate.png, logs.png, leaf_pile.png, flowers_pink.png,
+│                  flowers_orange.png, flowers_yellow.png, etc.
+└── portraits/     girl.png (80x80), boy.png, dog.png
+```
+
+`girl.png` is a horizontal sprite sheet: 8 frames at 24x32px each (Down x2, Up x2, Left x2, Right x2).
+
+### Audio
+Place MP3s in `public/audio/`:
+```
+public/audio/
+├── music/    meadow.mp3, park.mp3, playground.mp3, gate_area.mp3,
+│             woods.mp3, boathouse.mp3, cutscene.mp3
+└── sfx/      pickup.mp3, trade.mp3, dialog_open.mp3, dialog_advance.mp3,
+              gate_unlock.mp3, logs_clear.mp3, step.mp3, area_transition.mp3
+```
+
+See [SPRITE_REQUIREMENTS.md](SPRITE_REQUIREMENTS.md) for detailed specifications.
 
 ## Project Structure
 
@@ -54,8 +87,8 @@ npm run preview
 src/
 ├── data/          # Game data (NPCs, areas, items, cutscenes)
 ├── game/          # Core game state and logic
-├── systems/       # Game systems (input, inventory, dialog, collision)
-├── rendering/     # All drawing functions (sprites, areas, UI)
+├── systems/       # Game systems (input, inventory, dialog, collision, audio)
+├── rendering/     # All drawing functions (sprites, areas, UI, sprite loader)
 └── main.js        # Entry point and game loop
 ```
 
@@ -63,7 +96,7 @@ src/
 
 - **Vite** - Build tool and dev server
 - **Vanilla JS** - ES6 modules
-- **Canvas API** - 2D rendering (procedural pixel art)
+- **Canvas API** - 2D rendering (procedural pixel art with sprite overlay support)
 
 ## Documentation
 

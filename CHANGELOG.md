@@ -51,6 +51,37 @@ All notable changes to The Ladybug Quest project.
 - Build: 18 modules → 31KB JS bundle
 - Zero build errors
 
+### Sprite & Audio Systems + Polish
+**Date:** 2026-02-08
+
+#### Added
+- **Sprite System** (`rendering/spriteLoader.js`):
+  - Convention-based sprite loading with manifest
+  - Drop PNGs into `public/sprites/{characters,environment,portraits}/` — auto-loaded
+  - Every draw function checks for sprite first, falls back to procedural art
+  - Player sprite sheet support: 8-frame horizontal strip (4 dirs x 2 frames)
+  - Dialog portrait sprite support (80x80)
+
+- **Audio System** (`systems/audio.js`):
+  - Convention-based audio loading — same drop-in pattern as sprites
+  - Background music per area (`public/audio/music/`)
+  - Sound effects for interactions (`public/audio/sfx/`)
+  - Mute toggle (M key)
+  - Browser autoplay policy handling
+
+- **Gameplay Polish**:
+  - Trade decline with ESC key (`[SPACE] Yes  [ESC] No` prompt)
+  - NPC idle bob animation (sine wave vertical offset)
+  - Butterflies floating in meadow (3) and park (2)
+  - Fireflies with glow effect in woods (5)
+  - Animated water ripples in boathouse (time-based sine waves)
+  - Global `frameCount` counter for all environmental animations
+
+#### Technical
+- Async initialization: sprites and audio load in parallel before game loop
+- All asset loading uses graceful fallback — game works identically without any files
+- Build: 20 modules → ~40KB JS bundle
+
 ## [v3] - Original Single-File Version
 **Date:** Pre-2026-02-08
 
@@ -63,24 +94,10 @@ All notable changes to The Ladybug Quest project.
 
 ## Future Roadmap
 
-### Sprite System
-- Design sprite sheets for all characters and objects
-- Implement sprite loader in `rendering/sprites.js`
-- Replace procedural drawing with `ctx.drawImage()`
-
-### Audio System
-- Create `systems/audio.js`
-- Background music per area
-- Sound effects for interactions
-- Mute toggle
-
 ### Save System
 - LocalStorage persistence
 - Save/load game state
 - Continue from last position
 
-### Polish
+### Additional Polish
 - Character scaling (larger/boxier sprites for faster feel)
-- Trade decline option
-- Additional environmental details
-- More NPC idle animations
