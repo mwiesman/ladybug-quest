@@ -112,6 +112,7 @@ export function resetState() {
   state.cutsceneFrame = 0;
   state.cutsceneTimer = 0;
   state.animationPhase = 0;
+  state.endingPhase = 0;
   state.currentCutscene = INTRO_CUTSCENE;
   state.currentCutsceneIndex = 0;
   state.gateUnlocked = false;
@@ -124,6 +125,7 @@ export function resetState() {
   state.dialogIndex = 0;
   state.dialogSpeaker = null;
   state.dialogPhase = 'main';
+  state.tradePrompted = false;
   state.birdStopped = false;
   state.squirrelRunPhase = -1;
   state.ladybugPrompted = false;
