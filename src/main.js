@@ -13,7 +13,7 @@ import { checkInteraction, checkNearInteractable } from './systems/interaction.j
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
-import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification, drawMap } from './rendering/ui.js';
+import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification, drawItemNotification, drawMap } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
 import { initSprites } from './rendering/spriteLoader.js';
 import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
@@ -342,8 +342,14 @@ function draw() {
 
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     drawCompleteArea('meadow', true); // skipBoy flag
-    // Draw boy under the tree (not at state.boy position)
-    drawBoy(280, 200);
+    // Boy walks from tree (280,200) toward meadow position (290,270) during phases 100-180
+    let boyX = 280, boyY = 200;
+    if (state.animationPhase >= 100) {
+      const p = Math.min((state.animationPhase - 100) / 80, 1);
+      boyX = 280 + p * (state.boy.x - 280);
+      boyY = 200 + p * (state.boy.y - 200);
+    }
+    drawBoy(boyX, boyY);
     drawPlayer(player.x, player.y);
 
     // Ladybug flies off during first 60 frames
@@ -362,32 +368,30 @@ function draw() {
     drawPlayer(player.x, player.y);
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
+    // Hover position — stays visible on screen
+    const hoverX = 380, hoverY = 80;
 
     if (state.endingPhase < 40) {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
-    } else if (state.endingPhase < 70) {
-      // Girl swings net, misses! Ladybug flies away quickly
-      const p = (state.endingPhase - 40) / 30;
-      const lbX = ladybugBaseX + p * 120;
-      const lbY = ladybugBaseY - p * 200;
-      if (lbY > -20) drawLadybug(lbX, lbY);
-    } else if (state.endingPhase < 110) {
-      // Ladybug is off-screen / far away, drifting high
-      const hover = Math.sin((state.endingPhase - 70) * 0.08) * 15;
-      const driftBack = (state.endingPhase - 70) / 40; // slowly drift back toward center
-      const lbX = ladybugBaseX + 120 - driftBack * 80 + hover;
-      const lbY = Math.max(-10, ladybugBaseY - 200 + driftBack * 60);
-      if (lbY > -20) drawLadybug(lbX, lbY);
-    } else if (state.endingPhase < 150) {
+    } else if (state.endingPhase < 65) {
+      // Girl swings net, misses! Ladybug flies up and to the right (stays on screen)
+      const p = (state.endingPhase - 40) / 25;
+      const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p;
+      const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p;
+      drawLadybug(lbX, lbY);
+    } else if (state.endingPhase < 120) {
+      // Ladybug hovers in the air, drifting gently (always visible)
+      const hover = Math.sin((state.endingPhase - 65) * 0.1) * 12;
+      const bob = Math.cos((state.endingPhase - 65) * 0.07) * 6;
+      drawLadybug(hoverX + hover, hoverY + bob);
+    } else if (state.endingPhase < 155) {
       // Ladybug gently descends and lands on girl's hand
-      const p = (state.endingPhase - 110) / 40;
-      const startX = ladybugBaseX + 40;
-      const startY = ladybugBaseY - 140;
+      const p = (state.endingPhase - 120) / 35;
       const endX = player.x + 5;
       const endY = player.y - 5;
-      const lbX = startX + (endX - startX) * p;
-      const lbY = startY + (endY - startY) * p;
+      const lbX = hoverX + (endX - hoverX) * p;
+      const lbY = hoverY + (endY - hoverY) * p;
       drawLadybug(lbX, lbY);
     } else {
       // Ladybug resting on girl's hand
@@ -412,6 +416,7 @@ function draw() {
   }
 
   drawSaveNotification();
+  drawItemNotification();
 
   // Transition fade overlay
   if (state.transitioning && state.transitionAlpha > 0) {
