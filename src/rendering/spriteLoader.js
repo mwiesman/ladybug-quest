@@ -50,7 +50,7 @@ const FLOWER_COLOR_MAP = {
 
 // Player sprite sheet frame layout:
 // [Down-0, Down-1, Up-0, Up-1, Left-0, Left-1, Right-0, Right-1]
-const DIRECTION_BASE_FRAME = { down: 0, up: 2, left: 4, right: 6 };
+const DIRECTION_BASE_FRAME = { down: 0, up: 2, left: 6, right: 4 };
 
 const loadedSprites = {};
 

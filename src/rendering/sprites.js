@@ -116,46 +116,7 @@ export function drawPlayer(x, y) {
     ctx.fillRect(x + 6, y + 4, 12, 6);
 
   } else if (dir === 'left') {
-    ctx.fillRect(x + 4, y + 1, 15, 31);
-    ctx.fillStyle = '#ff69b4';
-    ctx.fillRect(x + 5, y + 14, 13, 11);
-    ctx.fillStyle = '#ff8dc7';
-    ctx.fillRect(x + 3, y + 15, 4, 8);
-    ctx.fillStyle = '#ffd1a3';
-    ctx.fillRect(x + 3, y + 22, 4, 3);
-    ctx.fillStyle = '#4169e1';
-    ctx.fillRect(x + 7, y + 25, 3, 6 - legOffset);
-    ctx.fillRect(x + 13, y + 25 + legOffset, 3, 6);
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(x + 6, y + 30 - legOffset, 4, 2);
-    ctx.fillRect(x + 13, y + 30, 4, 2);
-    ctx.fillStyle = '#ffd1a3';
-    ctx.fillRect(x + 6, y + 4, 11, 11);
-    ctx.fillRect(x + 10, y + 13, 5, 2);
-    ctx.fillStyle = '#8b4513';
-    ctx.fillRect(x + 5, y + 2, 12, 4);
-    ctx.fillRect(x + 5, y + 5, 4, 10);
-    ctx.fillRect(x + 6, y + 12, 3, 3);
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(x + 6, y + 6, 1, 3);
-    ctx.fillRect(x + 7, y + 10, 1, 2);
-    ctx.fillStyle = '#dc143c';
-    ctx.fillRect(x + 9, y + 9, 7, 4);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(x + 10, y + 10, 1, 1);
-    ctx.fillRect(x + 12, y + 10, 1, 1);
-    ctx.fillRect(x + 14, y + 10, 1, 1);
-    ctx.fillRect(x + 11, y + 11, 1, 1);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(x + 9, y + 7, 3, 2);
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(x + 9, y + 7, 2, 2);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(x + 10, y + 7, 1, 1);
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(x + 8, y + 6, 3, 1);
-
-  } else if (dir === 'right') {
+    // Face/eye on left side, hair trailing right
     ctx.fillRect(x + 5, y + 1, 15, 31);
     ctx.fillStyle = '#ff69b4';
     ctx.fillRect(x + 6, y + 14, 13, 11);
@@ -194,6 +155,47 @@ export function drawPlayer(x, y) {
     ctx.fillRect(x + 13, y + 7, 1, 1);
     ctx.fillStyle = '#654321';
     ctx.fillRect(x + 13, y + 6, 3, 1);
+
+  } else if (dir === 'right') {
+    // Face/eye on right side, hair trailing left
+    ctx.fillRect(x + 4, y + 1, 15, 31);
+    ctx.fillStyle = '#ff69b4';
+    ctx.fillRect(x + 5, y + 14, 13, 11);
+    ctx.fillStyle = '#ff8dc7';
+    ctx.fillRect(x + 3, y + 15, 4, 8);
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 3, y + 22, 4, 3);
+    ctx.fillStyle = '#4169e1';
+    ctx.fillRect(x + 7, y + 25, 3, 6 - legOffset);
+    ctx.fillRect(x + 13, y + 25 + legOffset, 3, 6);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 6, y + 30 - legOffset, 4, 2);
+    ctx.fillRect(x + 13, y + 30, 4, 2);
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 6, y + 4, 11, 11);
+    ctx.fillRect(x + 10, y + 13, 5, 2);
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(x + 5, y + 2, 12, 4);
+    ctx.fillRect(x + 5, y + 5, 4, 10);
+    ctx.fillRect(x + 6, y + 12, 3, 3);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 6, y + 6, 1, 3);
+    ctx.fillRect(x + 7, y + 10, 1, 2);
+    ctx.fillStyle = '#dc143c';
+    ctx.fillRect(x + 9, y + 9, 7, 4);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 10, y + 10, 1, 1);
+    ctx.fillRect(x + 12, y + 10, 1, 1);
+    ctx.fillRect(x + 14, y + 10, 1, 1);
+    ctx.fillRect(x + 11, y + 11, 1, 1);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 9, y + 7, 3, 2);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 9, y + 7, 2, 2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 10, y + 7, 1, 1);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 8, y + 6, 3, 1);
   }
 
   ctx.restore();
@@ -654,30 +656,51 @@ export function drawLargeTree(x, y) {
 
 export function drawCamperdownElm(x, y) {
   const sprite = getSprite('camperdown_elm');
-  if (sprite) { ctx.drawImage(sprite, x - 2, y + 8); return; }
+  if (sprite) { ctx.drawImage(sprite, x - 10, y); return; }
 
-  // Camperdown Elm - weeping/drooping canopy
-  // Trunk
-  ctx.fillStyle = '#000';
-  ctx.fillRect(x + 14, y + 20, 8, 16);
+  // Camperdown Elm - weeping/drooping canopy with fence
+
+  // Fence around tree
   ctx.fillStyle = '#654321';
-  ctx.fillRect(x + 15, y + 21, 6, 14);
+  ctx.fillRect(x - 10, y + 48, 56, 3);   // Front rail
+  ctx.fillRect(x - 10, y + 40, 3, 12);    // Left post
+  ctx.fillRect(x + 6, y + 40, 3, 12);     // Left-center post
+  ctx.fillRect(x + 26, y + 40, 3, 12);    // Right-center post
+  ctx.fillRect(x + 43, y + 40, 3, 12);    // Right post
+  ctx.fillRect(x - 10, y + 44, 56, 2);    // Lower rail
 
-  // Wide, low, drooping canopy
+  // Gold plaque on fence
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(x + 12, y + 42, 10, 8);
+  ctx.fillStyle = '#b8860b';
+  ctx.fillRect(x + 13, y + 43, 8, 6);
+
+  // Trunk — gnarled, twisted
   ctx.fillStyle = '#000';
-  ctx.fillRect(x - 2, y + 8, 40, 20);
+  ctx.fillRect(x + 12, y + 18, 12, 22);
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(x + 13, y + 19, 10, 20);
+  ctx.fillStyle = '#4a2f1a';
+  ctx.fillRect(x + 14, y + 22, 3, 14);
+
+  // Wide, low, drooping canopy (wider than normal trees)
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x - 8, y + 4, 52, 20);
+  ctx.fillStyle = '#1a4010';
+  ctx.fillRect(x - 6, y + 6, 48, 16);
   ctx.fillStyle = '#2d5016';
-  ctx.fillRect(x, y + 10, 36, 16);
+  ctx.fillRect(x - 4, y + 8, 44, 12);
   ctx.fillStyle = '#3a6b1f';
-  ctx.fillRect(x + 2, y + 12, 32, 12);
+  ctx.fillRect(x, y + 10, 36, 8);
 
-  // Plaque
-  ctx.fillStyle = '#8b7355';
-  ctx.fillRect(x + 8, y + 38, 20, 8);
-  ctx.fillStyle = '#000';
-  ctx.font = '6px "Press Start 2P"';
-  ctx.fillText('Camperdown', x + 9, y + 43);
-  ctx.fillText('Elm', x + 13, y + 48);
+  // Drooping tendrils hanging down
+  ctx.fillStyle = '#2d5016';
+  ctx.fillRect(x - 6, y + 20, 2, 10);
+  ctx.fillRect(x - 2, y + 18, 2, 14);
+  ctx.fillRect(x + 38, y + 18, 2, 12);
+  ctx.fillRect(x + 42, y + 20, 2, 8);
+  ctx.fillRect(x + 2, y + 20, 2, 8);
+  ctx.fillRect(x + 34, y + 20, 2, 10);
 }
 
 export function drawFlowers(x, y, color) {
@@ -783,8 +806,10 @@ export function drawNavigationIndicator(x, y, direction, text) {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
     ctx.font = '8px "Press Start 2P"';
-    ctx.strokeText(text, x - 20, y + 25);
-    ctx.fillText(text, x - 20, y + 25);
+    ctx.textAlign = 'center';
+    ctx.strokeText(text, x, y + 25);
+    ctx.fillText(text, x, y + 25);
+    ctx.textAlign = 'start';
   }
 
   ctx.restore();

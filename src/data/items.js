@@ -3,16 +3,16 @@
 
 export const WORLD_ITEMS = {
   birdseed: {
-    x: 120, y: 80, area: 'park',
+    x: 130, y: 75, area: 'park',
     name: 'Birdseed',
     collected: false
   },
   doubloons: {
-    x: 520, y: 160, area: 'gate_area',
+    x: 450, y: 300, area: 'woods',
     name: 'Gold Doubloons',
     collected: false
     // Easter egg - completely useless, NPCs ignore it
-    // Hidden behind logs until cleared
+    // Hidden under leaves in woods, accessible after clearing logs
   }
 };
 

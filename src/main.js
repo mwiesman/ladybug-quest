@@ -8,7 +8,7 @@ import { player, resetPlayer } from './game/player.js';
 import { checkAreaTransition, updateTransition } from './game/world.js';
 import { initInput, keys } from './systems/input.js';
 import { inventory } from './systems/inventory.js';
-import { showDialog, advanceDialog, closeDialog } from './systems/dialog.js';
+import { showDialog, advanceDialog, closeDialog, declineDialog } from './systems/dialog.js';
 import { checkInteraction, checkNearInteractable } from './systems/interaction.js';
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
@@ -69,8 +69,7 @@ function handleMuteToggle() {
 
 function handleEscape() {
   if (state.tradePrompted) {
-    state.tradePrompted = false;
-    closeDialog();
+    declineDialog();
   }
 }
 
@@ -203,35 +202,50 @@ function update() {
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     state.animationPhase++;
 
-    // Phase 0-40: Ladybug flies off
-    // Phase 40-80: Girl walks down away from tree
-    // Phase 80: Boy's dialog appears
-    // Phase 120+: Start game
+    // Phase 0-60: Ladybug flies off
+    // Phase 60-140: Girl walks away from tree (down)
+    // Phase 140: Boy's dialog appears
+    // Phase 200+: Start game
 
-    if (state.animationPhase >= 40 && state.animationPhase < 80) {
-      // Girl walks down (200 → 270)
-      const walkProgress = (state.animationPhase - 40) / 40;
-      player.y = 200 + walkProgress * 70;
-    } else if (state.animationPhase === 80) {
+    if (state.animationPhase >= 60 && state.animationPhase < 140) {
+      // Girl walks away from tree (y: 200 → 370)
+      const walkProgress = (state.animationPhase - 60) / 80;
+      player.y = 200 + walkProgress * 170;
+    } else if (state.animationPhase === 140) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
         isStatic: true
       });
-    } else if (state.animationPhase > 120) {
+    } else if (state.animationPhase > 200) {
       startGame();
     }
     return;
   }
 
   if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
-    state.endingPhase++;
-    // Phase 0-60: Girl misses with net, ladybug flies up
-    // Phase 60-100: Ladybug flies to boy's hand
-    // Phase 100-140: Girl reaches for it
-    // Phase 140-180: Ladybug flies away
-    // Phase 180+: Roll credits
-    if (state.endingPhase > 180) {
+    // Freeze animation while dialog is showing
+    if (state.currentDialog) return;
+
+    // After boy's dialog, go to credits
+    if (state.endingPhase > 160) {
       showCredits();
+      return;
+    }
+
+    state.endingPhase++;
+
+    // Phase 0-40:  Ladybug on leaf, girl nearby
+    // Phase 40-70: Girl swings net, misses! Ladybug flies up
+    // Phase 70-110: Girl stands still, ladybug hovers
+    // Phase 110-150: Ladybug gently descends onto girl's hand
+    // Phase 150-160: Ladybug on girl's hand, both still
+    // Phase 160: Boy says "Ain't that just the way."
+
+    if (state.endingPhase === 160) {
+      showDialog({
+        dialog: ["Ain't that just the way."],
+        isStatic: true
+      });
     }
     return;
   }
@@ -246,10 +260,10 @@ function update() {
     return;
   }
 
-  // Woods ladybug sighting animation
+  // Woods ladybug sighting animation (sits 40 frames, flies 110 frames)
   if (state.woodsSightingPhase >= 0) {
     state.woodsSightingPhase++;
-    if (state.woodsSightingPhase > 90) {
+    if (state.woodsSightingPhase > 150) {
       state.woodsSightingPhase = -1;
     }
   }
@@ -319,12 +333,14 @@ function draw() {
   }
 
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
-    drawCompleteArea('meadow');
+    drawCompleteArea('meadow', true); // skipBoy flag
+    // Draw boy under the tree (not at state.boy position)
+    drawBoy(280, 200);
     drawPlayer(player.x, player.y);
 
-    // Ladybug flies off during first 40 frames
-    if (state.animationPhase < 40) {
-      const progress = state.animationPhase / 40;
+    // Ladybug flies off during first 60 frames
+    if (state.animationPhase < 60) {
+      const progress = state.animationPhase / 60;
       const flyX = 295 + progress * 150;
       const flyY = 198 - progress * 200;
       if (flyY > 0) drawLadybug(flyX, flyY);
@@ -337,27 +353,34 @@ function draw() {
     drawPlayer(player.x, player.y);
     drawBoy(state.boy.x, state.boy.y);
 
-    // Animate ending sequence
-    if (state.endingPhase < 60) {
-      // Ladybug still on leaf, girl approaches
-      const ladybugX = 295;
-      const ladybugY = 195;
-      drawLadybug(ladybugX, ladybugY);
-    } else if (state.endingPhase < 100) {
-      // Ladybug flies to boy's hand
-      const progress = (state.endingPhase - 60) / 40;
-      const ladybugX = 295 - progress * (295 - state.boy.x);
-      const ladybugY = 195 - progress * (195 - (state.boy.y - 10));
-      drawLadybug(ladybugX, ladybugY);
-    } else if (state.endingPhase < 140) {
-      // Ladybug on boy's hand
-      drawLadybug(state.boy.x, state.boy.y - 10);
-    } else if (state.endingPhase < 180) {
-      // Ladybug flies away
-      const progress = (state.endingPhase - 140) / 40;
-      const ladybugX = state.boy.x + progress * 150;
-      const ladybugY = state.boy.y - 10 - progress * 200;
-      if (ladybugY > 0) drawLadybug(ladybugX, ladybugY);
+    const ladybugBaseX = 295, ladybugBaseY = 195;
+
+    if (state.endingPhase < 40) {
+      // Ladybug resting on leaf
+      drawLadybug(ladybugBaseX, ladybugBaseY);
+    } else if (state.endingPhase < 70) {
+      // Girl swings, misses! Ladybug flies up quickly
+      const p = (state.endingPhase - 40) / 30;
+      const lbX = ladybugBaseX + p * 40;
+      const lbY = ladybugBaseY - p * 180;
+      if (lbY > -20) drawLadybug(lbX, lbY);
+    } else if (state.endingPhase < 110) {
+      // Ladybug hovers high up, drifting gently
+      const hover = Math.sin((state.endingPhase - 70) * 0.1) * 8;
+      drawLadybug(ladybugBaseX + 40 + hover, ladybugBaseY - 180 + Math.abs(hover));
+    } else if (state.endingPhase < 150) {
+      // Ladybug gently descends onto girl's hand
+      const p = (state.endingPhase - 110) / 40;
+      const startX = ladybugBaseX + 40;
+      const startY = ladybugBaseY - 180;
+      const endX = player.x + 5;
+      const endY = player.y - 5;
+      const lbX = startX + (endX - startX) * p;
+      const lbY = startY + (endY - startY) * p;
+      drawLadybug(lbX, lbY);
+    } else {
+      // Ladybug resting on girl's hand
+      drawLadybug(player.x + 5, player.y - 5);
     }
     return;
   }

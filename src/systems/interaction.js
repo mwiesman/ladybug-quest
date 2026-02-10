@@ -19,11 +19,33 @@ export function checkInteraction() {
     const npc = npcs[npcKey];
     if (npc.area !== currentArea) continue;
 
-    // Squirrel behind locked gate - allow talk through gate
-    if (npc === npcs.squirrel && npc.behindGate && !gateUnlocked) {
-      const dx = player.x - npc.x;
-      const dy = player.y - npc.y;
-      if (Math.sqrt(dx * dx + dy * dy) < 50) {
+    // Squirrel — uses different position when gate unlocked
+    if (npc === npcs.squirrel) {
+      let sqX, sqY;
+      if (gateUnlocked && !npc.completed) {
+        sqX = 500; sqY = 140; // Inside gated area at leaf pile
+      } else {
+        sqX = npc.x; sqY = npc.y;
+      }
+
+      // Allow talk through gate when locked
+      const range = (!gateUnlocked && npc.behindGate) ? 50 : 40;
+      const dx = player.x - sqX;
+      const dy = player.y - sqY;
+      if (Math.sqrt(dx * dx + dy * dy) < range) {
+        showDialog(npc);
+        return;
+      }
+      continue;
+    }
+
+    // Bird — uses flight position when flying
+    if (npc === npcs.bird && npc.flies && !state.birdStopped) {
+      const birdX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
+      const birdY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+      const dx = player.x - birdX;
+      const dy = player.y - birdY;
+      if (Math.sqrt(dx * dx + dy * dy) < 40) {
         showDialog(npc);
         return;
       }
@@ -50,8 +72,8 @@ export function checkInteraction() {
     }
   }
 
-  // Gold doubloons pickup (behind logs in gate_area)
-  if (!worldItems.doubloons.collected && currentArea === 'gate_area' && logsCleared) {
+  // Gold doubloons pickup (hidden in the woods)
+  if (!worldItems.doubloons.collected && currentArea === 'woods') {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       worldItems.doubloons.collected = true;
@@ -64,7 +86,7 @@ export function checkInteraction() {
 
   // Gate unlock with key
   if (!gateUnlocked && currentArea === 'gate_area' && inventory.hasItem('Key')) {
-    if (Math.abs(player.x - 360) < 40 && Math.abs(player.y - 120) < 40) {
+    if (Math.abs(player.x - 380) < 40 && Math.abs(player.y - 140) < 40) {
       state.gateUnlocked = true;
       playSFX('gate_unlock');
       inventory.removeItem('Key');
@@ -94,12 +116,31 @@ export function checkInteraction() {
     }
   }
 
-  // Ladybug interaction - triggers ending animation
+  // Camperdown Elm plaque (boathouse area)
+  if (currentArea === 'boathouse') {
+    if (Math.abs(player.x - 418) < 30 && Math.abs(player.y - 90) < 30) {
+      showDialog({
+        dialog: ["*You read the plaque...*", "\"Camperdown Elm — a rare weeping tree,\ntwisted by nature into living art.\""],
+        isStatic: true
+      });
+      return;
+    }
+  }
+
+  // Ladybug interaction - prompt first, then trigger ending
   if (inventory.hasItem('Net') && currentArea === 'meadow') {
     const dx = player.x - ladybug.x;
     const dy = player.y - ladybug.y;
     if (Math.sqrt(dx * dx + dy * dy) < 60) {
-      triggerEndingAnimation();
+      if (!state.ladybugPrompted) {
+        state.ladybugPrompted = true;
+        showDialog({
+          dialog: ["*You spot the ladybug resting on a leaf...*", "*Press [SPACE] to try to catch it!*"],
+          isStatic: true
+        });
+      } else {
+        triggerEndingAnimation();
+      }
     }
   }
 }
@@ -110,8 +151,22 @@ export function checkNearInteractable() {
   for (const npcKey in npcs) {
     const npc = npcs[npcKey];
     if (npc.area !== currentArea) continue;
-    const dx = player.x - npc.x;
-    const dy = player.y - npc.y;
+
+    let npcX = npc.x, npcY = npc.y;
+
+    // Squirrel moves inside gated area when gate unlocked
+    if (npc === npcs.squirrel && state.gateUnlocked && !npc.completed) {
+      npcX = 500; npcY = 140;
+    }
+
+    // Bird flight position
+    if (npc === npcs.bird && npc.flies && !state.birdStopped) {
+      npcX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
+      npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+    }
+
+    const dx = player.x - npcX;
+    const dy = player.y - npcY;
     if (Math.sqrt(dx * dx + dy * dy) < 50) return true;
   }
 
@@ -129,10 +184,17 @@ export function checkNearInteractable() {
     }
   }
 
-  // Doubloons in gate_area (behind logs)
-  if (!worldItems.doubloons.collected && currentArea === 'gate_area' && state.logsCleared) {
+  // Doubloons in the woods
+  if (!worldItems.doubloons.collected && currentArea === 'woods') {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
+      return true;
+    }
+  }
+
+  // Camperdown Elm plaque
+  if (currentArea === 'boathouse') {
+    if (Math.abs(player.x - 418) < 30 && Math.abs(player.y - 90) < 30) {
       return true;
     }
   }

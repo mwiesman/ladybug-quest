@@ -1,4 +1,5 @@
 // Dialog system - show, advance, and close NPC dialogs
+// Supports mid-dialog trade prompts via dialogAfterTrade / dialogDecline
 
 import { state, GAME_STATE } from '../game/state.js';
 import { inventory } from './inventory.js';
@@ -23,6 +24,12 @@ export function showDialog(npc) {
   dialogBox.classList.add('active');
   state.currentDialog = npc;
   state.dialogIndex = 0;
+  state.dialogPhase = 'main';
+
+  // Stop bird when interacting with it
+  if (npc === state.npcs.bird && npc.flies) {
+    state.birdStopped = true;
+  }
 
   playSFX('dialog_open');
   drawPortrait(resolvePortraitChar(npc));
@@ -31,30 +38,64 @@ export function showDialog(npc) {
 
 export function advanceDialog() {
   playSFX('dialog_advance');
-  state.dialogIndex++;
 
-  const dialogArray = resolveDialogArray(state.currentDialog);
   const npc = state.currentDialog;
 
-  // Check if we've reached the end of dialog
+  // If trade was just prompted and player pressed space = accept
+  if (state.tradePrompted) {
+    state.tradePrompted = false;
+    processNPCTrade(npc);
+
+    // If NPC has dialogAfterTrade, show those lines
+    if (npc.dialogAfterTrade && npc.dialogAfterTrade.length > 0) {
+      state.dialogPhase = 'afterTrade';
+      state.dialogIndex = 0;
+      updateDialogText();
+      return;
+    }
+
+    // No after-trade dialog — just close
+    closeDialog();
+    return;
+  }
+
+  state.dialogIndex++;
+  const dialogArray = getActiveDialogArray(npc);
+
+  // Check if we've reached the end of the current dialog phase
   if (state.dialogIndex >= dialogArray.length) {
-    // Check if trade is available and not yet prompted
-    if (shouldPromptTrade(npc) && !state.tradePrompted) {
+    if (state.dialogPhase === 'main' && shouldPromptTrade(npc)) {
       // Show trade confirmation prompt
       state.tradePrompted = true;
-      state.dialogIndex = dialogArray.length; // Stay at end
       showTradePrompt(npc);
-    } else {
-      // Close dialog and execute trade if confirmed
-      const shouldTrade = state.tradePrompted;
-      state.tradePrompted = false;
+    } else if (state.dialogPhase === 'decline') {
+      // Decline dialog finished — close
       closeDialog();
-      if (shouldTrade) {
-        processNPCTrade(npc);
-      }
+    } else if (state.dialogPhase === 'afterTrade') {
+      // After-trade dialog finished — close
+      closeDialog();
+    } else {
+      // Normal end of dialog (no trade available)
+      closeDialog();
     }
   } else {
     updateDialogText();
+  }
+}
+
+export function declineDialog() {
+  if (!state.tradePrompted) return;
+
+  state.tradePrompted = false;
+  const npc = state.currentDialog;
+
+  // If NPC has decline dialog, show it
+  if (npc && npc.dialogDecline && npc.dialogDecline.length > 0) {
+    state.dialogPhase = 'decline';
+    state.dialogIndex = 0;
+    updateDialogText();
+  } else {
+    closeDialog();
   }
 }
 
@@ -64,10 +105,25 @@ export function closeDialog() {
   dialogBox.classList.remove('active');
   state.currentDialog = null;
   state.dialogIndex = 0;
+  state.dialogPhase = 'main';
+}
+
+function getActiveDialogArray(npc) {
+  if (!npc) return [];
+
+  if (state.dialogPhase === 'afterTrade') {
+    return npc.dialogAfterTrade || [];
+  }
+  if (state.dialogPhase === 'decline') {
+    return npc.dialogDecline || [];
+  }
+
+  // Main phase — use resolveDialogArray for proper before/complete/default selection
+  return resolveDialogArray(npc);
 }
 
 function updateDialogText() {
-  const dialogArray = resolveDialogArray(state.currentDialog);
+  const dialogArray = getActiveDialogArray(state.currentDialog);
   if (state.dialogIndex < dialogArray.length) {
     dialogText.textContent = dialogArray[state.dialogIndex];
   }
@@ -107,6 +163,10 @@ function resolveDialogArray(npc) {
 
   if (npc.dialogBefore && !npc.completed &&
       (!npc.needsItem || !inventory.hasItem(npc.needsItem))) {
+    // Special case: squirrel dialogBefore only when gate NOT unlocked
+    if (npc.needsItem === 'Gate Unlocked' && state.gateUnlocked) {
+      return npc.dialog || [];
+    }
     return npc.dialogBefore;
   }
   if (npc.dialogComplete && npc.completed) {

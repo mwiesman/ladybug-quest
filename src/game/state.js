@@ -76,7 +76,14 @@ export const state = {
   currentDialog: null,
   dialogIndex: 0,
   dialogSpeaker: null,
+  dialogPhase: 'main', // 'main' | 'afterTrade' | 'decline'
   tradePrompted: false,
+
+  // Bird flight
+  birdStopped: false,
+
+  // Ladybug ending prompt
+  ladybugPrompted: false,
 
   // Interaction hint
   nearInteractable: false,
@@ -113,6 +120,9 @@ export function resetState() {
   state.currentDialog = null;
   state.dialogIndex = 0;
   state.dialogSpeaker = null;
+  state.dialogPhase = 'main';
+  state.birdStopped = false;
+  state.ladybugPrompted = false;
   state.nearInteractable = false;
   state.woodsFirstEntry = true;
   state.woodsSightingPhase = -1;

@@ -5,15 +5,27 @@ export const NPC_DATA = {
   fisherman: {
     x: 550, y: 150, area: 'boathouse',
     dialog: [
-      "Ah, looking for something? I've got a net...",
-      "But I need rope first. Broke my line on the big one."
+      "Ah, you found some rope!",
+      "That's exactly what I needed."
     ],
-    dialogComplete: [
+    dialogAfterTrade: [
       "Here's the net. Hope it helps you catch what you're looking for.",
       "Oh, and I saw a little red ladybug resting on a leaf...",
       "Near that big old oak tree back in the meadow."
     ],
-    needsItem: 'Rope',
+    dialogDecline: [
+      "Well, let me know if you change your mind about that rope."
+    ],
+    dialogBefore: [
+      "Ah, looking for something? I've got a net...",
+      "But I need rope first. Broke my line on the big one."
+    ],
+    dialogComplete: [
+      "Hope that net helps you out.",
+      "Oh, and check near that big old oak tree...",
+      "I saw a little red ladybug resting on a leaf."
+    ],
+    needsItem: 'Leash (Rope)',
     givesItem: 'Net',
     completed: false
   },
@@ -21,8 +33,14 @@ export const NPC_DATA = {
     x: 350, y: 350, area: 'park',
     dialog: [
       "*Woof!* Hey there!",
-      "I could help you with that rope situation...",
-      "But I lost my ball somewhere! *whimpers*"
+      "Is that... my BALL?!"
+    ],
+    dialogAfterTrade: [
+      "*Happy bark!* Here, take my leash!",
+      "I'm a good dog! *tail wagging intensifies*"
+    ],
+    dialogDecline: [
+      "*whimpers* But I really want that ball..."
     ],
     dialogBefore: [
       "*Woof woof!* *tail wagging*",
@@ -30,20 +48,24 @@ export const NPC_DATA = {
       "I'm so bored without my ball!"
     ],
     dialogComplete: [
-      "*Happy bark!* My ball! Here, take my leash!",
-      "I'm a good dog! *tail wagging intensifies*"
+      "*Happy bark!* My ball! *tail wagging intensifies*"
     ],
     needsItem: 'Ball',
-    givesItem: 'Rope',
+    givesItem: 'Leash (Rope)',
     completed: false
   },
   kid: {
     x: 200, y: 300, area: 'playground',
     dialog: [
       "*runs up* Hi! Hi!",
-      "Wow, that's so pretty! For me?!",
+      "Wow, that's so pretty! For me?!"
+    ],
+    dialogAfterTrade: [
       "Thank you! Here, I found this heavy thing earlier!",
       "*runs off giggling*"
+    ],
+    dialogDecline: [
+      "Aww... but I have this heavy thing I don't even want!"
     ],
     dialogBefore: [
       "*running around* Wheeee!",
@@ -61,9 +83,14 @@ export const NPC_DATA = {
     x: 150, y: 200, area: 'park',
     dialog: [
       "*sketching clouds* Oh hey.",
-      "Gum? Lifesaver. Been here for hours.",
+      "Gum? Lifesaver. Been here for hours."
+    ],
+    dialogAfterTrade: [
       "Take this flower. It wants to travel with you.",
       "Peace."
+    ],
+    dialogDecline: [
+      "No gum? Bummer, man."
     ],
     dialogBefore: [
       "*sketching peacefully*",
@@ -79,16 +106,19 @@ export const NPC_DATA = {
     completed: false
   },
   squirrel: {
-    x: 320, y: 180, area: 'gate_area',
+    x: 360, y: 200, area: 'gate_area',
     dialog: [
-      "*CHITTER!* Oh thank goodness!",
-      "My acorns! I can finally get to them!",
-      "*happy dance*",
-      "Here! I found this ball in my stash!",
-      "No use to me! *shows teeth proudly*"
+      "*CHITTER!* The gate's open!",
+      "*scurries to acorn pile*",
+      "*rummaging through leaves*",
+      "Look what I found in here — a ball!",
+      "No use to me! Here, take it!"
+    ],
+    dialogAfterTrade: [
+      "*happy chittering*"
     ],
     dialogBefore: [
-      "*desperate chittering behind gate*",
+      "*desperate chittering near the gate*",
       "*points at acorns on the other side*",
       "Please! I need my acorns!"
     ],
@@ -102,13 +132,20 @@ export const NPC_DATA = {
     behindGate: true
   },
   bird: {
-    x: 280, y: 140, area: 'gate_area',
+    x: 200, y: 120, area: 'gate_area',
+    flies: true,
     dialog: [
-      "*chirp chirp* Seeds! My favorite!",
-      "A key for some seeds? I know where one is...",
+      "*chirp chirp*",
+      "Ooh, is that birdseed? I love seeds!"
+    ],
+    dialogAfterTrade: [
+      "A key for some seeds? Deal!",
       "*hops happily*",
       "Sometimes you must unlock what holds others back.",
       "*winks*"
+    ],
+    dialogDecline: [
+      "*sad chirp* But I have a shiny key for you..."
     ],
     dialogBefore: [
       "*Chirp chirp!* *hops around*",

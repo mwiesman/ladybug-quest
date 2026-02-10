@@ -6,7 +6,7 @@ const CANVAS_W = 640;
 const CANVAS_H = 480;
 
 // Fixed world obstacle positions
-const GATE_X = 360, GATE_Y = 120;
+const GATE_X = 380, GATE_Y = 140;
 const LOGS_X = 270, LOGS_Y = 20; // Near top of gate_area, blocking north exit
 
 export function checkCollision(x, y, w, h) {
@@ -49,18 +49,21 @@ export function checkCollision(x, y, w, h) {
     if (x < 146 && x + w > 118 && y < 302 && y + h > 278) return true; // Rock at (120, 280)
     if (x < 506 && x + w > 478 && y < 342 && y + h > 318) return true; // Rock at (480, 320)
   } else if (area === 'gate_area') {
-    // Gate collision (blocks half the area for squirrel's acorns)
+    // Dense tree line across top (blocks north except log corridor ~270-330)
+    if (y < 50 && (x + w < 265 || x > 335)) return true;
+    // Gate collision (blocks gated corner)
     if (!state.gateUnlocked) {
-      if (x < GATE_X + 24 && x + w > GATE_X &&
-          y < GATE_Y + 32 && y + h > GATE_Y) {
-        return true;
-      }
+      if (x < 404 && x + w > 380 && y < 172 && y + h > 140) return true;
     }
     // Stone walls forming gated corner
-    if (x + w > 580 && y < 200) return true; // Right wall
-    if (y < 54 && x > 400) return true; // Top wall
-    if (x < 414 && x + w > 400 && y < 140 && y + h > 40) return true; // Left connecting wall
-    // Logs blocking north exit (near top center)
+    if (x + w > 580 && y < 240) return true; // Right wall
+    if (y < 74 && x > 380) return true; // Top-right wall
+    if (x < 394 && x + w > 380 && y < 180 && y + h > 60) return true; // Left connecting wall
+    // Trees
+    if (x < 148 && x + w > 100 && y < 198 && y + h > 150) return true; // Tree (100, 150)
+    if (x < 248 && x + w > 200 && y < 368 && y + h > 320) return true; // Tree (200, 320)
+    if (x < 548 && x + w > 500 && y < 398 && y + h > 350) return true; // Tree (500, 350)
+    // Logs blocking north exit (corridor gap)
     if (!logsCleared) {
       if (x < LOGS_X + 60 && x + w > LOGS_X &&
           y < LOGS_Y + 30 && y + h > LOGS_Y) {
@@ -74,10 +77,17 @@ export function checkCollision(x, y, w, h) {
     if (x < 276 && x + w > 248 && y < 182 && y + h > 158) return true; // Rock at (250, 160)
   } else if (area === 'boathouse') {
     // Boathouse building
-    if (x < 600 && x + w > 480 &&
-        y < 300 && y + h > 200) {
-      return true;
-    }
+    if (x < 600 && x + w > 480 && y < 300 && y + h > 200) return true;
+    // Water — block everything below y=290 EXCEPT the bridge (x: 305-345)
+    if (y + h > 290 && (x + w < 305 || x > 345)) return true;
+    // Trees
+    if (x < 148 && x + w > 100 && y < 128 && y + h > 80) return true;  // Tree (100, 80)
+    if (x < 348 && x + w > 300 && y < 148 && y + h > 100) return true; // Tree (300, 100)
+    if (x < 98 && x + w > 50 && y < 248 && y + h > 200) return true;  // Tree (50, 200)
+    // Camperdown Elm fence
+    if (x < 445 && x + w > 390 && y < 115 && y + h > 55) return true;
+    // Boathouse dock
+    if (x < 600 && x + w > 420 && y < 300 && y + h > 280) return true;
   }
 
   return false;
