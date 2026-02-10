@@ -19,10 +19,10 @@ export function checkInteraction() {
     const npc = npcs[npcKey];
     if (npc.area !== currentArea) continue;
 
-    // Squirrel — uses different position when gate unlocked
+    // Squirrel — uses inside position when gate unlocked (even after trade)
     if (npc === npcs.squirrel) {
       let sqX, sqY;
-      if (gateUnlocked && !npc.completed) {
+      if (gateUnlocked) {
         sqX = 500; sqY = 140; // Inside gated area at leaf pile
       } else {
         sqX = npc.x; sqY = npc.y;
@@ -162,8 +162,8 @@ export function checkNearInteractable() {
 
     let npcX = npc.x, npcY = npc.y;
 
-    // Squirrel moves inside gated area when gate unlocked
-    if (npc === npcs.squirrel && state.gateUnlocked && !npc.completed) {
+    // Squirrel moves inside gated area when gate unlocked (stays there even after trade)
+    if (npc === npcs.squirrel && state.gateUnlocked) {
       npcX = 500; npcY = 140;
     }
 

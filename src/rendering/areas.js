@@ -261,24 +261,30 @@ export function drawCompleteArea(area, skipBoy) {
     const birdY = state.birdStopped ? npcs.bird.y : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
     drawNPC(npcs.bird, birdX, birdY);
 
-    // Squirrel — animates running inside after gate unlock (two-waypoint path through gate opening)
-    if (!npcs.squirrel.completed) {
+    // Squirrel — animates running through gate opening, stays inside after
+    {
       let sqX = npcs.squirrel.x, sqY = npcs.squirrel.y;
       if (state.gateUnlocked) {
-        // Waypoint: gate opening center
-        const gateX = 395, gateY = 155;
-        const destX = 500, destY = 140;
+        // 3-leg path: approach gate → pass through → run to leaf pile
+        const approachX = 375, approachY = 150; // Just before gate (left side of wall)
+        const throughX = 420, throughY = 150;    // Just past gate (inside)
+        const destX = 500, destY = 140;          // Leaf pile
         if (state.squirrelRunPhase >= 0 && state.squirrelRunPhase <= 60) {
-          if (state.squirrelRunPhase <= 30) {
-            // Leg 1: start → gate opening
-            const p = state.squirrelRunPhase / 30;
-            sqX = npcs.squirrel.x + (gateX - npcs.squirrel.x) * p;
-            sqY = npcs.squirrel.y + (gateY - npcs.squirrel.y) * p;
+          if (state.squirrelRunPhase <= 20) {
+            // Leg 1: start → approach gate
+            const p = state.squirrelRunPhase / 20;
+            sqX = npcs.squirrel.x + (approachX - npcs.squirrel.x) * p;
+            sqY = npcs.squirrel.y + (approachY - npcs.squirrel.y) * p;
+          } else if (state.squirrelRunPhase <= 40) {
+            // Leg 2: pass through gate opening horizontally
+            const p = (state.squirrelRunPhase - 20) / 20;
+            sqX = approachX + (throughX - approachX) * p;
+            sqY = approachY + (throughY - approachY) * p;
           } else {
-            // Leg 2: gate opening → inside gated area
-            const p = (state.squirrelRunPhase - 30) / 30;
-            sqX = gateX + (destX - gateX) * p;
-            sqY = gateY + (destY - gateY) * p;
+            // Leg 3: run to leaf pile
+            const p = (state.squirrelRunPhase - 40) / 20;
+            sqX = throughX + (destX - throughX) * p;
+            sqY = throughY + (destY - throughY) * p;
           }
         } else {
           // Run complete or loaded from save — already inside
