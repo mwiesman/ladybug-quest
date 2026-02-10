@@ -52,8 +52,15 @@ export function checkInteraction() {
       continue;
     }
 
-    const dx = player.x - npc.x;
-    const dy = player.y - npc.y;
+    // Kid — uses animated position after running to parent
+    let npcX = npc.x, npcY = npc.y;
+    if (npc === npcs.kid && state.kidRunPhase >= 40) {
+      npcX = npcs.parent.x + 30;
+      npcY = npcs.parent.y - 10;
+    }
+
+    const dx = player.x - npcX;
+    const dy = player.y - npcY;
     if (Math.sqrt(dx * dx + dy * dy) < 40) {
       showDialog(npc);
       return;
@@ -164,6 +171,12 @@ export function checkNearInteractable() {
     if (npc === npcs.bird && npc.flies && !state.birdStopped) {
       npcX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
       npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+    }
+
+    // Kid uses animated position after running to parent
+    if (npc === npcs.kid && state.kidRunPhase >= 40) {
+      npcX = npcs.parent.x + 30;
+      npcY = npcs.parent.y - 10;
     }
 
     const dx = player.x - npcX;

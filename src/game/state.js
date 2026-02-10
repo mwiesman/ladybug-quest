@@ -90,6 +90,7 @@ export const state = {
 
   // Ladybug ending prompt
   ladybugPrompted: false,
+  endingFadeAlpha: 0,
 
   // Interaction hint
   nearInteractable: false,
@@ -133,6 +134,7 @@ export function resetState() {
   state.squirrelRunPhase = -1;
   state.kidRunPhase = -1;
   state.ladybugPrompted = false;
+  state.endingFadeAlpha = 0;
   state.nearInteractable = false;
   state.woodsFirstEntry = true;
   state.woodsSightingPhase = -1;

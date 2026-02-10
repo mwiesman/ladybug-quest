@@ -227,9 +227,12 @@ function update() {
     // Freeze animation while dialog is showing
     if (state.currentDialog) return;
 
-    // After boy's dialog, go to credits
-    if (state.endingPhase > 220) {
-      showCredits();
+    // Fade to black after boy's dialog, then credits
+    if (state.endingPhase > 250) {
+      state.endingFadeAlpha = Math.min(1, (state.endingFadeAlpha || 0) + 0.02);
+      if (state.endingFadeAlpha >= 1) {
+        showCredits();
+      }
       return;
     }
 
@@ -237,12 +240,24 @@ function update() {
 
     // Phase 0-50:   Ladybug on leaf, girl nearby
     // Phase 50-90:  Girl swings net, misses! Ladybug flies up
+    // Phase 90:     "*Misses!*" dialog
     // Phase 90-160: Ladybug hovers in the air, drifting
     // Phase 160-200: Ladybug gently descends onto girl's hand
-    // Phase 200-220: Ladybug on girl's hand, both still
-    // Phase 220: Boy says "Ain't that just the way."
+    // Phase 200:    "*The ladybug lands gently on her hand...*" dialog
+    // Phase 220:    Boy says "Ain't that just the way."
+    // Phase 250+:   Fade to black
 
-    if (state.endingPhase === 220) {
+    if (state.endingPhase === 90) {
+      showDialog({
+        dialog: ["*Misses!*"],
+        isStatic: true
+      });
+    } else if (state.endingPhase === 200) {
+      showDialog({
+        dialog: ["*The ladybug lands gently on her hand...*"],
+        isStatic: true
+      });
+    } else if (state.endingPhase === 220) {
       showDialog({
         dialog: ["Ain't that just the way."],
         isStatic: true
@@ -402,6 +417,15 @@ function draw() {
     } else {
       // Ladybug resting on girl's hand
       drawLadybug(player.x + 5, player.y - 5);
+    }
+
+    // Fade to black overlay
+    if (state.endingFadeAlpha > 0) {
+      ctx.save();
+      ctx.globalAlpha = state.endingFadeAlpha;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
     }
     return;
   }

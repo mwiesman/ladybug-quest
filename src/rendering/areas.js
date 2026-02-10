@@ -261,15 +261,25 @@ export function drawCompleteArea(area, skipBoy) {
     const birdY = state.birdStopped ? npcs.bird.y : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
     drawNPC(npcs.bird, birdX, birdY);
 
-    // Squirrel — animates running inside after gate unlock
+    // Squirrel — animates running inside after gate unlock (two-waypoint path through gate opening)
     if (!npcs.squirrel.completed) {
       let sqX = npcs.squirrel.x, sqY = npcs.squirrel.y;
       if (state.gateUnlocked) {
+        // Waypoint: gate opening center
+        const gateX = 395, gateY = 155;
+        const destX = 500, destY = 140;
         if (state.squirrelRunPhase >= 0 && state.squirrelRunPhase <= 60) {
-          // Interpolate from start position to inside gated area
-          const p = state.squirrelRunPhase / 60;
-          sqX = npcs.squirrel.x + (500 - npcs.squirrel.x) * p;
-          sqY = npcs.squirrel.y + (140 - npcs.squirrel.y) * p;
+          if (state.squirrelRunPhase <= 30) {
+            // Leg 1: start → gate opening
+            const p = state.squirrelRunPhase / 30;
+            sqX = npcs.squirrel.x + (gateX - npcs.squirrel.x) * p;
+            sqY = npcs.squirrel.y + (gateY - npcs.squirrel.y) * p;
+          } else {
+            // Leg 2: gate opening → inside gated area
+            const p = (state.squirrelRunPhase - 30) / 30;
+            sqX = gateX + (destX - gateX) * p;
+            sqY = gateY + (destY - gateY) * p;
+          }
         } else {
           // Run complete or loaded from save — already inside
           sqX = 500; sqY = 140;
