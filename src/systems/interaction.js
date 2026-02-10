@@ -206,6 +206,6 @@ export function checkNearInteractable() {
 function triggerEndingAnimation() {
   state.currentState = GAME_STATE.ENDING_ANIMATION;
   state.endingPhase = 0;
-  state.ladybug.found = true;
   inventory.removeItem('Net');
+  // Note: ladybug.found is set later (in showCredits) so drawLadybug still works during the animation
 }

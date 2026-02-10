@@ -152,6 +152,7 @@ function startGame() {
 
 function showCredits() {
   state.currentState = GAME_STATE.CREDITS;
+  state.ladybug.found = true;
   cutsceneOverlay.classList.remove('active');
   credits.classList.add('active');
   stopMusic();
@@ -227,21 +228,21 @@ function update() {
     if (state.currentDialog) return;
 
     // After boy's dialog, go to credits
-    if (state.endingPhase > 160) {
+    if (state.endingPhase > 220) {
       showCredits();
       return;
     }
 
     state.endingPhase++;
 
-    // Phase 0-40:  Ladybug on leaf, girl nearby
-    // Phase 40-70: Girl swings net, misses! Ladybug flies up
-    // Phase 70-110: Girl stands still, ladybug hovers
-    // Phase 110-150: Ladybug gently descends onto girl's hand
-    // Phase 150-160: Ladybug on girl's hand, both still
-    // Phase 160: Boy says "Ain't that just the way."
+    // Phase 0-50:   Ladybug on leaf, girl nearby
+    // Phase 50-90:  Girl swings net, misses! Ladybug flies up
+    // Phase 90-160: Ladybug hovers in the air, drifting
+    // Phase 160-200: Ladybug gently descends onto girl's hand
+    // Phase 200-220: Ladybug on girl's hand, both still
+    // Phase 220: Boy says "Ain't that just the way."
 
-    if (state.endingPhase === 160) {
+    if (state.endingPhase === 220) {
       showDialog({
         dialog: ["Ain't that just the way."],
         isStatic: true
@@ -374,25 +375,25 @@ function draw() {
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
     // Hover position — stays visible on screen
-    const hoverX = 380, hoverY = 80;
+    const hoverX = 400, hoverY = 90;
 
-    if (state.endingPhase < 40) {
+    if (state.endingPhase < 50) {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
-    } else if (state.endingPhase < 65) {
+    } else if (state.endingPhase < 90) {
       // Girl swings net, misses! Ladybug flies up and to the right (stays on screen)
-      const p = (state.endingPhase - 40) / 25;
+      const p = (state.endingPhase - 50) / 40;
       const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p;
       const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p;
       drawLadybug(lbX, lbY);
-    } else if (state.endingPhase < 120) {
+    } else if (state.endingPhase < 160) {
       // Ladybug hovers in the air, drifting gently (always visible)
-      const hover = Math.sin((state.endingPhase - 65) * 0.1) * 12;
-      const bob = Math.cos((state.endingPhase - 65) * 0.07) * 6;
+      const hover = Math.sin((state.endingPhase - 90) * 0.08) * 20;
+      const bob = Math.cos((state.endingPhase - 90) * 0.06) * 10;
       drawLadybug(hoverX + hover, hoverY + bob);
-    } else if (state.endingPhase < 155) {
+    } else if (state.endingPhase < 200) {
       // Ladybug gently descends and lands on girl's hand
-      const p = (state.endingPhase - 120) / 35;
+      const p = (state.endingPhase - 160) / 40;
       const endX = player.x + 5;
       const endY = player.y - 5;
       const lbX = hoverX + (endX - hoverX) * p;
