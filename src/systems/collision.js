@@ -56,8 +56,9 @@ export function checkCollision(x, y, w, h) {
       if (x < 404 && x + w > 380 && y < 172 && y + h > 140) return true;
     }
     // Stone walls forming gated corner
-    if (x + w > 580 && y < 240) return true; // Right wall
+    if (x + w > 580 && y < 245) return true; // Right wall
     if (y < 74 && x > 380) return true; // Top-right wall
+    if (y < 245 && y + h > 230 && x > 380) return true; // Bottom wall of enclosure
     // Left connecting wall — gap at gate (y:130-175) when unlocked
     if (x < 394 && x + w > 380) {
       if (!state.gateUnlocked) {

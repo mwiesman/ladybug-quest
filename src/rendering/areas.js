@@ -109,33 +109,42 @@ export function drawCompleteArea(area, skipBoy) {
     drawNPC(npcs.hippie, npcs.hippie.x, npcs.hippie.y);
     drawNPC(npcs.dog, npcs.dog.x, npcs.dog.y);
 
-    // Bird feeder near coffee cart
-    const bfX = 130, bfY = 75;
+    // Bird feeder near coffee cart (larger, more visible)
+    const bfX = 130, bfY = 70;
     // Post
     ctx.fillStyle = '#654321';
-    ctx.fillRect(bfX + 8, bfY, 4, 30);
+    ctx.fillRect(bfX + 12, bfY + 4, 6, 36);
+    // Base
+    ctx.fillRect(bfX + 6, bfY + 38, 18, 4);
     // Tray
     ctx.fillStyle = '#8b4513';
-    ctx.fillRect(bfX - 2, bfY - 4, 24, 5);
+    ctx.fillRect(bfX - 4, bfY - 2, 38, 7);
     // Tray rim
     ctx.fillStyle = '#654321';
-    ctx.fillRect(bfX - 3, bfY - 5, 1, 6);
-    ctx.fillRect(bfX + 22, bfY - 5, 1, 6);
+    ctx.fillRect(bfX - 6, bfY - 4, 2, 10);
+    ctx.fillRect(bfX + 34, bfY - 4, 2, 10);
     // Roof
     ctx.fillStyle = '#a0522d';
-    ctx.fillRect(bfX - 4, bfY - 14, 28, 3);
-    ctx.fillRect(bfX, bfY - 17, 20, 3);
-    // Roof post
-    ctx.fillRect(bfX + 9, bfY - 14, 2, 10);
-    // Seeds on tray
+    ctx.fillRect(bfX - 8, bfY - 18, 46, 4);
+    ctx.fillRect(bfX - 2, bfY - 22, 34, 4);
+    // Roof supports
+    ctx.fillRect(bfX + 13, bfY - 18, 4, 16);
+    // Seeds on tray (with sparkle when available)
     if (!worldItems.birdseed.collected) {
       ctx.fillStyle = '#daa520';
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 10; i++) {
         ctx.fillRect(
-          bfX + 1 + (i % 4) * 5,
-          bfY - 3 + Math.floor(i / 4) * 3,
-          3, 2
+          bfX - 1 + (i % 5) * 7,
+          bfY + Math.floor(i / 5) * 3,
+          4, 3
         );
+      }
+      // Sparkle to draw attention
+      const sparkle = Math.sin(state.frameCount * 0.1) > 0.3;
+      if (sparkle) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(bfX + 2, bfY - 6, 2, 2);
+        ctx.fillRect(bfX + 24, bfY - 3, 2, 2);
       }
     }
 
@@ -211,6 +220,10 @@ export function drawCompleteArea(area, skipBoy) {
     // Left connecting wall (extends down to gate)
     for (let y = 60; y < 180; y += 16) {
       ctx.fillRect(380 + ((y * 9) % 8), y + ((y * 7) % 8), 14, 14);
+    }
+    // Bottom wall connecting left wall to right wall (seals the enclosure)
+    for (let x = 380; x < canvasWidth - 50; x += 16) {
+      ctx.fillRect(x + ((x * 7) % 8), 230 + ((x * 11) % 8), 14, 14);
     }
 
     // Acorns scattered in gated area (visible until squirrel completes)
