@@ -240,11 +240,21 @@ export function drawCompleteArea(area, skipBoy) {
     const birdY = state.birdStopped ? npcs.bird.y : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
     drawNPC(npcs.bird, birdX, birdY);
 
-    // Squirrel — moves inside gated area after gate unlocked
-    if (state.gateUnlocked && !npcs.squirrel.completed) {
-      drawNPC(npcs.squirrel, 500, 140);
-    } else if (!npcs.squirrel.completed) {
-      drawNPC(npcs.squirrel, npcs.squirrel.x, npcs.squirrel.y);
+    // Squirrel — animates running inside after gate unlock
+    if (!npcs.squirrel.completed) {
+      let sqX = npcs.squirrel.x, sqY = npcs.squirrel.y;
+      if (state.gateUnlocked) {
+        if (state.squirrelRunPhase >= 0 && state.squirrelRunPhase <= 60) {
+          // Interpolate from start position to inside gated area
+          const p = state.squirrelRunPhase / 60;
+          sqX = npcs.squirrel.x + (500 - npcs.squirrel.x) * p;
+          sqY = npcs.squirrel.y + (140 - npcs.squirrel.y) * p;
+        } else {
+          // Run complete or loaded from save — already inside
+          sqX = 500; sqY = 140;
+        }
+      }
+      drawNPC(npcs.squirrel, sqX, sqY);
     }
 
     drawNavigationIndicator(30, 240, 'left', 'Boathouse');

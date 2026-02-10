@@ -566,6 +566,7 @@ export function drawLadybug(x, y) {
 
 export function drawGate(x, y) {
   if (!state.gateUnlocked) {
+    // Closed gate
     const sprite = getSprite('gate');
     if (sprite) { ctx.drawImage(sprite, x - 2, y - 2); return; }
 
@@ -580,6 +581,22 @@ export function drawGate(x, y) {
     ctx.fillRect(x + 10, y + 14, 6, 8);
     ctx.fillStyle = '#000';
     ctx.fillRect(x + 12, y + 17, 2, 3);
+  } else {
+    // Open gate — door swung to the side
+    ctx.fillStyle = '#8b4513';
+    // Left post (still standing)
+    ctx.fillRect(x, y, 4, 32);
+    // Right post (still standing)
+    ctx.fillRect(x + 20, y, 4, 32);
+    // Gate door swung open (angled to the right)
+    ctx.fillStyle = '#6b3410';
+    ctx.fillRect(x + 24, y + 2, 16, 3);
+    ctx.fillRect(x + 24, y + 12, 16, 3);
+    ctx.fillRect(x + 24, y + 22, 16, 3);
+    // Hinges
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(x + 22, y + 4, 3, 2);
+    ctx.fillRect(x + 22, y + 24, 3, 2);
   }
 }
 

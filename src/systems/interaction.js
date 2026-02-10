@@ -91,6 +91,7 @@ export function checkInteraction() {
       playSFX('gate_unlock');
       inventory.removeItem('Key');
       npcs.squirrel.behindGate = false;
+      state.squirrelRunPhase = 0; // Start squirrel run animation
       saveGame();
       return;
     }

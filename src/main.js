@@ -260,6 +260,14 @@ function update() {
     return;
   }
 
+  // Squirrel run animation (after gate unlock)
+  if (state.squirrelRunPhase >= 0) {
+    state.squirrelRunPhase++;
+    if (state.squirrelRunPhase > 60) {
+      state.squirrelRunPhase = -1; // Animation done
+    }
+  }
+
   // Woods ladybug sighting animation (sits 40 frames, flies 110 frames)
   if (state.woodsSightingPhase >= 0) {
     state.woodsSightingPhase++;
@@ -349,9 +357,9 @@ function draw() {
   }
 
   if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
-    drawCompleteArea('meadow');
+    drawCompleteArea('meadow', true); // skipBoy — we draw him manually at the tree
+    drawBoy(280, 200); // Boy under the tree
     drawPlayer(player.x, player.y);
-    drawBoy(state.boy.x, state.boy.y);
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
 
@@ -359,20 +367,23 @@ function draw() {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
     } else if (state.endingPhase < 70) {
-      // Girl swings, misses! Ladybug flies up quickly
+      // Girl swings net, misses! Ladybug flies away quickly
       const p = (state.endingPhase - 40) / 30;
-      const lbX = ladybugBaseX + p * 40;
-      const lbY = ladybugBaseY - p * 180;
+      const lbX = ladybugBaseX + p * 120;
+      const lbY = ladybugBaseY - p * 200;
       if (lbY > -20) drawLadybug(lbX, lbY);
     } else if (state.endingPhase < 110) {
-      // Ladybug hovers high up, drifting gently
-      const hover = Math.sin((state.endingPhase - 70) * 0.1) * 8;
-      drawLadybug(ladybugBaseX + 40 + hover, ladybugBaseY - 180 + Math.abs(hover));
+      // Ladybug is off-screen / far away, drifting high
+      const hover = Math.sin((state.endingPhase - 70) * 0.08) * 15;
+      const driftBack = (state.endingPhase - 70) / 40; // slowly drift back toward center
+      const lbX = ladybugBaseX + 120 - driftBack * 80 + hover;
+      const lbY = Math.max(-10, ladybugBaseY - 200 + driftBack * 60);
+      if (lbY > -20) drawLadybug(lbX, lbY);
     } else if (state.endingPhase < 150) {
-      // Ladybug gently descends onto girl's hand
+      // Ladybug gently descends and lands on girl's hand
       const p = (state.endingPhase - 110) / 40;
       const startX = ladybugBaseX + 40;
-      const startY = ladybugBaseY - 180;
+      const startY = ladybugBaseY - 140;
       const endX = player.x + 5;
       const endY = player.y - 5;
       const lbX = startX + (endX - startX) * p;

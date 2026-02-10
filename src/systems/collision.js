@@ -58,7 +58,15 @@ export function checkCollision(x, y, w, h) {
     // Stone walls forming gated corner
     if (x + w > 580 && y < 240) return true; // Right wall
     if (y < 74 && x > 380) return true; // Top-right wall
-    if (x < 394 && x + w > 380 && y < 180 && y + h > 60) return true; // Left connecting wall
+    // Left connecting wall — gap at gate (y:130-175) when unlocked
+    if (x < 394 && x + w > 380) {
+      if (!state.gateUnlocked) {
+        if (y < 180 && y + h > 60) return true;
+      } else {
+        if (y < 130 && y + h > 60) return true;  // Wall above gate opening
+        if (y < 180 && y + h > 175) return true;  // Wall below gate opening
+      }
+    }
     // Trees
     if (x < 148 && x + w > 100 && y < 198 && y + h > 150) return true; // Tree (100, 150)
     if (x < 248 && x + w > 200 && y < 368 && y + h > 320) return true; // Tree (200, 320)
