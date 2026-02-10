@@ -183,7 +183,15 @@ export function drawCompleteArea(area, skipBoy) {
       );
     }
 
-    drawNPC(npcs.kid, npcs.kid.x, npcs.kid.y);
+    // Kid runs toward parent when parent is talked to
+    let kidX = npcs.kid.x, kidY = npcs.kid.y;
+    const kidTarget = { x: npcs.parent.x + 30, y: npcs.parent.y - 10 };
+    if (state.kidRunPhase >= 0) {
+      const p = Math.min(state.kidRunPhase / 40, 1);
+      kidX = npcs.kid.x + (kidTarget.x - npcs.kid.x) * p;
+      kidY = npcs.kid.y + (kidTarget.y - npcs.kid.y) * p;
+    }
+    drawNPC(npcs.kid, kidX, kidY);
     drawNPC(npcs.parent, npcs.parent.x, npcs.parent.y);
 
     drawNavigationIndicator(320, 30, 'up', 'Park');
@@ -215,8 +223,10 @@ export function drawCompleteArea(area, skipBoy) {
     for (let x = 380; x < canvasWidth; x += 16) {
       ctx.fillRect(x + ((x * 11) % 8), 60 + ((x * 5) % 8), 14, 14);
     }
-    // Left connecting wall (extends down to gate)
-    for (let y = 60; y < 180; y += 16) {
+    // Left connecting wall (extends from top wall down to bottom wall)
+    for (let y = 60; y < 240; y += 16) {
+      // Skip the gate opening (y:130-175) when unlocked
+      if (state.gateUnlocked && y >= 128 && y <= 170) continue;
       ctx.fillRect(380 + ((y * 9) % 8), y + ((y * 7) % 8), 14, 14);
     }
     // Bottom wall connecting left wall to right wall (seals the enclosure)

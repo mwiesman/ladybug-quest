@@ -260,6 +260,11 @@ function update() {
     return;
   }
 
+  // Kid run animation (runs to parent when parent talked to)
+  if (state.kidRunPhase >= 0 && state.kidRunPhase <= 40) {
+    state.kidRunPhase++;
+  }
+
   // Squirrel run animation (after gate unlock)
   if (state.squirrelRunPhase >= 0) {
     state.squirrelRunPhase++;

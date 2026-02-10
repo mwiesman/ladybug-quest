@@ -85,6 +85,9 @@ export const state = {
   // Squirrel run animation (after gate unlocks)
   squirrelRunPhase: -1, // -1 = not active, 0+ = frame counter
 
+  // Kid run animation (runs over when parent is talked to)
+  kidRunPhase: -1, // -1 = not active, 0+ = frame counter
+
   // Ladybug ending prompt
   ladybugPrompted: false,
 
@@ -128,6 +131,7 @@ export function resetState() {
   state.tradePrompted = false;
   state.birdStopped = false;
   state.squirrelRunPhase = -1;
+  state.kidRunPhase = -1;
   state.ladybugPrompted = false;
   state.nearInteractable = false;
   state.woodsFirstEntry = true;

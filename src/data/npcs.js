@@ -106,7 +106,7 @@ export const NPC_DATA = {
     completed: false
   },
   squirrel: {
-    x: 360, y: 200, area: 'gate_area',
+    x: 340, y: 200, area: 'gate_area',
     dialog: [
       "*CHITTER!* The gate's open!",
       "*scurries to acorn pile*",
@@ -180,7 +180,9 @@ export const NPC_DATA = {
     x: 250, y: 320, area: 'playground',
     dialog: [
       "*watching their kid*",
-      "Beautiful day, isn't it?"
+      "Beautiful day, isn't it?",
+      "*the kid runs over* Hi!! Are you new here?!",
+      "Ha, sorry — they get excited about everything."
     ],
     dialogComplete: [
       "*still watching their kid*",

@@ -127,6 +127,13 @@ function updateDialogText() {
   if (state.dialogIndex < dialogArray.length) {
     dialogText.textContent = dialogArray[state.dialogIndex];
   }
+
+  // Kid runs over when parent dialog reaches the interruption line
+  if (state.currentDialog === state.npcs.parent &&
+      state.dialogPhase === 'main' && state.dialogIndex === 2 &&
+      state.kidRunPhase === -1) {
+    state.kidRunPhase = 0;
+  }
 }
 
 function shouldPromptTrade(npc) {
