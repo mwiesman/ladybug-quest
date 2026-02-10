@@ -1,6 +1,7 @@
 // Inventory management and DOM display
 
 import { STARTING_ITEMS } from '../data/items.js';
+import { showItemNotification } from '../rendering/ui.js';
 
 const inventoryItemsEl = document.getElementById('inventoryItems');
 
@@ -14,6 +15,7 @@ export const inventory = {
   addItem(item) {
     this.items.push(item);
     this.updateDisplay();
+    showItemNotification(item);
   },
 
   removeItem(item) {

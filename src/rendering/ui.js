@@ -9,6 +9,10 @@ let canvasHeight;
 let saveNotificationTimer = 0;
 const SAVE_NOTIFICATION_DURATION = 90;
 
+let itemNotificationTimer = 0;
+let itemNotificationText = '';
+const ITEM_NOTIFICATION_DURATION = 120;
+
 export function setContext(canvasCtx, w, h) {
   ctx = canvasCtx;
   canvasWidth = w;
@@ -42,6 +46,39 @@ export function drawSaveNotification() {
   ctx.fillStyle = '#fff';
   ctx.font = '8px "Press Start 2P"';
   ctx.fillText('Game Saved', canvasWidth - 130, 29);
+  ctx.restore();
+}
+
+export function showItemNotification(itemName) {
+  itemNotificationText = itemName;
+  itemNotificationTimer = ITEM_NOTIFICATION_DURATION;
+}
+
+export function drawItemNotification() {
+  if (itemNotificationTimer <= 0) return;
+  itemNotificationTimer--;
+
+  const alpha = itemNotificationTimer < 30
+    ? itemNotificationTimer / 30
+    : Math.min(itemNotificationTimer / 10, 1); // fade in quickly
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.textAlign = 'center';
+
+  const text = `Received: ${itemNotificationText}`;
+  const textWidth = Math.max(text.length * 7, 140);
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+  ctx.fillRect(canvasWidth / 2 - textWidth / 2 - 10, canvasHeight / 2 - 20, textWidth + 20, 32);
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(canvasWidth / 2 - textWidth / 2 - 10, canvasHeight / 2 - 20, textWidth + 20, 32);
+
+  ctx.fillStyle = '#ffd700';
+  ctx.font = '8px "Press Start 2P"';
+  ctx.fillText(text, canvasWidth / 2, canvasHeight / 2);
+  ctx.textAlign = 'start';
   ctx.restore();
 }
 
