@@ -5,8 +5,8 @@ export const NPC_DATA = {
   fisherman: {
     x: 550, y: 150, area: 'boathouse',
     dialog: [
-      "Ah, you found some rope!",
-      "That's exactly what I needed."
+      "Ah, is that rope you've got there?",
+      "That's just what I've been looking for..."
     ],
     dialogAfterTrade: [
       "Here's the net. Hope it helps you catch what you're looking for.",
@@ -58,7 +58,7 @@ export const NPC_DATA = {
     x: 200, y: 300, area: 'playground',
     dialog: [
       "*runs up* Hi! Hi!",
-      "Wow, that's so pretty! For me?!"
+      "Wow, that flower is so pretty!"
     ],
     dialogAfterTrade: [
       "Thank you! Here, I found this heavy thing earlier!",
@@ -83,7 +83,7 @@ export const NPC_DATA = {
     x: 150, y: 200, area: 'park',
     dialog: [
       "*sketching clouds* Oh hey.",
-      "Gum? Lifesaver. Been here for hours."
+      "Is that gum? I could really use some..."
     ],
     dialogAfterTrade: [
       "Take this flower. It wants to travel with you.",
@@ -136,7 +136,7 @@ export const NPC_DATA = {
     flies: true,
     dialog: [
       "*chirp chirp*",
-      "Ooh, is that birdseed? I love seeds!"
+      "*eyes the birdseed in your hand*"
     ],
     dialogAfterTrade: [
       "A key for some seeds? Deal!",
@@ -164,7 +164,9 @@ export const NPC_DATA = {
     dialog: [
       "Morning! One coffee coming up.",
       "Perfect day for the park.",
-      "*hands you a warm cup*"
+      "*hands you a warm cup*",
+      "Oh — check the bird feeder next to me.",
+      "Someone left fresh seeds there!"
     ],
     dialogComplete: [
       "Enjoy the coffee!",
