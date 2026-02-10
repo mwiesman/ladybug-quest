@@ -3,7 +3,7 @@
 
 export const WORLD_ITEMS = {
   birdseed: {
-    x: 130, y: 75, area: 'park',
+    x: 200, y: 65, area: 'park',
     name: 'Birdseed',
     collected: false
   },
