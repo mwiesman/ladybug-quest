@@ -142,6 +142,7 @@ function startIntroAnimation() {
   state.currentState = GAME_STATE.INTRO_ANIMATION;
   cutsceneOverlay.classList.remove('active');
   state.animationPhase = 0;
+  player.direction = 'down'; // Girl turns to walk away
 }
 
 function startGame() {
@@ -238,11 +239,10 @@ function update() {
 
     state.endingPhase++;
 
-    // Phase 0-30:    Ladybug on leaf, girl nearby
-    // Phase 30-70:   Girl swings net, misses! Ladybug flies up
+    // Phase 0-30:    Ladybug on leaf
+    // Phase 30-70:   Ladybug flies up + boy walks toward girl (simultaneous)
     // Phase 70:      "*Misses!*" dialog
-    // Phase 70-120:  Boy walks toward girl, ladybug hovers
-    // Phase 120-160: Ladybug descends onto boy's hand
+    // Phase 70-160:  Ladybug arcs back via indirect path, lands on boy's hand
     // Phase 160:     "*The ladybug lands gently on his hand...*" dialog
     // Phase 180:     Boy says "Ain't that just the way."
     // Phase 210+:    Fade to black
@@ -350,9 +350,12 @@ function draw() {
     ctx.fillStyle = '#6b8e23';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawLargeTree(220, 100);
-    // Both start together under the tree
+    // Both start together under the tree, facing each other
     drawBoy(280, 200);
+    const savedDir = player.direction;
+    player.direction = 'left';
     drawPlayer(310, 200);
+    player.direction = savedDir;
 
     // Ladybug appears on beat 3 ("A tiny ladybug landed...") through beat 5
     if (state.currentCutsceneIndex >= 3 && state.currentCutsceneIndex <= 5) {
@@ -376,7 +379,7 @@ function draw() {
     // Ladybug flies off during first 60 frames (with flutter)
     if (state.animationPhase < 60) {
       const progress = state.animationPhase / 60;
-      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.2) * 12;
+      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.15) * 12;
       const flyY = 198 - progress * 200;
       if (flyY > 0) drawLadybug(flyX, flyY);
     }
@@ -386,44 +389,52 @@ function draw() {
   if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
     drawCompleteArea('meadow', true); // skipBoy — we draw him manually
 
-    // Boy walks from tree (280,200) toward girl during phases 70-120
-    const boyStartX = 280, boyStartY = 200;
-    const boyEndX = 310, boyEndY = 260;
+    // Boy starts at his normal meadow position and walks toward girl
+    // during phases 30-70 (same time ladybug escapes)
+    const boyStartX = state.boy.x, boyStartY = state.boy.y; // (290, 270)
+    const boyEndX = 300, boyEndY = 240; // partway toward girl, not all the way
     let boyX = boyStartX, boyY = boyStartY;
-    if (state.endingPhase >= 70) {
-      const p = Math.min((state.endingPhase - 70) / 50, 1);
+    if (state.endingPhase >= 30) {
+      const p = Math.min((state.endingPhase - 30) / 40, 1);
       boyX = boyStartX + (boyEndX - boyStartX) * p;
       boyY = boyStartY + (boyEndY - boyStartY) * p;
     }
     drawBoy(boyX, boyY);
-    drawPlayer(player.x, player.y);
+
+    // Girl runs to the right chasing the ladybug during phases 30-70
+    let girlX = player.x, girlY = player.y;
+    if (state.endingPhase >= 30) {
+      player.direction = 'right';
+      const girlEndX = player.x + 80; // runs toward the park
+      const p = Math.min((state.endingPhase - 30) / 40, 1);
+      girlX = player.x + (girlEndX - player.x) * p;
+    }
+    drawPlayer(girlX, girlY);
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
     const hoverX = 400, hoverY = 90;
-    // Ladybug landing position = boy's hand at his walked-to position
+    // Ladybug lands on boy's hand at his walked-to position
     const landX = boyEndX + 5, landY = boyEndY - 5;
 
     if (state.endingPhase < 30) {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
     } else if (state.endingPhase < 70) {
-      // Girl swings net, misses! Ladybug flies up with gentle sine weave
+      // Ladybug flies up while boy walks toward girl (simultaneous)
       const p = (state.endingPhase - 30) / 40;
-      const flutter = Math.sin(state.endingPhase * 0.2) * 10;
+      const flutter = Math.sin(state.endingPhase * 0.15) * 10;
       const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p + flutter;
       const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p;
       drawLadybug(lbX, lbY);
-    } else if (state.endingPhase < 120) {
-      // Ladybug hovers while boy walks toward girl
-      const flutter = Math.sin((state.endingPhase - 70) * 0.08) * 15;
-      drawLadybug(hoverX + flutter, hoverY);
     } else if (state.endingPhase < 160) {
-      // Ladybug descends to boy's hand (gentle weave that fades)
-      const p = (state.endingPhase - 120) / 40;
-      const fade = 1 - p;
-      const flutter = Math.sin(state.endingPhase * 0.15) * 8 * fade;
-      const lbX = hoverX + (landX - hoverX) * p + flutter;
-      const lbY = hoverY + (landY - hoverY) * p;
+      // Ladybug arcs back to boy via indirect curved path (quadratic bezier)
+      // P0 = hover position, P1 = control point (swings wide left), P2 = boy's hand
+      const p = (state.endingPhase - 70) / 90;
+      const ctrlX = 150, ctrlY = 180; // arc wide to the left
+      const t = p;
+      const mt = 1 - t;
+      const lbX = mt * mt * hoverX + 2 * mt * t * ctrlX + t * t * landX;
+      const lbY = mt * mt * hoverY + 2 * mt * t * ctrlY + t * t * landY;
       drawLadybug(lbX, lbY);
     } else {
       // Ladybug resting on boy's hand

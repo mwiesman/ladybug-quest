@@ -2,6 +2,7 @@
 // Supports mid-dialog trade prompts via dialogAfterTrade / dialogDecline
 
 import { state, GAME_STATE } from '../game/state.js';
+import { player } from '../game/player.js';
 import { inventory } from './inventory.js';
 import { getSprite } from '../rendering/spriteLoader.js';
 import { playSFX } from './audio.js';
@@ -133,6 +134,8 @@ function updateDialogText() {
       state.dialogPhase === 'main' && state.dialogIndex === 2 &&
       state.kidRunPhase === -1) {
     state.kidRunPhase = 0;
+    state.kidRunTargetX = player.x - 10;
+    state.kidRunTargetY = player.y + 10;
   }
 }
 

@@ -185,8 +185,8 @@ export function drawCompleteArea(area, skipBoy) {
 
     // Kid runs toward parent when parent is talked to
     let kidX = npcs.kid.x, kidY = npcs.kid.y;
-    const kidTarget = { x: npcs.parent.x + 30, y: npcs.parent.y - 10 };
-    if (state.kidRunPhase >= 0) {
+    const kidTarget = { x: state.kidRunTargetX, y: state.kidRunTargetY };
+    if (state.kidRunPhase >= 0 && state.kidRunTargetX > 0) {
       const p = Math.min(state.kidRunPhase / 40, 1);
       kidX = npcs.kid.x + (kidTarget.x - npcs.kid.x) * p;
       kidY = npcs.kid.y + (kidTarget.y - npcs.kid.y) * p;
@@ -397,7 +397,7 @@ export function drawCompleteArea(area, skipBoy) {
       } else {
         // Slowly flies away with fluttering path
         const p = (state.woodsSightingPhase - 40) / 110;
-        const flutter = Math.sin(state.woodsSightingPhase * 0.15) * 15;
+        const flutter = Math.sin(state.woodsSightingPhase * 0.12) * 15;
         lbX = 200 + p * 250 + flutter;
         lbY = 300 - p * 350;
       }

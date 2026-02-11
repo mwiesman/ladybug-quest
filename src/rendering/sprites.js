@@ -112,8 +112,6 @@ export function drawPlayer(x, y) {
     ctx.fillStyle = '#654321';
     ctx.fillRect(x + 6, y + 30 - legOffset, 4, 2);
     ctx.fillRect(x + 14, y + 30, 4, 2);
-    ctx.fillStyle = '#ffd1a3';
-    ctx.fillRect(x + 6, y + 4, 12, 6);
 
   } else if (dir === 'left') {
     // Face/eye on left side, hair trailing right
@@ -255,7 +253,7 @@ export function drawNPC(npc, x, y) {
   const npcs = state.npcs;
 
   // Subtle idle bob animation (each NPC gets a unique phase from their x position)
-  const bobOffset = Math.round(Math.sin(Date.now() * 0.002 + (npc.x || 0)) * 1.5);
+  const bobOffset = Math.round(Math.sin(Date.now() * 0.0015 + (npc.x || 0)) * 1.5);
   y += bobOffset;
 
   // Try sprite lookup by NPC identity

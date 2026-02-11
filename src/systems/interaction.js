@@ -52,11 +52,11 @@ export function checkInteraction() {
       continue;
     }
 
-    // Kid — uses animated position after running to parent
+    // Kid — uses animated position after running to player
     let npcX = npc.x, npcY = npc.y;
     if (npc === npcs.kid && state.kidRunPhase >= 40) {
-      npcX = npcs.parent.x + 30;
-      npcY = npcs.parent.y - 10;
+      npcX = state.kidRunTargetX;
+      npcY = state.kidRunTargetY;
     }
 
     const dx = player.x - npcX;
@@ -74,6 +74,7 @@ export function checkInteraction() {
       worldItems.birdseed.collected = true;
       playSFX('pickup');
       inventory.addItem('Birdseed');
+      showDialog({ dialog: ["*Birds seem to have plenty to spare.*"], isStatic: true });
       saveGame();
       return;
     }
@@ -173,10 +174,10 @@ export function checkNearInteractable() {
       npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
     }
 
-    // Kid uses animated position after running to parent
+    // Kid uses animated position after running to player
     if (npc === npcs.kid && state.kidRunPhase >= 40) {
-      npcX = npcs.parent.x + 30;
-      npcY = npcs.parent.y - 10;
+      npcX = state.kidRunTargetX;
+      npcY = state.kidRunTargetY;
     }
 
     const dx = player.x - npcX;

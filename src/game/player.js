@@ -5,7 +5,7 @@ export const player = {
   y: 200,
   width: 24,
   height: 32,
-  speed: 3.5,
+  speed: 3,
   direction: 'down',
   animFrame: 0,
   animTimer: 0,

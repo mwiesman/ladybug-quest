@@ -181,7 +181,7 @@ export const NPC_DATA = {
     dialog: [
       "*watching their kid*",
       "Beautiful day, isn't it?",
-      "*the kid runs over* Hi!! Are you new here?!",
+      "Hi!! Are you new here?!",
       "Ha, sorry — they get excited about everything."
     ],
     dialogComplete: [

@@ -21,7 +21,8 @@ export function checkCollision(x, y, w, h) {
     if (x < 0 || y < 0 || y + h > CANVAS_H) return true;
   } else if (area === 'park') {
     // Left (meadow), top (boathouse), bottom (playground) have transitions
-    // No hard boundaries at these edges
+    // Coffee cart
+    if (x < 140 && x + w > 80 && y < 140 && y + h > 85) return true;
   } else if (area === 'playground') {
     // Only top has transition (to park)
     if (x < 0 || x + w > CANVAS_W || y + h > CANVAS_H) return true;
