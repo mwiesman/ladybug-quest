@@ -4,6 +4,61 @@ All notable changes to The Ladybug Quest project.
 
 ## [Unreleased]
 
+### Gameplay Polish & Dialog Rework
+**Date:** 2026-02-10
+
+#### Added
+- **Dialog Trade System Rework**: Split NPC dialog into phases
+  - `dialogBefore` (no required item), `dialog` (neutral recognition), `dialogAfterTrade`, `dialogDecline`, `dialogComplete`
+  - Trade prompt appears AFTER neutral dialog lines — `[SPACE] Yes  [ESC] No`
+  - NPCs no longer say "thank you" before you agree to trade
+- **Bird Flight Animation**: Bird flies back and forth on sine wave until interacted with
+  - `birdStopped` state persisted in save data
+- **Squirrel Gate-Unlock Behavior**: Squirrel runs through gate opening via 3-leg waypoint path
+  - Stays at inside position (500, 140) permanently after gate unlocked, even after trade
+- **Kid Interruption**: Kid runs over when parent is talked to (triggers on dialog line 3)
+  - Kid uses animated position for interaction checks after running
+- **Item Received Notifications**: Gold "Received: [item]" popup at top of screen (~2 seconds)
+- **Ending Sequence Rework**: Animated sequence with dialog prompts
+  - "*Misses!*" after net swing, "*The ladybug lands gently on his hand...*" after landing
+  - Boy: "Ain't that just the way." — then fade to black before credits
+  - Ladybug lands on boy's hand (cyclical return to opening)
+- **Bird Feeder**: Small feeder near coffee cart in park with sparkle effect when birdseed available
+- **Coffee Cart Hint**: Now mentions bird feeder with seeds after handing you coffee
+- **Camperdown Elm Plaque**: Interactable in boathouse area — read the plaque
+- **Boathouse Bridge**: Wooden bridge with railings connecting land to south exit over water
+- **Gate Area Enclosure**: Four sealed walls with gate opening, dense tree line across top
+- **Woods Enhancement**: 12+ trees, fallen logs, leaf piles, mushrooms, 7 fireflies
+- **Ladybug Woods Sighting**: Slowed to 150 frames (40 sit + 110 fly) with extra firefly burst
+
+#### Changed
+- Player speed: 3.5 → 2 (pixel-snapped movement)
+- Dog: moved to Park, trades Ball for Leash (Rope) instead of Dog Toy for Rope
+- Squirrel: gives Ball instead of Axe (x: 340, y: 200)
+- Kid: gives Axe instead of Dog Toy
+- Bird: x: 200, y: 120 (moved from 280, 140), `flies: true`
+- Doubloons: moved back to Woods (from Gate Area)
+- Birdseed: moved to (200, 65) near bird feeder
+- Girl sprite: left/right drawing swapped (was reversed)
+- Navigation labels: centered text, full area names
+- Credits: "A story of infinite beginnings" (was "infinite pursuit"), "for Adielle"
+- Intro: boy walks from tree to meadow position during phases 100-180
+- Gate draws open (swung door) when unlocked
+- Save version bumped to 3
+
+#### Fixed
+- Ending ladybug invisible (was setting `ladybug.found = true` before animation)
+- Gate area not sealed (wall gap from y:180-230)
+- Player could walk through squirrel into gated area
+- Bird feeder sizing (restored to appropriate size)
+- Missing state resets for endingPhase, tradePrompted, kidRunPhase, squirrelRunPhase
+
+#### Technical
+- Build: 21 modules → ~53KB JS bundle
+- Zero build errors
+
+---
+
 ### World Rework, Transitions & Map
 **Date:** 2026-02-08
 
@@ -37,7 +92,7 @@ All notable changes to The Ladybug Quest project.
 
 #### Changed
 - Dog NPC relocated from Woods to Park
-- Doubloons hidden in Gate Area (behind logs) instead of Woods
+- Doubloons initially moved to Gate Area (later moved back to Woods in polish pass)
 - Gate Area now has stone walls forming gated corner + log blockade to Woods
 - Save version bumped to 2 (old saves invalidated by layout change)
 
