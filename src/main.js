@@ -254,7 +254,7 @@ function update() {
       });
     } else if (state.endingPhase === 200) {
       showDialog({
-        dialog: ["*The ladybug lands gently on her hand...*"],
+        dialog: ["*The ladybug lands gently on his hand...*"],
         isStatic: true
       });
     } else if (state.endingPhase === 220) {
@@ -407,16 +407,16 @@ function draw() {
       const bob = Math.cos((state.endingPhase - 90) * 0.06) * 10;
       drawLadybug(hoverX + hover, hoverY + bob);
     } else if (state.endingPhase < 200) {
-      // Ladybug gently descends and lands on girl's hand
+      // Ladybug gently descends and lands on boy's hand (back where it started)
       const p = (state.endingPhase - 160) / 40;
-      const endX = player.x + 5;
-      const endY = player.y - 5;
+      const endX = 285;  // Boy's hand (boy is at 280, 200)
+      const endY = 195;
       const lbX = hoverX + (endX - hoverX) * p;
       const lbY = hoverY + (endY - hoverY) * p;
       drawLadybug(lbX, lbY);
     } else {
-      // Ladybug resting on girl's hand
-      drawLadybug(player.x + 5, player.y - 5);
+      // Ladybug resting on boy's hand
+      drawLadybug(285, 195);
     }
 
     // Fade to black overlay
