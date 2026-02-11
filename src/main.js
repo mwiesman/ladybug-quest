@@ -228,7 +228,7 @@ function update() {
     if (state.currentDialog) return;
 
     // Fade to black after boy's dialog, then credits
-    if (state.endingPhase > 250) {
+    if (state.endingPhase > 210) {
       state.endingFadeAlpha = Math.min(1, (state.endingFadeAlpha || 0) + 0.02);
       if (state.endingFadeAlpha >= 1) {
         showCredits();
@@ -238,26 +238,26 @@ function update() {
 
     state.endingPhase++;
 
-    // Phase 0-50:   Ladybug on leaf, girl nearby
-    // Phase 50-90:  Girl swings net, misses! Ladybug flies up
-    // Phase 90:     "*Misses!*" dialog
-    // Phase 90-160: Ladybug hovers in the air, drifting
-    // Phase 160-200: Ladybug gently descends onto girl's hand
-    // Phase 200:    "*The ladybug lands gently on her hand...*" dialog
-    // Phase 220:    Boy says "Ain't that just the way."
-    // Phase 250+:   Fade to black
+    // Phase 0-30:    Ladybug on leaf, girl nearby
+    // Phase 30-70:   Girl swings net, misses! Ladybug flies up
+    // Phase 70:      "*Misses!*" dialog
+    // Phase 70-120:  Boy walks toward girl, ladybug hovers
+    // Phase 120-160: Ladybug descends onto boy's hand
+    // Phase 160:     "*The ladybug lands gently on his hand...*" dialog
+    // Phase 180:     Boy says "Ain't that just the way."
+    // Phase 210+:    Fade to black
 
-    if (state.endingPhase === 90) {
+    if (state.endingPhase === 70) {
       showDialog({
         dialog: ["*Misses!*"],
         isStatic: true
       });
-    } else if (state.endingPhase === 200) {
+    } else if (state.endingPhase === 160) {
       showDialog({
         dialog: ["*The ladybug lands gently on his hand...*"],
         isStatic: true
       });
-    } else if (state.endingPhase === 220) {
+    } else if (state.endingPhase === 180) {
       showDialog({
         dialog: ["Ain't that just the way."],
         isStatic: true
@@ -376,49 +376,58 @@ function draw() {
     // Ladybug flies off during first 60 frames (with flutter)
     if (state.animationPhase < 60) {
       const progress = state.animationPhase / 60;
-      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.3) * 15;
-      const flyY = 198 - progress * 200 + Math.cos(state.animationPhase * 0.4) * 10;
+      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.2) * 12;
+      const flyY = 198 - progress * 200;
       if (flyY > 0) drawLadybug(flyX, flyY);
     }
     return;
   }
 
   if (state.currentState === GAME_STATE.ENDING_ANIMATION) {
-    drawCompleteArea('meadow', true); // skipBoy — we draw him manually at the tree
-    drawBoy(280, 200); // Boy under the tree
+    drawCompleteArea('meadow', true); // skipBoy — we draw him manually
+
+    // Boy walks from tree (280,200) toward girl during phases 70-120
+    const boyStartX = 280, boyStartY = 200;
+    const boyEndX = 310, boyEndY = 260;
+    let boyX = boyStartX, boyY = boyStartY;
+    if (state.endingPhase >= 70) {
+      const p = Math.min((state.endingPhase - 70) / 50, 1);
+      boyX = boyStartX + (boyEndX - boyStartX) * p;
+      boyY = boyStartY + (boyEndY - boyStartY) * p;
+    }
+    drawBoy(boyX, boyY);
     drawPlayer(player.x, player.y);
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
-    // Hover position — stays visible on screen
     const hoverX = 400, hoverY = 90;
+    // Ladybug landing position = boy's hand at his walked-to position
+    const landX = boyEndX + 5, landY = boyEndY - 5;
 
-    if (state.endingPhase < 50) {
+    if (state.endingPhase < 30) {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
-    } else if (state.endingPhase < 90) {
-      // Girl swings net, misses! Ladybug flies up and to the right with flutter
-      const p = (state.endingPhase - 50) / 40;
-      const flutter = Math.sin(state.endingPhase * 0.4) * 12;
+    } else if (state.endingPhase < 70) {
+      // Girl swings net, misses! Ladybug flies up with gentle sine weave
+      const p = (state.endingPhase - 30) / 40;
+      const flutter = Math.sin(state.endingPhase * 0.2) * 10;
       const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p + flutter;
-      const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p + Math.cos(state.endingPhase * 0.3) * 8;
+      const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p;
       drawLadybug(lbX, lbY);
+    } else if (state.endingPhase < 120) {
+      // Ladybug hovers while boy walks toward girl
+      const flutter = Math.sin((state.endingPhase - 70) * 0.08) * 15;
+      drawLadybug(hoverX + flutter, hoverY);
     } else if (state.endingPhase < 160) {
-      // Ladybug hovers in the air, drifting gently (always visible)
-      const hover = Math.sin((state.endingPhase - 90) * 0.08) * 20;
-      const bob = Math.cos((state.endingPhase - 90) * 0.06) * 10;
-      drawLadybug(hoverX + hover, hoverY + bob);
-    } else if (state.endingPhase < 200) {
-      // Ladybug gently descends and lands on boy's hand (gentle flutter that fades)
-      const p = (state.endingPhase - 160) / 40;
-      const endX = 285;  // Boy's hand (boy is at 280, 200)
-      const endY = 195;
-      const fade = 1 - p; // Flutter fades as it settles
-      const lbX = hoverX + (endX - hoverX) * p + Math.sin(state.endingPhase * 0.3) * 8 * fade;
-      const lbY = hoverY + (endY - hoverY) * p + Math.cos(state.endingPhase * 0.4) * 5 * fade;
+      // Ladybug descends to boy's hand (gentle weave that fades)
+      const p = (state.endingPhase - 120) / 40;
+      const fade = 1 - p;
+      const flutter = Math.sin(state.endingPhase * 0.15) * 8 * fade;
+      const lbX = hoverX + (landX - hoverX) * p + flutter;
+      const lbY = hoverY + (landY - hoverY) * p;
       drawLadybug(lbX, lbY);
     } else {
       // Ladybug resting on boy's hand
-      drawLadybug(285, 195);
+      drawLadybug(landX, landY);
     }
 
     // Fade to black overlay

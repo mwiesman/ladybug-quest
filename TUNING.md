@@ -10,7 +10,7 @@ This guide maps every adjustable parameter to its file so you can make changes w
 
 | Parameter | Current | Description |
 |-----------|---------|-------------|
-| `speed` | 3.5 | Pixels per frame. Integer values (2, 3) feel snappier; decimals feel smoother |
+| `speed` | 3.5 | Pixels per frame. Higher = faster movement |
 | `x`, `y` | 310, 200 | Starting position (under the oak tree in meadow) |
 | `width`, `height` | 24, 32 | Hitbox size for collision detection |
 
@@ -104,14 +104,14 @@ Each beat has a `duration` in frames (60 frames = 1 second):
 
 | Phase | Frames | What Happens |
 |-------|--------|-------------|
-| 0-50 | 50 | Ladybug on leaf |
-| 50-90 | 40 | Girl swings net, ladybug flies up |
-| 90 | — | "*Misses!*" dialog (freezes until SPACE) |
-| 90-160 | 70 | Ladybug hovers (sine wave drift) |
-| 160-200 | 40 | Ladybug descends to boy's hand |
-| 200 | — | "*The ladybug lands gently on his hand...*" dialog |
-| 220 | — | "Ain't that just the way." dialog |
-| 250+ | ~50 | Fade to black, then credits |
+| 0-30 | 30 | Ladybug on leaf |
+| 30-70 | 40 | Girl swings net, ladybug flies up (sine weave) |
+| 70 | — | "*Misses!*" dialog (freezes until SPACE) |
+| 70-120 | 50 | Boy walks toward girl, ladybug hovers |
+| 120-160 | 40 | Ladybug descends to boy's hand |
+| 160 | — | "*The ladybug lands gently on his hand...*" dialog |
+| 180 | — | "Ain't that just the way." dialog |
+| 210+ | ~50 | Fade to black, then credits |
 
 ---
 
