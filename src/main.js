@@ -373,11 +373,11 @@ function draw() {
     drawBoy(boyX, boyY);
     drawPlayer(player.x, player.y);
 
-    // Ladybug flies off during first 60 frames
+    // Ladybug flies off during first 60 frames (with flutter)
     if (state.animationPhase < 60) {
       const progress = state.animationPhase / 60;
-      const flyX = 295 + progress * 150;
-      const flyY = 198 - progress * 200;
+      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.3) * 15;
+      const flyY = 198 - progress * 200 + Math.cos(state.animationPhase * 0.4) * 10;
       if (flyY > 0) drawLadybug(flyX, flyY);
     }
     return;
@@ -396,10 +396,11 @@ function draw() {
       // Ladybug resting on leaf
       drawLadybug(ladybugBaseX, ladybugBaseY);
     } else if (state.endingPhase < 90) {
-      // Girl swings net, misses! Ladybug flies up and to the right (stays on screen)
+      // Girl swings net, misses! Ladybug flies up and to the right with flutter
       const p = (state.endingPhase - 50) / 40;
-      const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p;
-      const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p;
+      const flutter = Math.sin(state.endingPhase * 0.4) * 12;
+      const lbX = ladybugBaseX + (hoverX - ladybugBaseX) * p + flutter;
+      const lbY = ladybugBaseY + (hoverY - ladybugBaseY) * p + Math.cos(state.endingPhase * 0.3) * 8;
       drawLadybug(lbX, lbY);
     } else if (state.endingPhase < 160) {
       // Ladybug hovers in the air, drifting gently (always visible)
@@ -407,12 +408,13 @@ function draw() {
       const bob = Math.cos((state.endingPhase - 90) * 0.06) * 10;
       drawLadybug(hoverX + hover, hoverY + bob);
     } else if (state.endingPhase < 200) {
-      // Ladybug gently descends and lands on boy's hand (back where it started)
+      // Ladybug gently descends and lands on boy's hand (gentle flutter that fades)
       const p = (state.endingPhase - 160) / 40;
       const endX = 285;  // Boy's hand (boy is at 280, 200)
       const endY = 195;
-      const lbX = hoverX + (endX - hoverX) * p;
-      const lbY = hoverY + (endY - hoverY) * p;
+      const fade = 1 - p; // Flutter fades as it settles
+      const lbX = hoverX + (endX - hoverX) * p + Math.sin(state.endingPhase * 0.3) * 8 * fade;
+      const lbY = hoverY + (endY - hoverY) * p + Math.cos(state.endingPhase * 0.4) * 5 * fade;
       drawLadybug(lbX, lbY);
     } else {
       // Ladybug resting on boy's hand

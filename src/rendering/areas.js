@@ -395,10 +395,11 @@ export function drawCompleteArea(area, skipBoy) {
         lbX = 200;
         lbY = 300;
       } else {
-        // Slowly flies away
+        // Slowly flies away with fluttering path
         const p = (state.woodsSightingPhase - 40) / 110;
-        lbX = 200 + p * 250;
-        lbY = 300 - p * 350;
+        const flutter = Math.sin(state.woodsSightingPhase * 0.25) * 20;
+        lbX = 200 + p * 250 + flutter;
+        lbY = 300 - p * 350 + Math.cos(state.woodsSightingPhase * 0.3) * 12;
       }
       if (lbY > -20) {
         drawLadybug(lbX, lbY);
