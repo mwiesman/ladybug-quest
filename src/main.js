@@ -202,23 +202,28 @@ function update() {
   }
 
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
+    if (state.currentDialog) return; // Freeze while dialog showing
     state.animationPhase++;
 
-    // Phase 0-60: Ladybug flies off
-    // Phase 60-140: Girl walks away from tree (down)
-    // Phase 140: Boy's dialog appears
-    // Phase 200+: Start game
+    // Phase 0-40:   Pause — boy and girl face each other under the tree
+    // Phase 40-100: Ladybug flies off, girl chases right, boy follows a bit
+    // Phase 100:    Boy's dialog appears
+    // Phase 160+:   Start game
 
-    if (state.animationPhase >= 60 && state.animationPhase < 140) {
-      // Girl walks away from tree (y: 200 → 370)
-      const walkProgress = (state.animationPhase - 60) / 80;
-      player.y = 200 + walkProgress * 170;
-    } else if (state.animationPhase === 140) {
+    if (state.animationPhase === 40) {
+      player.direction = 'right'; // Girl turns to chase ladybug
+    }
+    if (state.animationPhase >= 40 && state.animationPhase < 100) {
+      // Girl runs to the right chasing the ladybug
+      const p = (state.animationPhase - 40) / 60;
+      player.x = 310 + p * 140; // 310 → 450
+      player.y = 200 + p * 30;  // 200 → 230 (slightly down)
+    } else if (state.animationPhase === 100) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
         isStatic: true
       });
-    } else if (state.animationPhase > 200) {
+    } else if (state.animationPhase > 160) {
       startGame();
     }
     return;
@@ -366,22 +371,32 @@ function draw() {
 
   if (state.currentState === GAME_STATE.INTRO_ANIMATION) {
     drawCompleteArea('meadow', true); // skipBoy flag
-    // Boy walks from tree (280,200) toward meadow position (290,270) during phases 100-180
+
+    // Boy follows girl a few steps during phases 40-100
     let boyX = 280, boyY = 200;
-    if (state.animationPhase >= 100) {
-      const p = Math.min((state.animationPhase - 100) / 80, 1);
-      boyX = 280 + p * (state.boy.x - 280);
-      boyY = 200 + p * (state.boy.y - 200);
+    if (state.animationPhase >= 40) {
+      const p = Math.min((state.animationPhase - 40) / 60, 1);
+      boyX = 280 + p * (state.boy.x - 280); // 280 → 290
+      boyY = 200 + p * (state.boy.y - 200); // 200 → 270
     }
     drawBoy(boyX, boyY);
-    drawPlayer(player.x, player.y);
 
-    // Ladybug flies off during first 60 frames (with flutter)
-    if (state.animationPhase < 60) {
-      const progress = state.animationPhase / 60;
-      const flyX = 295 + progress * 150 + Math.sin(state.animationPhase * 0.15) * 12;
-      const flyY = 198 - progress * 200;
-      if (flyY > 0) drawLadybug(flyX, flyY);
+    // Girl faces left during pause (0-40), then right when chasing
+    if (state.animationPhase < 40) {
+      const savedDir = player.direction;
+      player.direction = 'left';
+      drawPlayer(player.x, player.y);
+      player.direction = savedDir;
+    } else {
+      drawPlayer(player.x, player.y);
+    }
+
+    // Ladybug flies off during chase phase (40-100)
+    if (state.animationPhase >= 40 && state.animationPhase < 100) {
+      const progress = (state.animationPhase - 40) / 60;
+      const flyX = 295 + progress * 200 + Math.sin(state.animationPhase * 0.15) * 12;
+      const flyY = 198 - progress * 250;
+      if (flyY > -20) drawLadybug(flyX, flyY);
     }
     return;
   }
@@ -400,16 +415,7 @@ function draw() {
       boyY = boyStartY + (boyEndY - boyStartY) * p;
     }
     drawBoy(boyX, boyY);
-
-    // Girl runs to the right chasing the ladybug during phases 30-70
-    let girlX = player.x, girlY = player.y;
-    if (state.endingPhase >= 30) {
-      player.direction = 'right';
-      const girlEndX = player.x + 80; // runs toward the park
-      const p = Math.min((state.endingPhase - 30) / 40, 1);
-      girlX = player.x + (girlEndX - player.x) * p;
-    }
-    drawPlayer(girlX, girlY);
+    drawPlayer(player.x, player.y);
 
     const ladybugBaseX = 295, ladybugBaseY = 195;
     const hoverX = 400, hoverY = 90;
