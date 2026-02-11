@@ -199,53 +199,100 @@ export function drawPlayer(x, y) {
   ctx.restore();
 }
 
-export function drawBoy(x, y) {
+export function drawBoy(x, y, direction = 'down') {
   const sprite = getSprite('boy');
   if (sprite) { ctx.drawImage(sprite, x, y); return; }
 
   ctx.save();
-  ctx.fillStyle = '#000';
-  ctx.fillRect(x + 4, y + 1, 16, 31);
-  ctx.fillStyle = '#4682b4';
-  ctx.fillRect(x + 5, y + 14, 14, 11);
-  ctx.fillStyle = '#5a9bd4';
-  ctx.fillRect(x + 3, y + 15, 3, 8);
-  ctx.fillRect(x + 18, y + 15, 3, 8);
-  ctx.fillStyle = '#ffd1a3';
-  ctx.fillRect(x + 3, y + 22, 3, 3);
-  ctx.fillRect(x + 18, y + 22, 3, 3);
-  ctx.fillStyle = '#2c5aa0';
-  ctx.fillRect(x + 7, y + 25, 3, 6);
-  ctx.fillRect(x + 14, y + 25, 3, 6);
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(x + 6, y + 30, 4, 2);
-  ctx.fillRect(x + 14, y + 30, 4, 2);
-  ctx.fillStyle = '#ffd1a3';
-  ctx.fillRect(x + 6, y + 4, 12, 11);
-  ctx.fillStyle = '#2c2c2c';
-  ctx.fillRect(x + 5, y + 1, 14, 5);
-  ctx.fillRect(x + 4, y + 3, 2, 3);
-  ctx.fillRect(x + 18, y + 3, 2, 3);
-  ctx.fillRect(x + 8, y, 3, 2);
-  ctx.fillRect(x + 13, y, 3, 2);
-  ctx.fillStyle = '#9370db';
-  ctx.fillRect(x + 6, y + 10, 4, 4);
-  ctx.fillStyle = '#4169e1';
-  ctx.fillRect(x + 10, y + 10, 4, 4);
-  ctx.fillStyle = '#ff1493';
-  ctx.fillRect(x + 14, y + 10, 4, 4);
-  ctx.fillStyle = '#7b68ee';
-  ctx.fillRect(x + 9, y + 11, 2, 2);
-  ctx.fillRect(x + 13, y + 11, 2, 2);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(x + 8, y + 7, 3, 2);
-  ctx.fillRect(x + 14, y + 7, 3, 2);
-  ctx.fillStyle = '#654321';
-  ctx.fillRect(x + 8, y + 7, 2, 2);
-  ctx.fillRect(x + 14, y + 7, 2, 2);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(x + 9, y + 7, 1, 1);
-  ctx.fillRect(x + 15, y + 7, 1, 1);
+
+  if (direction === 'right') {
+    // Right-facing: hair on left (back), face on right, one eye
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + 4, y + 1, 16, 31);
+    // Hair (covers left/back of head)
+    ctx.fillStyle = '#2c2c2c';
+    ctx.fillRect(x + 5, y + 1, 14, 5);
+    ctx.fillRect(x + 5, y + 4, 8, 8);
+    ctx.fillRect(x + 4, y + 3, 2, 3);
+    ctx.fillRect(x + 8, y, 3, 2);
+    ctx.fillRect(x + 13, y, 3, 2);
+    // Face (skin, right side)
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 12, y + 4, 6, 11);
+    // Eye (right side only)
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 14, y + 7, 3, 2);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 15, y + 7, 2, 2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 16, y + 7, 1, 1);
+    // Glasses/scarf (right side)
+    ctx.fillStyle = '#ff1493';
+    ctx.fillRect(x + 13, y + 10, 5, 4);
+    ctx.fillStyle = '#7b68ee';
+    ctx.fillRect(x + 14, y + 11, 2, 2);
+    // Shirt
+    ctx.fillStyle = '#4682b4';
+    ctx.fillRect(x + 5, y + 14, 14, 11);
+    // Right sleeve + hand
+    ctx.fillStyle = '#5a9bd4';
+    ctx.fillRect(x + 18, y + 15, 3, 8);
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 18, y + 22, 3, 3);
+    // Pants
+    ctx.fillStyle = '#2c5aa0';
+    ctx.fillRect(x + 8, y + 25, 3, 6);
+    ctx.fillRect(x + 13, y + 25, 3, 6);
+    // Shoes
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(x + 8, y + 30, 4, 2);
+    ctx.fillRect(x + 13, y + 30, 4, 2);
+  } else {
+    // Default front-facing (down)
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + 4, y + 1, 16, 31);
+    ctx.fillStyle = '#4682b4';
+    ctx.fillRect(x + 5, y + 14, 14, 11);
+    ctx.fillStyle = '#5a9bd4';
+    ctx.fillRect(x + 3, y + 15, 3, 8);
+    ctx.fillRect(x + 18, y + 15, 3, 8);
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 3, y + 22, 3, 3);
+    ctx.fillRect(x + 18, y + 22, 3, 3);
+    ctx.fillStyle = '#2c5aa0';
+    ctx.fillRect(x + 7, y + 25, 3, 6);
+    ctx.fillRect(x + 14, y + 25, 3, 6);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(x + 6, y + 30, 4, 2);
+    ctx.fillRect(x + 14, y + 30, 4, 2);
+    ctx.fillStyle = '#ffd1a3';
+    ctx.fillRect(x + 6, y + 4, 12, 11);
+    ctx.fillStyle = '#2c2c2c';
+    ctx.fillRect(x + 5, y + 1, 14, 5);
+    ctx.fillRect(x + 4, y + 3, 2, 3);
+    ctx.fillRect(x + 18, y + 3, 2, 3);
+    ctx.fillRect(x + 8, y, 3, 2);
+    ctx.fillRect(x + 13, y, 3, 2);
+    ctx.fillStyle = '#9370db';
+    ctx.fillRect(x + 6, y + 10, 4, 4);
+    ctx.fillStyle = '#4169e1';
+    ctx.fillRect(x + 10, y + 10, 4, 4);
+    ctx.fillStyle = '#ff1493';
+    ctx.fillRect(x + 14, y + 10, 4, 4);
+    ctx.fillStyle = '#7b68ee';
+    ctx.fillRect(x + 9, y + 11, 2, 2);
+    ctx.fillRect(x + 13, y + 11, 2, 2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 8, y + 7, 3, 2);
+    ctx.fillRect(x + 14, y + 7, 3, 2);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 8, y + 7, 2, 2);
+    ctx.fillRect(x + 14, y + 7, 2, 2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 9, y + 7, 1, 1);
+    ctx.fillRect(x + 15, y + 7, 1, 1);
+  }
+
   ctx.restore();
 }
 

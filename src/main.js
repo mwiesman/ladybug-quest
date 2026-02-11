@@ -361,12 +361,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawLargeTree(220, 100);
     // Both start together under the tree, facing each other
-    // Flip boy to face right (toward the girl)
-    ctx.save();
-    ctx.translate(280 * 2 + 24, 0);
-    ctx.scale(-1, 1);
-    drawBoy(280, 200);
-    ctx.restore();
+    drawBoy(280, 200, 'right');
     const savedDir = player.direction;
     player.direction = 'left';
     drawPlayer(310, 200);
@@ -389,15 +384,11 @@ function draw() {
       boyX = 280 + p * 20;  // 280 → 300 (a few steps right)
       boyY = 200 - p * 15;  // 200 → 185 (slightly up, following)
     }
-    // Flip boy to face right (toward the girl) during the pause
+    // Boy faces right toward girl during pause, then forward when following
     if (state.animationPhase < 120) {
-      ctx.save();
-      ctx.translate(boyX * 2 + 24, 0);
-      ctx.scale(-1, 1);
-      drawBoy(boyX, boyY);
-      ctx.restore();
+      drawBoy(boyX, boyY, 'right');
     } else {
-      drawBoy(boyX, boyY);
+      drawBoy(boyX, boyY, 'right');
     }
 
     // Girl faces left during pause (0-90), then right when chasing
