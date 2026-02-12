@@ -228,8 +228,8 @@ function update() {
       });
     } else if (state.animationPhase > 250) {
       // Set boy's meadow position to where he ended up in the animation
-      state.boy.x = 300;
-      state.boy.y = 185;
+      state.boy.x = 290;
+      state.boy.y = 270;
       startGame();
     }
     return;
@@ -383,8 +383,8 @@ function draw() {
     let boyX = 280, boyY = 200;
     if (state.animationPhase >= 120) {
       const p = Math.min((state.animationPhase - 120) / 60, 1);
-      boyX = 280 + p * 20;  // 280 → 300 (a few steps right)
-      boyY = 200 - p * 15;  // 200 → 185 (slightly up, following)
+      boyX = 280 + p * 10;  // 280 → 290 (a few steps right)
+      boyY = 200 + p * 70;  // 200 → 270 (walks down, away from tree)
     }
     // Boy faces right toward girl during pause, then forward when following
     if (state.animationPhase < 120) {
