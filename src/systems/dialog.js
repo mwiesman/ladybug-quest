@@ -41,7 +41,7 @@ export function showDialog(npc) {
   }
 
   playSFX('dialog_open');
-  drawPortrait(resolvePortraitChar(npc));
+  drawPortrait(resolvePortraitChar(npc), npc);
   updateDialogText();
 }
 
@@ -194,13 +194,21 @@ function resolveDialogArray(npc) {
 }
 
 function resolvePortraitChar(npc) {
-  if (!npc) return 'girl';
-  if (npc === state.npcs.dog) return 'dog';
-  if (npc === state.npcs.boy || npc.isStatic) return 'boy';
+  if (!npc || npc.isStatic) return 'girl';
+  const npcs = state.npcs;
+  if (npc === npcs.dog) return 'dog';
+  if (npc === npcs.bird) return 'bird';
+  if (npc === npcs.squirrel) return 'squirrel';
+  if (npc === npcs.coffeeCart) return 'coffeecart';
+  if (npc === npcs.hippie) return 'hippie';
+  if (npc === npcs.kid) return 'kid';
+  if (npc === npcs.parent) return 'parent';
+  if (npc === npcs.fisherman) return 'fisherman';
+  // Boy is the speaker for static dialogs (isStatic handled above)
   return 'girl';
 }
 
-function drawPortrait(character) {
+function drawPortrait(character, npc) {
   portraitCtx.clearRect(0, 0, 80, 80);
 
   // 1. Dedicated portrait image (highest priority, can override everything)
@@ -243,8 +251,9 @@ function drawPortrait(character) {
     player.isMoving = savedMoving;
   } else if (character === 'boy') {
     drawBoy(0, 0);
-  } else if (character === 'dog') {
-    drawNPC(state.npcs.dog, 0, 0);
+  } else if (npc) {
+    // Draw any NPC using their in-game sprite
+    drawNPC(npc, 0, 0);
   }
 
   setSpritesCtx(mainCanvasCtx);
