@@ -5,12 +5,20 @@ import { state, GAME_STATE } from '../game/state.js';
 import { player } from '../game/player.js';
 import { inventory } from './inventory.js';
 import { getSprite } from '../rendering/spriteLoader.js';
+import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawNPC } from '../rendering/sprites.js';
 import { playSFX } from './audio.js';
 import { saveGame } from './save.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
 const portraitCtx = document.getElementById('dialogPortrait').getContext('2d');
+
+// Offscreen canvas for rendering procedural sprites as portraits
+const portraitOffscreen = document.createElement('canvas');
+portraitOffscreen.width = 24;
+portraitOffscreen.height = 32;
+const portraitOffCtx = portraitOffscreen.getContext('2d');
+const mainCanvasCtx = document.getElementById('gameCanvas').getContext('2d');
 
 export function showDialog(npc) {
   // Store previous state for static dialogs (intro animation)
@@ -195,19 +203,54 @@ function resolvePortraitChar(npc) {
 function drawPortrait(character) {
   portraitCtx.clearRect(0, 0, 80, 80);
 
-  const sprite = getSprite('portrait_' + character);
-  if (sprite) {
-    portraitCtx.drawImage(sprite, 0, 0, 80, 80);
+  // 1. Dedicated portrait image (highest priority, can override everything)
+  const portraitSprite = getSprite('portrait_' + character);
+  if (portraitSprite) {
+    portraitCtx.drawImage(portraitSprite, 0, 0, 80, 80);
     return;
   }
 
-  // Placeholder portraits - fallback when sprite not available
+  // 2. Character sprite sheet image (updates portrait when character art changes)
+  const charKey = character === 'girl' ? 'player' : character;
+  const charSprite = getSprite(charKey);
+  if (charSprite) {
+    portraitCtx.fillStyle = '#2a2a3e';
+    portraitCtx.fillRect(0, 0, 80, 80);
+    portraitCtx.imageSmoothingEnabled = false;
+    const sw = Math.min(charSprite.width, 24);
+    const sh = Math.min(charSprite.height, 32);
+    portraitCtx.drawImage(charSprite, 0, 0, sw, sh, 16, 4, 48, 64);
+    return;
+  }
+
+  // 3. Draw procedural in-game sprite as portrait (default fallback)
   portraitCtx.fillStyle = '#2a2a3e';
   portraitCtx.fillRect(0, 0, 80, 80);
-  portraitCtx.fillStyle = '#fff';
-  portraitCtx.font = '8px "Press Start 2P"';
-  const label = { girl: 'Girl', boy: 'Boy', dog: 'Dog' }[character] || '?';
-  portraitCtx.fillText(label, 15, 45);
+
+  portraitOffCtx.clearRect(0, 0, 24, 32);
+  setSpritesCtx(portraitOffCtx);
+
+  if (character === 'girl') {
+    const savedDir = player.direction;
+    const savedFrame = player.animFrame;
+    const savedMoving = player.isMoving;
+    player.direction = 'down';
+    player.animFrame = 0;
+    player.isMoving = false;
+    drawPlayer(0, 0);
+    player.direction = savedDir;
+    player.animFrame = savedFrame;
+    player.isMoving = savedMoving;
+  } else if (character === 'boy') {
+    drawBoy(0, 0);
+  } else if (character === 'dog') {
+    drawNPC(state.npcs.dog, 0, 0);
+  }
+
+  setSpritesCtx(mainCanvasCtx);
+
+  portraitCtx.imageSmoothingEnabled = false;
+  portraitCtx.drawImage(portraitOffscreen, 16, 4, 48, 64);
 }
 
 export function processNPCTrade(npc) {

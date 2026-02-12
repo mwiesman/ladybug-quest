@@ -61,13 +61,13 @@ export function checkCollision(x, y, w, h) {
     if (y < 74 && x > 380) return true; // Top-right wall
     if (y < 245 && y + h > 230 && x > 380) return true; // Bottom wall of enclosure
     // Left connecting wall — extends from top wall (y:60) down to bottom wall (y:230)
-    // Gap at gate (y:130-175) only when unlocked
+    // Gap at gate (y:120-185) only when unlocked — wide enough for 32px player
     if (x < 394 && x + w > 380) {
       if (!state.gateUnlocked) {
         if (y < 230 && y + h > 60) return true; // Full wall when locked
       } else {
-        if (y < 130 && y + h > 60) return true;  // Wall above gate opening
-        if (y < 230 && y + h > 175) return true;  // Wall below gate opening to bottom
+        if (y < 120 && y + h > 60) return true;  // Wall above gate opening
+        if (y < 230 && y + h > 185) return true;  // Wall below gate opening to bottom
       }
     }
     // Trees
