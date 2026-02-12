@@ -113,6 +113,10 @@ export function checkInteraction() {
         state.logsCleared = true;
         playSFX('logs_clear');
         inventory.removeItem('Axe');
+        showDialog({
+          dialog: ["*Logs chopped! The path to the woods is clear.*"],
+          isStatic: true
+        });
         saveGame();
       } else {
         // Show "need more than arms" message
@@ -132,6 +136,34 @@ export function checkInteraction() {
         dialog: ["*You read the plaque...*", "\"Camperdown Elm — a rare weeping tree,\ntwisted by nature into living art.\""],
         isStatic: true
       });
+      return;
+    }
+  }
+
+  // Boy interaction (meadow) - different dialog depending on progress
+  if (currentArea === 'meadow') {
+    const dx = player.x - state.boy.x;
+    const dy = player.y - state.boy.y;
+    if (Math.sqrt(dx * dx + dy * dy) < 40) {
+      if (inventory.hasItem('Net')) {
+        showDialog({
+          dialog: ["You found it! The ladybug...", "I think it's back by the old oak tree."],
+          isStatic: true,
+          speaker: 'boy'
+        });
+      } else if (state.gateUnlocked) {
+        showDialog({
+          dialog: ["You're really getting the hang of this.", "Keep going — I believe in you!"],
+          isStatic: true,
+          speaker: 'boy'
+        });
+      } else {
+        showDialog({
+          dialog: ["Be careful out there!", "I'll be right here if you need me."],
+          isStatic: true,
+          speaker: 'boy'
+        });
+      }
       return;
     }
   }
@@ -212,6 +244,13 @@ export function checkNearInteractable() {
     if (Math.abs(player.x - 418) < 30 && Math.abs(player.y - 90) < 30) {
       return true;
     }
+  }
+
+  // Boy in meadow
+  if (currentArea === 'meadow') {
+    const dx = player.x - state.boy.x;
+    const dy = player.y - state.boy.y;
+    if (Math.sqrt(dx * dx + dy * dy) < 40) return true;
   }
 
   return false;

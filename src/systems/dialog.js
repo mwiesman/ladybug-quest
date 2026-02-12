@@ -194,6 +194,8 @@ function resolveDialogArray(npc) {
 }
 
 function resolvePortraitChar(npc) {
+  // Static dialogs can specify a speaker ('boy', 'girl', etc.)
+  if (npc && npc.speaker) return npc.speaker;
   if (!npc || npc.isStatic) return 'girl';
   const npcs = state.npcs;
   if (npc === npcs.dog) return 'dog';
@@ -204,7 +206,6 @@ function resolvePortraitChar(npc) {
   if (npc === npcs.kid) return 'kid';
   if (npc === npcs.parent) return 'parent';
   if (npc === npcs.fisherman) return 'fisherman';
-  // Boy is the speaker for static dialogs (isStatic handled above)
   return 'girl';
 }
 

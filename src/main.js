@@ -223,7 +223,8 @@ function update() {
     } else if (state.animationPhase === 190) {
       showDialog({
         dialog: ["Wait, where are you—", "Good luck out there!"],
-        isStatic: true
+        isStatic: true,
+        speaker: 'boy'
       });
     } else if (state.animationPhase > 250) {
       // Set boy's meadow position to where he ended up in the animation
@@ -270,7 +271,8 @@ function update() {
     } else if (state.endingPhase === 180) {
       showDialog({
         dialog: ["Ain't that just the way."],
-        isStatic: true
+        isStatic: true,
+        speaker: 'boy'
       });
     }
     return;
