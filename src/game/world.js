@@ -75,6 +75,12 @@ function executeAreaSwap(newArea) {
     player.x = 320; player.y = 240;
   }
 
+  // Move boy to his resting position once player leaves meadow
+  if (old === 'meadow') {
+    state.boy.x = 290;
+    state.boy.y = 270;
+  }
+
   // Check for first woods entry (ladybug sighting)
   if (newArea === 'woods' && state.woodsFirstEntry) {
     state.woodsFirstEntry = false;

@@ -228,8 +228,8 @@ function update() {
       });
     } else if (state.animationPhase > 250) {
       // Set boy's meadow position to where he ended up in the animation
-      state.boy.x = 290;
-      state.boy.y = 270;
+      state.boy.x = 300;
+      state.boy.y = 185;
       startGame();
     }
     return;
