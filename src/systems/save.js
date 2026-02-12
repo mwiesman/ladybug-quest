@@ -7,7 +7,7 @@ import { player } from '../game/player.js';
 import { inventory } from './inventory.js';
 
 const SAVE_KEY = 'ladybug-quest-save';
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 
 export function saveGame() {
   const saveData = {
@@ -19,6 +19,8 @@ export function saveGame() {
     ladybugFound: state.ladybug.found,
     woodsFirstEntry: state.woodsFirstEntry,
     birdStopped: state.birdStopped,
+    birdStoppedX: state.birdStoppedX,
+    birdStoppedY: state.birdStoppedY,
     npcs: {},
     worldItems: {},
     player: { x: player.x, y: player.y, direction: player.direction },
@@ -65,6 +67,8 @@ export function applySaveData(data) {
   state.ladybug.found = data.ladybugFound;
   state.woodsFirstEntry = data.woodsFirstEntry ?? true;
   state.birdStopped = data.birdStopped ?? false;
+  state.birdStoppedX = data.birdStoppedX ?? 0;
+  state.birdStoppedY = data.birdStoppedY ?? 0;
 
   // NPC flags — merge into existing NPC data (preserves dialog, positions, etc.)
   for (const [id, saved] of Object.entries(data.npcs)) {

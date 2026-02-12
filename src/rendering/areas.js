@@ -256,9 +256,9 @@ export function drawCompleteArea(area, skipBoy) {
     // Leaf pile inside gated area (squirrel rummages here)
     drawLeafPile(500, 120);
 
-    // Bird NPC (flying back and forth when not stopped)
-    const birdX = state.birdStopped ? npcs.bird.x : npcs.bird.x + Math.sin(state.frameCount * 0.02) * 60;
-    const birdY = state.birdStopped ? npcs.bird.y : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
+    // Bird NPC (flying back and forth when not stopped, frozen at flight position when stopped)
+    const birdX = state.birdStopped ? state.birdStoppedX : npcs.bird.x + Math.sin(state.frameCount * 0.02) * 60;
+    const birdY = state.birdStopped ? state.birdStoppedY : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
     drawNPC(npcs.bird, birdX, birdY);
 
     // Squirrel — animates running through gate opening, stays inside after
@@ -428,22 +428,143 @@ export function drawCompleteArea(area, skipBoy) {
       ctx.fillRect(x + 5, 390 + Math.sin(x * 0.15 + wt * 1.2) * 8, 28, 3);
     }
 
-    // Bridge/dock from bottom edge to land
+    // Waterfall on far left — extends off the left edge
+    const wfX = -15, wfY = 230;
+    // Rock face (extends off left edge)
+    ctx.fillStyle = '#696969';
+    ctx.fillRect(wfX, wfY, 55, 60);
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(wfX + 3, wfY + 3, 49, 54);
+    // Rock texture
+    ctx.fillStyle = '#5a5a5a';
+    ctx.fillRect(wfX + 8, wfY + 8, 12, 8);
+    ctx.fillRect(wfX + 25, wfY + 20, 10, 6);
+    ctx.fillRect(wfX + 10, wfY + 38, 14, 7);
+    // Falling water streams (animated)
+    ctx.fillStyle = '#87ceeb';
+    for (let wy = 0; wy < 55; wy += 4) {
+      const wobble = Math.sin(state.frameCount * 0.08 + wy * 0.5) * 3;
+      ctx.fillRect(wfX + 15 + wobble, wfY + wy, 10, 5);
+      ctx.fillRect(wfX + 28 + wobble * 0.7, wfY + wy + 2, 7, 4);
+    }
+    // White water highlights
+    ctx.fillStyle = '#e0f0ff';
+    for (let wy = 2; wy < 50; wy += 8) {
+      const wobble = Math.sin(state.frameCount * 0.1 + wy * 0.3) * 2;
+      ctx.fillRect(wfX + 18 + wobble, wfY + wy, 4, 3);
+    }
+    // Splash at base
+    ctx.fillStyle = '#b0d8f0';
+    const splash = Math.sin(state.frameCount * 0.1) * 3;
+    ctx.fillRect(wfX + 5 + splash, wfY + 52, 40, 6);
+    ctx.fillStyle = '#e0f0ff';
+    ctx.fillRect(wfX + 12 - splash, wfY + 54, 20, 3);
+    // Mist particles
+    ctx.fillStyle = 'rgba(200, 230, 255, 0.25)';
+    ctx.fillRect(wfX + 5, wfY + 48, 50, 14);
+    ctx.fillStyle = 'rgba(220, 240, 255, 0.15)';
+    ctx.fillRect(wfX + 20, wfY + 44, 40, 8);
+    // White water runoff spreading into body of water
+    ctx.fillStyle = 'rgba(200, 230, 255, 0.4)';
+    const runoff1 = Math.sin(state.frameCount * 0.06) * 4;
+    const runoff2 = Math.sin(state.frameCount * 0.08 + 1) * 3;
+    ctx.fillRect(0, 292, 60 + runoff1, 8);
+    ctx.fillRect(0, 300, 45 + runoff2, 6);
+    ctx.fillRect(0, 308, 30 + runoff1 * 0.5, 4);
+    // Bubbling white water effect near base
+    ctx.fillStyle = 'rgba(230, 245, 255, 0.5)';
+    for (let i = 0; i < 6; i++) {
+      const bx = 10 + Math.sin(state.frameCount * 0.07 + i * 1.5) * 12 + i * 8;
+      const by = 295 + Math.sin(state.frameCount * 0.09 + i * 2) * 5;
+      ctx.fillRect(bx, by, 4, 3);
+    }
+
+    // Ducks on the water (longer, layered movement patterns)
+    const t = state.frameCount;
+    // Duck 1 — slow drift right-to-left with gentle wobble
+    const duckX1 = 150 + Math.sin(t * 0.004) * 50 + Math.sin(t * 0.017) * 8;
+    const duckY1 = 340 + Math.sin(t * 0.025) * 3;
+    // Duck 2 — slow diagonal drift
+    const duckX2 = 220 + Math.sin(t * 0.005 + 2.5) * 45 + Math.cos(t * 0.013) * 10;
+    const duckY2 = 375 + Math.sin(t * 0.02 + 1.5) * 4 + Math.sin(t * 0.006) * 12;
+    // Duck 3 (goose) — wide lazy arc
+    const duckX3 = 110 + Math.sin(t * 0.003 + 4) * 60 + Math.sin(t * 0.015 + 1) * 8;
+    const duckY3 = 400 + Math.sin(t * 0.022 + 3) * 3 + Math.cos(t * 0.005 + 2) * 15;
+    // Duck 1
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(duckX1, duckY1, 8, 5);
+    ctx.fillStyle = '#ffa500';
+    ctx.fillRect(duckX1 + 8, duckY1 + 1, 3, 2);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(duckX1 + 6, duckY1, 1, 1);
+    // Duck 2
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(duckX2, duckY2, 8, 5);
+    ctx.fillStyle = '#ffa500';
+    ctx.fillRect(duckX2 + 8, duckY2 + 1, 3, 2);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(duckX2 + 6, duckY2, 1, 1);
+    // Duck 3 (goose — slightly larger, darker)
+    ctx.fillStyle = '#d3d3d3';
+    ctx.fillRect(duckX3, duckY3, 9, 6);
+    ctx.fillStyle = '#2c2c2c';
+    ctx.fillRect(duckX3 + 7, duckY3 - 2, 3, 4);
+    ctx.fillStyle = '#ffa500';
+    ctx.fillRect(duckX3 + 9, duckY3 - 1, 3, 2);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(duckX3 + 8, duckY3 - 2, 1, 1);
+
+    // Log with turtle on right side of bridge
+    const logX = 370, logY = 340;
+    const logBob = Math.sin(t * 0.02) * 2;
+    // Floating log
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(logX, logY + logBob, 40, 8);
+    ctx.fillStyle = '#5a3a1a';
+    ctx.fillRect(logX + 2, logY + 2 + logBob, 36, 4);
+    // Bark texture
+    ctx.fillStyle = '#4a2a0a';
+    ctx.fillRect(logX + 8, logY + 1 + logBob, 3, 6);
+    ctx.fillRect(logX + 22, logY + 1 + logBob, 3, 6);
+    ctx.fillRect(logX + 34, logY + 2 + logBob, 2, 4);
+    // Turtle sitting on log
+    const turtleX = logX + 14, turtleY = logY - 7 + logBob;
+    // Shell
+    ctx.fillStyle = '#556b2f';
+    ctx.fillRect(turtleX, turtleY, 12, 8);
+    ctx.fillStyle = '#6b8e23';
+    ctx.fillRect(turtleX + 1, turtleY + 1, 10, 6);
+    // Shell pattern
+    ctx.fillStyle = '#4a5c20';
+    ctx.fillRect(turtleX + 3, turtleY + 2, 3, 3);
+    ctx.fillRect(turtleX + 7, turtleY + 2, 3, 3);
+    // Head (poking out right)
+    ctx.fillStyle = '#556b2f';
+    ctx.fillRect(turtleX + 12, turtleY + 2, 4, 4);
+    // Eye
+    ctx.fillStyle = '#000';
+    ctx.fillRect(turtleX + 14, turtleY + 3, 1, 1);
+    // Legs
+    ctx.fillStyle = '#556b2f';
+    ctx.fillRect(turtleX + 1, turtleY + 7, 3, 2);
+    ctx.fillRect(turtleX + 8, turtleY + 7, 3, 2);
+
+    // Bridge/dock from bottom edge to land (wider)
     ctx.fillStyle = '#8b4513';
-    ctx.fillRect(305, 280, 40, canvasHeight - 280);
+    ctx.fillRect(295, 280, 60, canvasHeight - 280);
     // Planks
     ctx.fillStyle = '#a0522d';
     for (let by = 285; by < canvasHeight; by += 12) {
-      ctx.fillRect(307, by, 36, 5);
+      ctx.fillRect(297, by, 56, 5);
     }
     // Railings
     ctx.fillStyle = '#654321';
-    ctx.fillRect(305, 280, 3, canvasHeight - 280);
-    ctx.fillRect(342, 280, 3, canvasHeight - 280);
+    ctx.fillRect(295, 280, 3, canvasHeight - 280);
+    ctx.fillRect(352, 280, 3, canvasHeight - 280);
     // Railing posts
     for (let by = 290; by < canvasHeight; by += 40) {
-      ctx.fillRect(303, by, 4, 8);
-      ctx.fillRect(343, by, 4, 8);
+      ctx.fillRect(293, by, 4, 8);
+      ctx.fillRect(353, by, 4, 8);
     }
 
     // Boathouse building

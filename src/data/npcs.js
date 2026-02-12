@@ -184,6 +184,7 @@ export const NPC_DATA = {
       "Hi!! Are you new here?!",
       "Ha, sorry — they get excited about everything."
     ],
+    lineSpeakers: [null, null, 'kid', null],
     dialogComplete: [
       "*still watching their kid*",
       "Kids have so much energy!"

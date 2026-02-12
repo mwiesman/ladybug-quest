@@ -7,6 +7,7 @@ import { showDialog } from './dialog.js';
 import { ENDING_CUTSCENE } from '../data/cutscenes.js';
 import { playSFX } from './audio.js';
 import { saveGame } from './save.js';
+import { showItemNotification } from '../rendering/ui.js';
 
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
@@ -39,10 +40,16 @@ export function checkInteraction() {
       continue;
     }
 
-    // Bird — uses flight position when flying
-    if (npc === npcs.bird && npc.flies && !state.birdStopped) {
-      const birdX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
-      const birdY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+    // Bird — uses flight position when flying, stored position when stopped
+    if (npc === npcs.bird && npc.flies) {
+      let birdX, birdY;
+      if (state.birdStopped) {
+        birdX = state.birdStoppedX;
+        birdY = state.birdStoppedY;
+      } else {
+        birdX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
+        birdY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+      }
       const dx = player.x - birdX;
       const dy = player.y - birdY;
       if (Math.sqrt(dx * dx + dy * dy) < 40) {
@@ -100,6 +107,7 @@ export function checkInteraction() {
       inventory.removeItem('Key');
       npcs.squirrel.behindGate = false;
       state.squirrelRunPhase = 0; // Start squirrel run animation
+      showItemNotification('Gate Unlocked!', 'action');
       saveGame();
       return;
     }
@@ -113,10 +121,7 @@ export function checkInteraction() {
         state.logsCleared = true;
         playSFX('logs_clear');
         inventory.removeItem('Axe');
-        showDialog({
-          dialog: ["*Logs chopped! The path to the woods is clear.*"],
-          isStatic: true
-        });
+        showItemNotification('Logs Cleared!', 'action');
         saveGame();
       } else {
         // Show "need more than arms" message
@@ -200,10 +205,15 @@ export function checkNearInteractable() {
       npcX = 500; npcY = 140;
     }
 
-    // Bird flight position
-    if (npc === npcs.bird && npc.flies && !state.birdStopped) {
-      npcX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
-      npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+    // Bird flight position (stopped = stored position, flying = computed)
+    if (npc === npcs.bird && npc.flies) {
+      if (state.birdStopped) {
+        npcX = state.birdStoppedX;
+        npcY = state.birdStoppedY;
+      } else {
+        npcX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
+        npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
+      }
     }
 
     // Kid uses animated position after running to player

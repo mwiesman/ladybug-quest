@@ -1,6 +1,6 @@
 // UI rendering - interaction prompts, notifications, and map overlay
 
-import { state } from '../game/state.js';
+import { state, GAME_STATE } from '../game/state.js';
 
 let ctx;
 let canvasWidth;
@@ -11,6 +11,7 @@ const SAVE_NOTIFICATION_DURATION = 90;
 
 let itemNotificationTimer = 0;
 let itemNotificationText = '';
+let itemNotificationType = 'item'; // 'item' (gold) or 'action' (green)
 const ITEM_NOTIFICATION_DURATION = 120;
 
 export function setContext(canvasCtx, w, h) {
@@ -49,14 +50,19 @@ export function drawSaveNotification() {
   ctx.restore();
 }
 
-export function showItemNotification(itemName) {
+export function showItemNotification(itemName, type = 'item') {
   itemNotificationText = itemName;
+  itemNotificationType = type;
   itemNotificationTimer = ITEM_NOTIFICATION_DURATION;
 }
 
 export function drawItemNotification() {
   if (itemNotificationTimer <= 0) return;
-  itemNotificationTimer--;
+
+  // Pause timer during dialog so notifications don't vanish behind dialog box
+  if (state.currentState !== GAME_STATE.DIALOG && !state.currentDialog) {
+    itemNotificationTimer--;
+  }
 
   const alpha = itemNotificationTimer < 30
     ? itemNotificationTimer / 30
@@ -66,16 +72,18 @@ export function drawItemNotification() {
   ctx.globalAlpha = alpha;
   ctx.textAlign = 'center';
 
-  const text = `Received: ${itemNotificationText}`;
+  const isAction = itemNotificationType === 'action';
+  const text = isAction ? itemNotificationText : `Received: ${itemNotificationText}`;
+  const color = isAction ? '#90ee90' : '#ffd700'; // light green for actions, gold for items
   const textWidth = Math.max(text.length * 7, 140);
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
   ctx.fillRect(canvasWidth / 2 - textWidth / 2 - 10, canvasHeight / 2 - 20, textWidth + 20, 32);
-  ctx.strokeStyle = '#ffd700';
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.strokeRect(canvasWidth / 2 - textWidth / 2 - 10, canvasHeight / 2 - 20, textWidth + 20, 32);
 
-  ctx.fillStyle = '#ffd700';
+  ctx.fillStyle = color;
   ctx.font = '8px "Press Start 2P"';
   ctx.fillText(text, canvasWidth / 2, canvasHeight / 2);
   ctx.textAlign = 'start';

@@ -35,9 +35,11 @@ export function showDialog(npc) {
   state.dialogIndex = 0;
   state.dialogPhase = 'main';
 
-  // Stop bird when interacting with it
-  if (npc === state.npcs.bird && npc.flies) {
+  // Stop bird when interacting with it — freeze at current flight position
+  if (npc === state.npcs.bird && npc.flies && !state.birdStopped) {
     state.birdStopped = true;
+    state.birdStoppedX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
+    state.birdStoppedY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
   }
 
   playSFX('dialog_open');
@@ -132,13 +134,26 @@ function getActiveDialogArray(npc) {
 }
 
 function updateDialogText() {
-  const dialogArray = getActiveDialogArray(state.currentDialog);
+  const npc = state.currentDialog;
+  const dialogArray = getActiveDialogArray(npc);
   if (state.dialogIndex < dialogArray.length) {
     dialogText.textContent = dialogArray[state.dialogIndex];
   }
 
+  // Switch portrait per-line if NPC has lineSpeakers
+  if (npc && npc.lineSpeakers && state.dialogPhase === 'main') {
+    const lineSpeaker = npc.lineSpeakers[state.dialogIndex];
+    if (lineSpeaker) {
+      // Find the NPC object for this speaker to pass to drawPortrait
+      const speakerNpc = state.npcs[lineSpeaker] || null;
+      drawPortrait(lineSpeaker, speakerNpc);
+    } else {
+      drawPortrait(resolvePortraitChar(npc), npc);
+    }
+  }
+
   // Kid runs over when parent dialog reaches the interruption line
-  if (state.currentDialog === state.npcs.parent &&
+  if (npc === state.npcs.parent &&
       state.dialogPhase === 'main' && state.dialogIndex === 2 &&
       state.kidRunPhase === -1) {
     state.kidRunPhase = 0;

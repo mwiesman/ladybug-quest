@@ -419,7 +419,7 @@ function draw() {
     // Boy starts at his normal meadow position and walks toward girl
     // during phases 30-70 (same time ladybug escapes)
     const boyStartX = state.boy.x, boyStartY = state.boy.y; // (290, 270)
-    const boyEndX = 300, boyEndY = 240; // partway toward girl, not all the way
+    const boyEndX = 260, boyEndY = 290; // left and below ladybug so player can interact with it
     let boyX = boyStartX, boyY = boyStartY;
     if (state.endingPhase >= 30) {
       const p = Math.min((state.endingPhase - 30) / 40, 1);

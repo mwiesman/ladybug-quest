@@ -81,6 +81,8 @@ export const state = {
 
   // Bird flight
   birdStopped: false,
+  birdStoppedX: 0,
+  birdStoppedY: 0,
 
   // Squirrel run animation (after gate unlocks)
   squirrelRunPhase: -1, // -1 = not active, 0+ = frame counter
@@ -133,6 +135,8 @@ export function resetState() {
   state.dialogPhase = 'main';
   state.tradePrompted = false;
   state.birdStopped = false;
+  state.birdStoppedX = 0;
+  state.birdStoppedY = 0;
   state.squirrelRunPhase = -1;
   state.kidRunPhase = -1;
   state.kidRunTargetX = 0;
