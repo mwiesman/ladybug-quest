@@ -190,7 +190,11 @@ function showTradePrompt(npc) {
   }
 }
 
-// Pick the right dialog array based on trade state
+/**
+ * Pick the right dialog array based on NPC trade state.
+ * Priority: dialogBefore (needs item, doesn't have it yet) > dialogComplete (trade done)
+ *           > dialog (default). Special case: squirrel uses dialogBefore only when gate locked.
+ */
 function resolveDialogArray(npc) {
   if (!npc) return [];
 

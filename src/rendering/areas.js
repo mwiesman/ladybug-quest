@@ -2,6 +2,7 @@
 
 import { state } from '../game/state.js';
 import { inventory } from '../systems/inventory.js';
+import { getBirdPosition } from '../systems/interaction.js';
 import {
   drawGroundTexture, drawTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
   drawBoy, drawGate, drawLogs, drawLeafPile, drawLadybug,
@@ -11,12 +12,20 @@ import {
 let ctx;
 let canvasWidth, canvasHeight;
 
+// Offscreen canvas cache for woods floor texture (deterministic, rendered once)
+let woodsFloorCache = null;
+
 export function setContext(canvasCtx, w, h) {
   ctx = canvasCtx;
   canvasWidth = w;
   canvasHeight = h;
 }
 
+/**
+ * Draw the full environment for the given area (ground, trees, NPCs, items, nav arrows).
+ * @param {string} area - Area ID ('meadow', 'park', 'playground', 'gate_area', 'woods', 'boathouse')
+ * @param {boolean} skipBoy - If true, skip drawing the boy (used in intro/ending where boy is drawn manually)
+ */
 export function drawCompleteArea(area, skipBoy) {
   const npcs = state.npcs;
   const worldItems = state.worldItems;
@@ -183,13 +192,12 @@ export function drawCompleteArea(area, skipBoy) {
       );
     }
 
-    // Kid runs toward parent when parent is talked to
+    // Kid runs toward player when parent is talked to (interpolates over 40 frames)
     let kidX = npcs.kid.x, kidY = npcs.kid.y;
-    const kidTarget = { x: state.kidRunTargetX, y: state.kidRunTargetY };
     if (state.kidRunPhase >= 0 && state.kidRunTargetX > 0) {
       const p = Math.min(state.kidRunPhase / 40, 1);
-      kidX = npcs.kid.x + (kidTarget.x - npcs.kid.x) * p;
-      kidY = npcs.kid.y + (kidTarget.y - npcs.kid.y) * p;
+      kidX = npcs.kid.x + (state.kidRunTargetX - npcs.kid.x) * p;
+      kidY = npcs.kid.y + (state.kidRunTargetY - npcs.kid.y) * p;
     }
     drawNPC(npcs.kid, kidX, kidY);
     drawNPC(npcs.parent, npcs.parent.x, npcs.parent.y);
@@ -257,9 +265,8 @@ export function drawCompleteArea(area, skipBoy) {
     drawLeafPile(500, 120);
 
     // Bird NPC (flying back and forth when not stopped, frozen at flight position when stopped)
-    const birdX = state.birdStopped ? state.birdStoppedX : npcs.bird.x + Math.sin(state.frameCount * 0.02) * 60;
-    const birdY = state.birdStopped ? state.birdStoppedY : npcs.bird.y + Math.sin(state.frameCount * 0.03) * 8;
-    drawNPC(npcs.bird, birdX, birdY);
+    const birdPos = getBirdPosition();
+    drawNPC(npcs.bird, birdPos.x, birdPos.y);
 
     // Squirrel — animates running through gate opening, stays inside after
     {
@@ -300,16 +307,22 @@ export function drawCompleteArea(area, skipBoy) {
     }
 
   } else if (area === 'woods') {
-    ctx.fillStyle = '#6b8e23';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    // Dense forest floor texture
-    for (let i = 0; i < 40; i++) {
-      const x = (i * 137) % canvasWidth;
-      const y = (i * 219) % canvasHeight;
-      ctx.fillStyle = i % 3 === 0 ? '#5a7c1f' : '#6a8e2a';
-      ctx.fillRect(x, y, 4, 4);
+    // Woods background with floor texture (cached to offscreen canvas)
+    if (!woodsFloorCache) {
+      woodsFloorCache = document.createElement('canvas');
+      woodsFloorCache.width = canvasWidth;
+      woodsFloorCache.height = canvasHeight;
+      const wc = woodsFloorCache.getContext('2d');
+      wc.fillStyle = '#6b8e23';
+      wc.fillRect(0, 0, canvasWidth, canvasHeight);
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 137) % canvasWidth;
+        const y = (i * 219) % canvasHeight;
+        wc.fillStyle = i % 3 === 0 ? '#5a7c1f' : '#6a8e2a';
+        wc.fillRect(x, y, 4, 4);
+      }
     }
+    ctx.drawImage(woodsFloorCache, 0, 0);
 
     // Leaf piles scattered through woods
     drawLeafPile(120, 160);

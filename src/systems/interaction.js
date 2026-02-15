@@ -1,4 +1,5 @@
 // Interaction detection - proximity checks for NPCs, items, and world objects
+// Checks player distance to interactables each frame and triggers dialogs/pickups
 
 import { state, GAME_STATE } from '../game/state.js';
 import { player } from '../game/player.js';
@@ -12,6 +13,45 @@ import { showItemNotification } from '../rendering/ui.js';
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
 
+// --- Position helpers (shared with areas.js rendering) ---
+
+/** Get the bird's current display position (flight sine wave or frozen spot) */
+export function getBirdPosition() {
+  const bird = state.npcs.bird;
+  if (state.birdStopped) {
+    return { x: state.birdStoppedX, y: state.birdStoppedY };
+  }
+  return {
+    x: bird.x + Math.sin(state.frameCount * 0.02) * 60,
+    y: bird.y + Math.sin(state.frameCount * 0.03) * 8
+  };
+}
+
+/** Get the squirrel's current display position (moves inside gate when unlocked) */
+export function getSquirrelPosition() {
+  if (state.gateUnlocked) {
+    return { x: 500, y: 140 }; // Inside gated area at leaf pile
+  }
+  return { x: state.npcs.squirrel.x, y: state.npcs.squirrel.y };
+}
+
+/** Get the kid's current display position (runs to player during parent dialog) */
+export function getKidPosition() {
+  if (state.kidRunPhase >= 40 && state.kidRunTargetX > 0) {
+    return { x: state.kidRunTargetX, y: state.kidRunTargetY };
+  }
+  return { x: state.npcs.kid.x, y: state.npcs.kid.y };
+}
+
+/** Fast distance check using squared comparison (avoids Math.sqrt) */
+function inRange(x1, y1, x2, y2, range) {
+  const dx = x1 - x2;
+  const dy = y1 - y2;
+  return dx * dx + dy * dy < range * range;
+}
+
+// --- Main interaction check (called on SPACE press) ---
+
 export function checkInteraction() {
   const { currentArea, npcs, worldItems, gateUnlocked, logsCleared, ladybug } = state;
 
@@ -22,18 +62,9 @@ export function checkInteraction() {
 
     // Squirrel — uses inside position when gate unlocked (even after trade)
     if (npc === npcs.squirrel) {
-      let sqX, sqY;
-      if (gateUnlocked) {
-        sqX = 500; sqY = 140; // Inside gated area at leaf pile
-      } else {
-        sqX = npc.x; sqY = npc.y;
-      }
-
-      // Allow talk through gate when locked
+      const sq = getSquirrelPosition();
       const range = (!gateUnlocked && npc.behindGate) ? 50 : 40;
-      const dx = player.x - sqX;
-      const dy = player.y - sqY;
-      if (Math.sqrt(dx * dx + dy * dy) < range) {
+      if (inRange(player.x, player.y, sq.x, sq.y, range)) {
         showDialog(npc);
         return;
       }
@@ -42,17 +73,8 @@ export function checkInteraction() {
 
     // Bird — uses flight position when flying, stored position when stopped
     if (npc === npcs.bird && npc.flies) {
-      let birdX, birdY;
-      if (state.birdStopped) {
-        birdX = state.birdStoppedX;
-        birdY = state.birdStoppedY;
-      } else {
-        birdX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
-        birdY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
-      }
-      const dx = player.x - birdX;
-      const dy = player.y - birdY;
-      if (Math.sqrt(dx * dx + dy * dy) < 40) {
+      const bird = getBirdPosition();
+      if (inRange(player.x, player.y, bird.x, bird.y, 40)) {
         showDialog(npc);
         return;
       }
@@ -66,9 +88,7 @@ export function checkInteraction() {
       npcY = state.kidRunTargetY;
     }
 
-    const dx = player.x - npcX;
-    const dy = player.y - npcY;
-    if (Math.sqrt(dx * dx + dy * dy) < 40) {
+    if (inRange(player.x, player.y, npcX, npcY, 40)) {
       showDialog(npc);
       return;
     }
@@ -117,14 +137,12 @@ export function checkInteraction() {
   if (!logsCleared && currentArea === 'gate_area') {
     if (Math.abs(player.x - 300) < 40 && Math.abs(player.y - 35) < 40) {
       if (inventory.hasItem('Axe')) {
-        // Clear logs with axe
         state.logsCleared = true;
         playSFX('logs_clear');
         inventory.removeItem('Axe');
         showItemNotification('Logs Cleared!', 'action');
         saveGame();
       } else {
-        // Show "need more than arms" message
         showDialog({
           dialog: ["*Looks like you'll need more than just your arms to get past these logs.*"],
           isStatic: true
@@ -147,9 +165,7 @@ export function checkInteraction() {
 
   // Boy interaction (meadow) - different dialog depending on progress
   if (currentArea === 'meadow') {
-    const dx = player.x - state.boy.x;
-    const dy = player.y - state.boy.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 40) {
+    if (inRange(player.x, player.y, state.boy.x, state.boy.y, 40)) {
       if (inventory.hasItem('Net')) {
         showDialog({
           dialog: ["You found it! The ladybug...", "I think it's back by the old oak tree."],
@@ -175,9 +191,7 @@ export function checkInteraction() {
 
   // Ladybug interaction - prompt first, then trigger ending
   if (inventory.hasItem('Net') && currentArea === 'meadow') {
-    const dx = player.x - ladybug.x;
-    const dy = player.y - ladybug.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 60) {
+    if (inRange(player.x, player.y, ladybug.x, ladybug.y, 60)) {
       if (!state.ladybugPrompted) {
         state.ladybugPrompted = true;
         showDialog({
@@ -191,6 +205,8 @@ export function checkInteraction() {
   }
 }
 
+// --- Proximity hint check (called every frame to show "Press SPACE" prompt) ---
+
 export function checkNearInteractable() {
   const { currentArea, npcs, worldItems } = state;
 
@@ -200,20 +216,16 @@ export function checkNearInteractable() {
 
     let npcX = npc.x, npcY = npc.y;
 
-    // Squirrel moves inside gated area when gate unlocked (stays there even after trade)
+    // Squirrel moves inside gated area when gate unlocked
     if (npc === npcs.squirrel && state.gateUnlocked) {
       npcX = 500; npcY = 140;
     }
 
-    // Bird flight position (stopped = stored position, flying = computed)
+    // Bird flight position
     if (npc === npcs.bird && npc.flies) {
-      if (state.birdStopped) {
-        npcX = state.birdStoppedX;
-        npcY = state.birdStoppedY;
-      } else {
-        npcX = npc.x + Math.sin(state.frameCount * 0.02) * 60;
-        npcY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
-      }
+      const bird = getBirdPosition();
+      npcX = bird.x;
+      npcY = bird.y;
     }
 
     // Kid uses animated position after running to player
@@ -222,9 +234,7 @@ export function checkNearInteractable() {
       npcY = state.kidRunTargetY;
     }
 
-    const dx = player.x - npcX;
-    const dy = player.y - npcY;
-    if (Math.sqrt(dx * dx + dy * dy) < 50) return true;
+    if (inRange(player.x, player.y, npcX, npcY, 50)) return true;
   }
 
   if (!worldItems.birdseed.collected && currentArea === 'park') {
@@ -258,9 +268,7 @@ export function checkNearInteractable() {
 
   // Boy in meadow
   if (currentArea === 'meadow') {
-    const dx = player.x - state.boy.x;
-    const dy = player.y - state.boy.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 40) return true;
+    if (inRange(player.x, player.y, state.boy.x, state.boy.y, 40)) return true;
   }
 
   return false;

@@ -39,7 +39,6 @@ export const state = {
   currentArea: 'meadow',
 
   // Cutscene
-  cutsceneFrame: 0,
   cutsceneTimer: 0,
   animationPhase: 0,
   endingPhase: 0,
@@ -117,7 +116,6 @@ export const state = {
 export function resetState() {
   state.currentState = GAME_STATE.CUTSCENE_INTRO;
   state.currentArea = 'meadow';
-  state.cutsceneFrame = 0;
   state.cutsceneTimer = 0;
   state.animationPhase = 0;
   state.endingPhase = 0;

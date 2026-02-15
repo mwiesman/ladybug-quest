@@ -1,17 +1,23 @@
-// Per-area collision detection
+// Per-area collision detection — AABB checks against world geometry
+// Each area defines: (1) canvas boundary walls (blocked except at transition edges)
+//                     (2) obstacle hitboxes for trees, rocks, walls, water, buildings
+// All coordinates are hardcoded to the 640x480 canvas and match rendering in areas.js
 
 import { state } from '../game/state.js';
 
 const CANVAS_W = 640;
 const CANVAS_H = 480;
 
-// Fixed world obstacle positions
+// Fixed world obstacle positions (shared with interaction.js and areas.js)
 const GATE_X = 380, GATE_Y = 140;
-const LOGS_X = 270, LOGS_Y = 20; // Near top of gate_area, blocking north exit
+const LOGS_X = 270, LOGS_Y = 20;
 
+/**
+ * Check if the given bounding box collides with any world geometry.
+ * Called every frame for player movement — returns true to block movement.
+ */
 export function checkCollision(x, y, w, h) {
-  // Canvas boundary - only block at edges without transitions
-  // Allow player to reach edges for area transitions
+  // Canvas boundaries — only block edges that have no area transition
   const area = state.currentArea;
   const { gateUnlocked, logsCleared } = state;
 
