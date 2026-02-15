@@ -299,8 +299,8 @@ export function drawBoy(x, y, direction = 'down') {
 export function drawNPC(npc, x, y) {
   const npcs = state.npcs;
 
-  // Subtle idle bob animation (each NPC gets a unique phase from their x position)
-  const bobOffset = Math.round(Math.sin(Date.now() * 0.0015 + (npc.x || 0)) * 1.5);
+  // Subtle idle bob animation (each NPC gets a unique phase from their base x position)
+  const bobOffset = Math.round(Math.sin(state.frameCount * 0.04 + (npc.x || 0)) * 1.5);
   y += bobOffset;
 
   // Try sprite lookup by NPC identity
@@ -581,11 +581,11 @@ export function drawLadybug(x, y) {
   ctx.save();
   ctx.translate(x, y);
 
-  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 1.5);
-  gradient.addColorStop(0, 'rgba(255, 0, 0, 0.3)');
-  gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(-size * 1.5, -size * 1.5, size * 3, size * 3);
+  // Soft glow effect (simple rect instead of per-frame gradient creation)
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(-size, -size, size * 2, size * 2);
+  ctx.globalAlpha = 1;
 
   ctx.fillStyle = '#ff0000';
   ctx.beginPath();
@@ -801,26 +801,40 @@ export function drawRock(x, y) {
   ctx.fill();
 }
 
+// Offscreen canvas cache for ground texture (rendered once, blitted every frame)
+let groundCache = null;
+let groundCacheW = 0, groundCacheH = 0;
+
 export function drawGroundTexture(canvasWidth, canvasHeight) {
-  ctx.fillStyle = '#7cb342';
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  ctx.fillStyle = '#689f38';
-  // Static pattern using modulo for deterministic placement
-  for (let x = 0; x < canvasWidth; x += 16) {
-    for (let y = 0; y < canvasHeight; y += 16) {
-      if ((x + y) % 48 < 20) {
-        ctx.fillRect(x + ((x * 7 + y * 11) % 8), y + ((x * 13 + y * 5) % 8), 4, 4);
+  // Render to cache on first call (or if size changes)
+  if (!groundCache || groundCacheW !== canvasWidth || groundCacheH !== canvasHeight) {
+    groundCache = document.createElement('canvas');
+    groundCache.width = canvasWidth;
+    groundCache.height = canvasHeight;
+    groundCacheW = canvasWidth;
+    groundCacheH = canvasHeight;
+    const gc = groundCache.getContext('2d');
+
+    gc.fillStyle = '#7cb342';
+    gc.fillRect(0, 0, canvasWidth, canvasHeight);
+    gc.fillStyle = '#689f38';
+    for (let x = 0; x < canvasWidth; x += 16) {
+      for (let y = 0; y < canvasHeight; y += 16) {
+        if ((x + y) % 48 < 20) {
+          gc.fillRect(x + ((x * 7 + y * 11) % 8), y + ((x * 13 + y * 5) % 8), 4, 4);
+        }
       }
     }
+    gc.fillStyle = '#558b2f';
+    for (let i = 0; i < 50; i++) {
+      const tx = (i * 137) % canvasWidth;
+      const ty = (i * 219) % canvasHeight;
+      gc.fillRect(tx, ty, 2, 3);
+      gc.fillRect(tx + 2, ty + 1, 2, 3);
+    }
   }
-  ctx.fillStyle = '#558b2f';
-  // Static darker grass blades using deterministic positions
-  for (let i = 0; i < 50; i++) {
-    const tx = (i * 137) % canvasWidth;
-    const ty = (i * 219) % canvasHeight;
-    ctx.fillRect(tx, ty, 2, 3);
-    ctx.fillRect(tx + 2, ty + 1, 2, 3);
-  }
+
+  ctx.drawImage(groundCache, 0, 0);
 }
 
 export function drawNavigationIndicator(x, y, direction, text) {
