@@ -44,6 +44,7 @@ npm run preview
 
 ## Controls
 
+### Keyboard
 - **Arrow Keys** or **WASD**: Move
 - **Space**: Interact with NPCs and objects / Advance dialog / Skip cutscenes
 - **ESC**: Decline a trade
@@ -51,6 +52,15 @@ npm run preview
 - **P**: Manual save (during gameplay)
 - **M**: Toggle audio mute
 - **R** (on credits screen): Restart game
+
+### Mobile / Touch
+- **Tap ground**: Walk to that spot
+- **Tap NPC/object**: Walk over and auto-interact
+- **Tap exit indicator**: Walk to area exit and transition
+- **Tap dialog**: Advance dialog (Yes/No buttons for trades)
+- **Tap cutscene**: Advance to next beat
+- **BAG button**: Toggle inventory
+- **MAP button**: Toggle world map
 
 ## Adding Sprites & Audio
 
@@ -89,7 +99,7 @@ See [SPRITE_REQUIREMENTS.md](SPRITE_REQUIREMENTS.md) for detailed specifications
 src/
 ├── data/          # Game data (NPCs, areas, items, cutscenes)
 ├── game/          # Core game state and logic
-├── systems/       # Game systems (input, inventory, dialog, collision, audio)
+├── systems/       # Game systems (input, touch, inventory, dialog, collision, audio)
 ├── rendering/     # All drawing functions (sprites, areas, UI, sprite loader)
 └── main.js        # Entry point and game loop
 ```
@@ -118,3 +128,4 @@ src/
 - Smooth fade-to-black screen transitions
 - World map overlay (Tab key)
 - Environmental animations (butterflies, fireflies, water ripples)
+- Full mobile/touch support with responsive canvas scaling

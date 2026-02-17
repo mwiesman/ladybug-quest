@@ -143,7 +143,7 @@ if (x < right && x + w > left && y < bottom && y + h > top) return true;
 Key collision areas:
 - **Meadow:** Trees, rocks
 - **Gate Area:** Stone walls (4 walls), gate, tree line across top, logs
-- **Boathouse:** Water (blocked except bridge at x: 305-345), building, trees, elm fence
+- **Boathouse:** Water (blocked except bridge at x: 297-353), building, trees, elm fence
 - **Woods:** Rocks only
 - **Park/Playground:** No obstacle collision (just screen boundaries)
 
@@ -236,6 +236,7 @@ Full manifest in `src/systems/audio.js`. Missing files silently fall back to no 
 
 ## Controls
 
+### Keyboard
 **File:** `src/systems/input.js`
 
 | Key | Action |
@@ -249,6 +250,23 @@ Full manifest in `src/systems/audio.js`. Missing files silently fall back to no 
 | C | Continue (save prompt) |
 | N | New game (save prompt) |
 | R | Restart (credits screen) |
+
+### Touch (Mobile)
+**File:** `src/systems/touch.js`
+
+| Action | Effect |
+|--------|--------|
+| Tap ground | Walk to that spot |
+| Tap NPC/object | Walk over, auto-interact on arrival (40px hit radius) |
+| Tap exit indicator | Walk to area edge and transition |
+| Tap dialog box | Advance dialog (blocked during trade — use Yes/No buttons) |
+| Tap cutscene | Advance to next beat |
+| BAG button | Toggle inventory |
+| MAP button | Toggle world map |
+
+Touch detection: `'ontouchstart' in window || navigator.maxTouchPoints > 0`
+Body gets `.touch` class which enables mobile-specific CSS.
+Keyboard always takes priority — pressing any key cancels touch movement.
 
 ---
 
@@ -270,13 +288,14 @@ src/
 │   ├── collision.js     — Per-area collision rectangles
 │   ├── inventory.js     — Inventory management + UI
 │   ├── input.js         — Keyboard handling
+│   ├── touch.js         — Mobile touch input, scaling, tap-to-move/interact
 │   ├── audio.js         — Music/SFX loading and playback
 │   └── save.js          — LocalStorage save/load
 ├── rendering/
 │   ├── sprites.js       — All procedural draw functions
 │   ├── areas.js         — Area renderers (drawCompleteArea)
 │   ├── spriteLoader.js  — PNG sprite loading with fallback
-│   └── ui.js            — Notifications, prompts, map overlay
+│   └── ui.js            — Notifications, prompts, map overlay, exit indicators
 ├── main.js              — Game loop, cutscenes, animations
 └── styles.css           — UI styling (dialog box, inventory, credits)
 ```

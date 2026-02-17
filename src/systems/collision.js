@@ -95,8 +95,8 @@ export function checkCollision(x, y, w, h) {
   } else if (area === 'boathouse') {
     // Boathouse building
     if (x < 600 && x + w > 480 && y < 300 && y + h > 200) return true;
-    // Water — block everything below y=290 EXCEPT the bridge (x: 295-355)
-    if (y + h > 290 && (x + w < 295 || x > 355)) return true;
+    // Water — block everything below y=290 EXCEPT the bridge (x: 297-353, tighter to match visual railings)
+    if (y + h > 290 && (x < 297 || x + w > 353)) return true;
     // Trees
     if (x < 148 && x + w > 100 && y < 128 && y + h > 80) return true;  // Tree (100, 80)
     if (x < 348 && x + w > 300 && y < 148 && y + h > 100) return true; // Tree (300, 100)
