@@ -4,6 +4,52 @@ All notable changes to The Ladybug Quest project.
 
 ## [Unreleased]
 
+### Mobile Touch Support
+**Date:** 2026-02-17
+
+#### Added
+- **Touch System** (`src/systems/touch.js`): Full mobile input handling
+  - Tap-to-move: tap anywhere to walk, character pathfinds with wall-sliding
+  - Tap-to-interact: tap NPCs/items/objects to auto-walk and interact on arrival
+  - Touch coordinate translation accounting for CSS transform scaling
+  - State-based touch routing (playing, dialog, cutscene, map, credits)
+- **Responsive Canvas Scaling**: CSS transform scales the 640x480 canvas to fit mobile screens
+  - `--game-scale` CSS variable computed on resize/orientation change
+  - Thinner border on small screens
+- **Area Exit Indicators**: Tappable labeled arrows at each area edge (touch devices only)
+  - Shows destination name with directional arrow, subtle pulse animation
+  - 15px extra padding on hit area for comfortable tapping
+  - Custom positioning for boathouse bridge and gate area corridor exits
+- **Mobile HUD**: Floating BAG and MAP buttons (top-left, touch devices only)
+  - BAG toggles inventory visibility, MAP opens/closes world map
+- **Trade Buttons**: Yes/No text buttons during trade prompts (all devices)
+  - Green "Yes" / Red "No" centered in dialog box, replaces `[SPACE] Yes [ESC] No` text
+- **Save Prompt Buttons**: Continue/New Game buttons (touch devices, replaces `[C]/[N]` text)
+- **Dialog Touch**: Tap dialog box to advance (works even though dialog HTML overlays canvas)
+- **Viewport Meta**: `user-scalable=no, viewport-fit=cover` prevents pinch-zoom conflicts
+
+#### Changed
+- Touch-adaptive text: "Tap to continue" / "Tap to close" / "Tap to restart" on touch devices
+- Ladybug catch prompt: "Tap again to try to catch it!" on touch devices
+- Interaction prompt ("Press SPACE") hidden on touch devices (tap-to-interact replaces it)
+- Bridge collision tightened to match visual railings (x: 297-353, was 295-355)
+- Touch interaction hit radius: 40px (matches game's keyboard interaction range)
+- Keyboard input takes priority over touch — pressing any key cancels touch movement
+- Touch target cleared on area transitions and game restart
+
+#### Technical
+- New module: `src/systems/touch.js` (touch events, scaling, hit-testing, mobile detection)
+- `.touch` CSS class on body enables mobile-specific styles
+- `touch-action: none` and `-webkit-touch-callout: none` prevent browser gesture conflicts
+- `inventory.toggleDisplay()` method added for HUD button
+- Build: 22 modules, ~66KB JS bundle
+- Zero build errors
+
+#### Future Ideas
+- Sound/mute HUD button (Press Start 2P font lacks music note glyph — needs custom icon or text label)
+
+---
+
 ### Gameplay Polish & Dialog Rework
 **Date:** 2026-02-10
 

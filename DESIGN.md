@@ -522,14 +522,16 @@ The quest chain is designed as a circular network where everyone's needs connect
 ## Game Mechanics Philosophy
 
 ### Movement
-- **WASD or Arrow Keys** - accessible, familiar
+- **WASD or Arrow Keys** (desktop) - accessible, familiar
+- **Tap-to-move** (mobile) - tap ground to walk, tap exits to transition areas
 - **Smooth but not fast** - contemplative pace matches tone
 - **Animated** - walking cycle shows life and personality
 
 ### Interaction
-- **Press SPACE** - simple, clear
+- **Press SPACE** (desktop) - simple, clear
+- **Tap NPC/object** (mobile) - auto-walk and interact on arrival
 - **Proximity-based** - must be near to interact
-- **Visual indicator** - "Press SPACE" appears when near interactable
+- **Visual indicator** - "Press SPACE" appears when near interactable (desktop only)
 
 ### Inventory
 - **Visible list** - always know what you have
@@ -537,8 +539,9 @@ The quest chain is designed as a circular network where everyone's needs connect
 - **Simple** - icon + name
 
 ### Dialog
-- **Press SPACE to advance** - player-paced
+- **Press SPACE to advance** (desktop) / **Tap to advance** (mobile) - player-paced
 - **Portrait + text** - see who's talking
+- **Yes/No buttons** for trade prompts (works on all devices)
 - **Character-specific fonts/styles** (future enhancement)
 
 ### No Combat
@@ -584,7 +587,7 @@ The quest chain is designed as a circular network where everyone's needs connect
 ### Canvas Size
 - **640×480 pixels** - Classic 4:3 ratio
 - Pixel-perfect scaling
-- Fixed screen size
+- Responsive CSS transform scaling on mobile (maintains aspect ratio)
 
 ### Sprite Sizes
 - **Player:** 24×32 pixels (per frame)
@@ -701,11 +704,11 @@ The game succeeds if players:
 - Basic sprites and environments
 
 **v2 (Current):** Full-featured Vite project
-- Modular ES6 codebase (21 modules, ~53KB bundle)
+- Modular ES6 codebase (22 modules, ~66KB bundle)
 - Sprite sheet system with procedural fallbacks
 - Audio system (per-area music, SFX, mute toggle)
-- Save system (auto-save + manual, LocalStorage, version 3)
-- Dialog trade system with confirm/decline (SPACE/ESC)
+- Save system (auto-save + manual, LocalStorage, version 4)
+- Dialog trade system with confirm/decline (SPACE/ESC + Yes/No buttons)
 - Screen fade transitions, map overlay (Tab)
 - Bird flight animation, squirrel gate-unlock run, kid interruption
 - Animated ending sequence with dialog prompts and fade to black
@@ -713,13 +716,14 @@ The game succeeds if players:
 - Environmental details: butterflies, fireflies, water ripples, bridge
 - Camperdown Elm with interactable plaque
 - Woods ladybug sighting on first entry
+- Full mobile/touch support: tap-to-move, tap-to-interact, responsive scaling, mobile HUD
 
 **v3 (Future):** Complete experience
 - Full sprite sheets for all characters
 - Additional content and areas
 - Multiple languages
 - Accessibility features
-- Mobile support
+- Sound toggle HUD button (needs custom icon — pixel font lacks music note glyph)
 
 ---
 
@@ -737,6 +741,6 @@ The masks are not optional. The fall setting is not arbitrary. The loop is not a
 
 ---
 
-**Last Updated:** February 10, 2026
+**Last Updated:** February 17, 2026
 **Document Owner:** Mathew (with Claude)
 **Status:** Living document - will be updated as game evolves

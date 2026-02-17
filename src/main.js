@@ -13,7 +13,7 @@ import { checkInteraction, checkNearInteractable } from './systems/interaction.j
 import { checkCollision } from './systems/collision.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawTree, drawLargeTree, drawLadybug } from './rendering/sprites.js';
 import { setContext as setAreasCtx, drawCompleteArea } from './rendering/areas.js';
-import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification, drawItemNotification, drawMap } from './rendering/ui.js';
+import { setContext as setUICtx, drawInteractionPrompt, showSaveNotification, drawSaveNotification, drawItemNotification, drawMap, drawTransitionIndicators } from './rendering/ui.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
 import { initSprites } from './rendering/spriteLoader.js';
 import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
@@ -87,10 +87,6 @@ document.getElementById('hudInventory').addEventListener('click', () => {
 document.getElementById('hudMap').addEventListener('click', () => {
   handleMapToggle();
 });
-document.getElementById('hudMute').addEventListener('click', () => {
-  handleMuteToggle();
-});
-
 // Update skip button text for touch
 if (isTouchDevice()) {
   skipButton.textContent = 'Tap to continue';
@@ -594,6 +590,11 @@ function draw() {
 
   drawCompleteArea(state.currentArea);
   drawPlayer(player.x, player.y);
+
+  // Touch: exit indicators at area edges
+  if (isTouchDevice() && state.currentState === GAME_STATE.PLAYING) {
+    drawTransitionIndicators();
+  }
 
   if (checkNearInteractable() && state.currentState === GAME_STATE.PLAYING) {
     // Hide interaction prompt on touch devices (tap-to-interact replaces it)

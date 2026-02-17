@@ -5,6 +5,7 @@ import { state, GAME_STATE } from '../game/state.js';
 import { player } from '../game/player.js';
 import { getBirdPosition, getSquirrelPosition, getKidPosition } from './interaction.js';
 import { inventory } from './inventory.js';
+import { AREA_EXITS, getExitBounds } from '../rendering/ui.js';
 
 // --- Touch detection ---
 export function isTouchDevice() {
@@ -56,7 +57,7 @@ function canvasFromTouch(touch) {
 
 function hitTestInteractables(cx, cy) {
   const { currentArea, npcs, worldItems, gateUnlocked, logsCleared, ladybug } = state;
-  const HIT = 30; // tap hit radius
+  const HIT = 40; // tap hit radius (matches game interaction range)
 
   // NPCs in current area
   for (const npcKey in npcs) {
@@ -159,6 +160,18 @@ export function initTouch(canvasEl, handlerFns) {
   canvas.addEventListener('touchmove', onTouchMove, { passive: false });
   canvas.addEventListener('touchend', onTouchEnd, { passive: false });
 
+  // Dialog box touch (sits on top of canvas, needs its own handler)
+  const dialogBox = document.getElementById('dialogBox');
+  if (dialogBox) {
+    dialogBox.addEventListener('touchstart', (e) => {
+      if (state.tradePrompted) return; // let Yes/No buttons handle it
+      e.preventDefault();
+      if ((state.currentState === GAME_STATE.DIALOG || state.currentDialog) && handlers.onSpace) {
+        handlers.onSpace();
+      }
+    }, { passive: false });
+  }
+
   // Touch events on cutscene overlay (for advancing cutscenes)
   const cutsceneOverlay = document.getElementById('cutsceneOverlay');
   if (cutsceneOverlay) {
@@ -209,7 +222,31 @@ function onTouchEnd(e) {
   e.preventDefault(); // prevent ghost click / double-tap zoom
 }
 
+function hitTestExitZone(cx, cy) {
+  const exits = AREA_EXITS[state.currentArea];
+  if (!exits) return null;
+  const PAD = 15; // extra tap padding around visual indicator
+
+  for (const exit of exits) {
+    if (exit.condition && !state[exit.condition]) continue;
+    const b = getExitBounds(exit);
+    if (cx >= b.x - PAD && cx <= b.x + b.w + PAD &&
+        cy >= b.y - PAD && cy <= b.y + b.h + PAD) {
+      return { x: b.walkX, y: b.walkY };
+    }
+  }
+  return null;
+}
+
 function onPlayingTouch(pos) {
+  // Check if tapped an exit indicator
+  const exitTarget = hitTestExitZone(pos.x, pos.y);
+  if (exitTarget) {
+    touchTarget = { x: exitTarget.x, y: exitTarget.y };
+    touchInteractTarget = null;
+    return;
+  }
+
   // Check if tapped an interactable
   const hit = hitTestInteractables(pos.x, pos.y);
   if (hit) {

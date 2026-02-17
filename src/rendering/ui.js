@@ -1,7 +1,10 @@
 // UI rendering - interaction prompts, notifications, and map overlay
 
 import { state, GAME_STATE } from '../game/state.js';
-import { isTouchDevice } from '../systems/touch.js';
+
+function isTouch() {
+  return document.body.classList.contains('touch');
+}
 
 let ctx;
 let canvasWidth;
@@ -134,7 +137,7 @@ export function drawMap() {
 
   ctx.font = '7px "Press Start 2P"';
   ctx.fillStyle = '#aaa';
-  ctx.fillText(isTouchDevice() ? 'Tap to close' : 'Press TAB to close', canvasWidth / 2, canvasHeight - 16);
+  ctx.fillText(isTouch() ? 'Tap to close' : 'Press TAB to close', canvasWidth / 2, canvasHeight - 16);
 
   // Draw connections first (behind boxes)
   MAP_CONNECTIONS.forEach(conn => {
@@ -191,4 +194,99 @@ export function drawMap() {
   });
 
   ctx.textAlign = 'start';
+}
+
+// --- Area transition exit indicators (touch devices) ---
+
+export const AREA_EXITS = {
+  meadow: [
+    { edge: 'right', label: 'Park' }
+  ],
+  park: [
+    { edge: 'left', label: 'Meadow' },
+    { edge: 'top', label: 'Boathouse' },
+    { edge: 'bottom', label: 'Playground' }
+  ],
+  playground: [
+    { edge: 'top', label: 'Park' }
+  ],
+  boathouse: [
+    { edge: 'bottom', label: 'Park', walkX: 325, ix: 275, iw: 100 },
+    { edge: 'right', label: 'Gate Area' }
+  ],
+  gate_area: [
+    { edge: 'left', label: 'Boathouse' },
+    { edge: 'top', label: 'Woods', condition: 'logsCleared', walkX: 300, ix: 230 }
+  ],
+  woods: [
+    { edge: 'bottom', label: 'Gate Area' }
+  ]
+};
+
+const EXIT_EDGES = {
+  right:  { ix: 568, iy: 195, iw: 68, ih: 90, walkX: 640, walkY: 240 },
+  left:   { ix: 4,   iy: 195, iw: 68, ih: 90, walkX: 0,   walkY: 240 },
+  top:    { ix: 250, iy: 4,   iw: 140, ih: 42, walkX: 320, walkY: 0   },
+  bottom: { ix: 250, iy: 434, iw: 140, ih: 42, walkX: 320, walkY: 480 },
+};
+
+export function getExitBounds(exit) {
+  const d = EXIT_EDGES[exit.edge];
+  return {
+    x: exit.ix ?? d.ix,
+    y: exit.iy ?? d.iy,
+    w: exit.iw ?? d.iw,
+    h: exit.ih ?? d.ih,
+    walkX: exit.walkX ?? d.walkX,
+    walkY: exit.walkY ?? d.walkY,
+  };
+}
+
+const EXIT_ARROWS = { right: '▸', left: '◂', top: '▴', bottom: '▾' };
+
+export function drawTransitionIndicators() {
+  const exits = AREA_EXITS[state.currentArea];
+  if (!exits) return;
+
+  const pulse = 0.45 + 0.15 * Math.sin(state.frameCount * 0.05);
+
+  for (const exit of exits) {
+    if (exit.condition && !state[exit.condition]) continue;
+
+    const b = getExitBounds(exit);
+    ctx.save();
+
+    // Background
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
+
+    // Text
+    ctx.globalAlpha = pulse + 0.25;
+    ctx.fillStyle = '#fff';
+    ctx.font = '7px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    const cx = b.x + b.w / 2;
+    const cy = b.y + b.h / 2;
+
+    if (exit.edge === 'left' || exit.edge === 'right') {
+      ctx.fillText(EXIT_ARROWS[exit.edge], cx, cy - 14);
+      const label = exit.label;
+      if (label.length > 8 && label.includes(' ')) {
+        const parts = label.split(' ');
+        ctx.fillText(parts[0], cx, cy + 4);
+        ctx.fillText(parts[1], cx, cy + 18);
+      } else {
+        ctx.fillText(label, cx, cy + 8);
+      }
+    } else {
+      ctx.fillText(EXIT_ARROWS[exit.edge] + ' ' + exit.label, cx, cy + 3);
+    }
+
+    ctx.textAlign = 'start';
+    ctx.restore();
+  }
 }
