@@ -8,9 +8,12 @@ import { getSprite } from '../rendering/spriteLoader.js';
 import { setContext as setSpritesCtx, drawPlayer, drawBoy, drawNPC } from '../rendering/sprites.js';
 import { playSFX } from './audio.js';
 import { saveGame } from './save.js';
+import { isTouchDevice } from './touch.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
+const dialogPrompt = document.getElementById('dialogPrompt');
+const tradeButtonsEl = document.getElementById('tradeButtons');
 const portraitCtx = document.getElementById('dialogPortrait').getContext('2d');
 
 // Offscreen canvas for rendering procedural sprites as portraits
@@ -42,6 +45,9 @@ export function showDialog(npc) {
     state.birdStoppedY = npc.y + Math.sin(state.frameCount * 0.03) * 8;
   }
 
+  // Set appropriate prompt text
+  dialogPrompt.textContent = isTouchDevice() ? '▼ Tap to continue' : '▼ Press SPACE';
+
   playSFX('dialog_open');
   drawPortrait(resolvePortraitChar(npc), npc);
   updateDialogText();
@@ -55,6 +61,7 @@ export function advanceDialog() {
   // If trade was just prompted and player pressed space = accept
   if (state.tradePrompted) {
     state.tradePrompted = false;
+    hideTradePrompt();
     processNPCTrade(npc);
 
     // If NPC has dialogAfterTrade, show those lines
@@ -98,6 +105,7 @@ export function declineDialog() {
   if (!state.tradePrompted) return;
 
   state.tradePrompted = false;
+  hideTradePrompt();
   const npc = state.currentDialog;
 
   // If NPC has decline dialog, show it
@@ -114,6 +122,7 @@ export function closeDialog() {
   // Restore previous state (could be PLAYING or INTRO_ANIMATION)
   state.currentState = state.previousState || GAME_STATE.PLAYING;
   dialogBox.classList.remove('active');
+  hideTradePrompt();
   state.currentDialog = null;
   state.dialogIndex = 0;
   state.dialogPhase = 'main';
@@ -184,10 +193,19 @@ function showTradePrompt(npc) {
                   npc === state.npcs.fisherman ? 'fisherman' : 'them';
 
   if (npc.needsItem === 'Gate Unlocked') {
-    dialogText.textContent = `*The gate is unlocked. The squirrel can get its acorns now!* [SPACE] Yes  [ESC] No`;
+    dialogText.textContent = `*The gate is unlocked. The squirrel can get its acorns now!*`;
   } else {
-    dialogText.textContent = `*Give ${npcName} the ${itemName}?* [SPACE] Yes  [ESC] No`;
+    dialogText.textContent = `*Give ${npcName} the ${itemName}?*`;
   }
+
+  // Show Yes/No buttons and hide the advance prompt
+  if (tradeButtonsEl) tradeButtonsEl.classList.add('active');
+  dialogPrompt.style.display = 'none';
+}
+
+function hideTradePrompt() {
+  if (tradeButtonsEl) tradeButtonsEl.classList.remove('active');
+  dialogPrompt.style.display = '';
 }
 
 /**

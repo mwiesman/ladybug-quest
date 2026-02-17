@@ -1,6 +1,7 @@
 // UI rendering - interaction prompts, notifications, and map overlay
 
 import { state, GAME_STATE } from '../game/state.js';
+import { isTouchDevice } from '../systems/touch.js';
 
 let ctx;
 let canvasWidth;
@@ -133,7 +134,7 @@ export function drawMap() {
 
   ctx.font = '7px "Press Start 2P"';
   ctx.fillStyle = '#aaa';
-  ctx.fillText('Press TAB to close', canvasWidth / 2, canvasHeight - 16);
+  ctx.fillText(isTouchDevice() ? 'Tap to close' : 'Press TAB to close', canvasWidth / 2, canvasHeight - 16);
 
   // Draw connections first (behind boxes)
   MAP_CONNECTIONS.forEach(conn => {

@@ -18,6 +18,7 @@ import { INTRO_CUTSCENE, ENDING_CUTSCENE } from './data/cutscenes.js';
 import { initSprites } from './rendering/spriteLoader.js';
 import { initAudio, playMusic, stopMusic, toggleMute, resumeAudioOnInteraction } from './systems/audio.js';
 import { saveGame, loadSaveData, applySaveData, hasSave, deleteSave } from './systems/save.js';
+import { initTouch, touchTarget, touchInteractTarget, clearTouchTarget, isTouchDevice } from './systems/touch.js';
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
@@ -34,13 +35,66 @@ const cutsceneText = document.getElementById('cutsceneText');
 const skipButton = document.getElementById('skipButton');
 const credits = document.getElementById('credits');
 const savePrompt = document.getElementById('savePrompt');
+const tradeYes = document.getElementById('tradeYes');
+const tradeNo = document.getElementById('tradeNo');
+const saveContinueBtn = document.getElementById('saveContinueBtn');
+const saveNewBtn = document.getElementById('saveNewBtn');
 
 let showingSavePrompt = false;
 
 // Input
 initInput(handleSpacePress, handleRestart, handleMuteToggle, handleEscape, handleManualSave, handleContinue, handleNewGame, handleMapToggle);
 
+// Touch
+initTouch(canvas, {
+  onSpace: handleSpacePress,
+  onRestart: handleRestart,
+  onMapToggle: handleMapToggle
+});
+
 skipButton.addEventListener('click', skipCutscene);
+
+// Trade buttons (work on both touch and desktop mouse)
+tradeYes.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.tradePrompted) {
+    advanceDialog();
+  }
+});
+tradeNo.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.tradePrompted) {
+    declineDialog();
+  }
+});
+
+// Save prompt buttons
+saveContinueBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  handleContinue();
+});
+saveNewBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  handleNewGame();
+});
+
+// Mobile HUD buttons
+document.getElementById('hudInventory').addEventListener('click', () => {
+  if (state.currentState === GAME_STATE.PLAYING || state.currentState === GAME_STATE.DIALOG) {
+    inventory.toggleDisplay();
+  }
+});
+document.getElementById('hudMap').addEventListener('click', () => {
+  handleMapToggle();
+});
+document.getElementById('hudMute').addEventListener('click', () => {
+  handleMuteToggle();
+});
+
+// Update skip button text for touch
+if (isTouchDevice()) {
+  skipButton.textContent = 'Tap to continue';
+}
 
 function handleSpacePress() {
   resumeAudioOnInteraction();
@@ -165,6 +219,7 @@ function restartGame() {
   resetState();
   resetPlayer();
   inventory.reset();
+  clearTouchTarget();
   credits.classList.remove('active');
   cutsceneOverlay.classList.add('active');
   updateCutsceneText();
@@ -314,25 +369,78 @@ function update() {
   let newY = player.y;
   player.isMoving = false;
 
+  // Keyboard movement (takes priority)
+  let keyboardActive = false;
   if (keys['ArrowUp'] || keys['w'] || keys['W']) {
     newY -= player.speed;
     player.direction = 'up';
     player.isMoving = true;
+    keyboardActive = true;
   }
   if (keys['ArrowDown'] || keys['s'] || keys['S']) {
     newY += player.speed;
     player.direction = 'down';
     player.isMoving = true;
+    keyboardActive = true;
   }
   if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
     newX -= player.speed;
     player.direction = 'left';
     player.isMoving = true;
+    keyboardActive = true;
   }
   if (keys['ArrowRight'] || keys['d'] || keys['D']) {
     newX += player.speed;
     player.direction = 'right';
     player.isMoving = true;
+    keyboardActive = true;
+  }
+
+  // If keyboard is active, cancel any touch target
+  if (keyboardActive) {
+    clearTouchTarget();
+  }
+
+  // Touch movement (mobile) — only when no keyboard input
+  if (!keyboardActive && touchTarget) {
+    const dx = touchTarget.x - player.x;
+    const dy = touchTarget.y - player.y;
+
+    if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+      // Arrived at target
+      if (touchInteractTarget) {
+        checkInteraction();
+      }
+      clearTouchTarget();
+    } else {
+      player.isMoving = true;
+
+      // Determine primary direction for animation
+      if (Math.abs(dx) > Math.abs(dy)) {
+        player.direction = dx > 0 ? 'right' : 'left';
+      } else {
+        player.direction = dy > 0 ? 'down' : 'up';
+      }
+
+      // Move toward target, try both axes then individual axes (wall-sliding)
+      const stepX = Math.abs(dx) > player.speed ? Math.sign(dx) * player.speed : dx;
+      const stepY = Math.abs(dy) > player.speed ? Math.sign(dy) * player.speed : dy;
+
+      const tryX = player.x + stepX;
+      const tryY = player.y + stepY;
+
+      if (!checkCollision(tryX, tryY, player.width, player.height)) {
+        newX = tryX;
+        newY = tryY;
+      } else if (!checkCollision(tryX, player.y, player.width, player.height)) {
+        newX = tryX;
+        newY = player.y;
+      } else if (!checkCollision(player.x, tryY, player.width, player.height)) {
+        newX = player.x;
+        newY = tryY;
+      }
+      // else: fully blocked, stay put (touch target remains so player retries next frame)
+    }
   }
 
   // Animation
@@ -344,8 +452,14 @@ function update() {
     }
   }
 
-  // Collision
-  if (!checkCollision(newX, newY, player.width, player.height)) {
+  // Collision (for keyboard movement — touch movement handles its own collision above)
+  if (keyboardActive) {
+    if (!checkCollision(newX, newY, player.width, player.height)) {
+      player.x = newX;
+      player.y = newY;
+    }
+  } else {
+    // Touch movement already collision-checked, just apply
     player.x = newX;
     player.y = newY;
   }
@@ -482,7 +596,10 @@ function draw() {
   drawPlayer(player.x, player.y);
 
   if (checkNearInteractable() && state.currentState === GAME_STATE.PLAYING) {
-    drawInteractionPrompt();
+    // Hide interaction prompt on touch devices (tap-to-interact replaces it)
+    if (!isTouchDevice()) {
+      drawInteractionPrompt();
+    }
   }
 
   drawSaveNotification();

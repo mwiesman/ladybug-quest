@@ -3,6 +3,7 @@
 import { STARTING_ITEMS } from '../data/items.js';
 import { showItemNotification } from '../rendering/ui.js';
 
+const inventoryEl = document.getElementById('inventory');
 const inventoryItemsEl = document.getElementById('inventoryItems');
 
 export const inventory = {
@@ -33,6 +34,14 @@ export const inventory = {
       inventoryItemsEl.innerHTML = this.items
         .map(item => `<div class="inventory-item">• ${item}</div>`)
         .join('');
+    }
+  },
+
+  toggleDisplay() {
+    if (inventoryEl.style.display === 'none') {
+      inventoryEl.style.display = '';
+    } else {
+      inventoryEl.style.display = 'none';
     }
   },
 

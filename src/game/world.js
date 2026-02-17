@@ -5,12 +5,14 @@ import { state, GAME_STATE } from './state.js';
 import { player } from './player.js';
 import { playMusic, playSFX } from '../systems/audio.js';
 import { saveGame } from '../systems/save.js';
+import { clearTouchTarget } from '../systems/touch.js';
 
 const FADE_SPEED = 0.06; // alpha per frame (~17 frames each way)
 
 // Start a fade-to-black transition to a new area
 export function startTransition(newArea) {
   if (state.transitioning) return;
+  clearTouchTarget();
   state.transitioning = true;
   state.transitionAlpha = 0;
   state.transitionTarget = newArea;
