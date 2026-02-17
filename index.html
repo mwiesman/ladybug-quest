@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>The Ladybug Quest</title>
     <link rel="stylesheet" href="/src/styles.css">
 </head>
@@ -22,6 +22,10 @@
             <div id="dialogContent">
                 <div id="dialogText"></div>
                 <div id="dialogPrompt">▼ Press SPACE</div>
+                <div id="tradeButtons">
+                    <button id="tradeYes">Yes</button>
+                    <button id="tradeNo">No</button>
+                </div>
             </div>
         </div>
 
@@ -31,6 +35,10 @@
             <div id="savePrompt">
                 <div class="save-prompt-title">Save data found</div>
                 <div class="save-prompt-options">[C] Continue  |  [N] New Game</div>
+                <div id="saveButtons">
+                    <button id="saveContinueBtn">Continue</button>
+                    <button id="saveNewBtn">New Game</button>
+                </div>
             </div>
         </div>
 
@@ -39,8 +47,15 @@
                 <h1>The Ladybug Quest</h1>
                 <p>A story of infinite beginnings</p>
                 <p style="margin-top: 40px;">for Adielle</p>
-                <p style="margin-top: 60px; font-size: 8px;">Press R to restart</p>
+                <p class="restart-keyboard" style="margin-top: 60px; font-size: 8px;">Press R to restart</p>
+                <p class="restart-touch" style="margin-top: 60px; font-size: 8px;">Tap to restart</p>
             </div>
+        </div>
+
+        <div id="mobileHud">
+            <button class="hud-btn" id="hudInventory">BAG</button>
+            <button class="hud-btn" id="hudMap">MAP</button>
+            <button class="hud-btn" id="hudMute">&#9834;</button>
         </div>
     </div>
 

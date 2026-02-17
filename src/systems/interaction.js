@@ -9,6 +9,7 @@ import { ENDING_CUTSCENE } from '../data/cutscenes.js';
 import { playSFX } from './audio.js';
 import { saveGame } from './save.js';
 import { showItemNotification } from '../rendering/ui.js';
+import { isTouchDevice } from './touch.js';
 
 const cutsceneOverlay = document.getElementById('cutsceneOverlay');
 const cutsceneText = document.getElementById('cutsceneText');
@@ -194,8 +195,11 @@ export function checkInteraction() {
     if (inRange(player.x, player.y, ladybug.x, ladybug.y, 60)) {
       if (!state.ladybugPrompted) {
         state.ladybugPrompted = true;
+        const catchText = isTouchDevice()
+          ? "*Tap again to try to catch it!*"
+          : "*Press [SPACE] to try to catch it!*";
         showDialog({
-          dialog: ["*You spot the ladybug resting on a leaf...*", "*Press [SPACE] to try to catch it!*"],
+          dialog: ["*You spot the ladybug resting on a leaf...*", catchText],
           isStatic: true
         });
       } else {
