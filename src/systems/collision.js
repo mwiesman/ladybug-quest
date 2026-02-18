@@ -11,7 +11,7 @@ const CANVAS_W = 640;
 const CANVAS_H = 480;
 
 // Fixed world obstacle positions (shared with interaction.js and areas.js)
-const GATE_X = 350, GATE_Y = 215;
+const GATE_X = 400, GATE_Y = 215;
 const LOGS_X = 270, LOGS_Y = 20;
 
 // Block entry into NPC hitbox, but don't trap if player already overlaps
@@ -76,26 +76,30 @@ export function checkCollision(x, y, w, h) {
   } else if (area === 'gate_area') {
     // Dense tree line across top (blocks north except log corridor ~270-330)
     if (y < 50 && (x + w < 265 || x > 335)) return true;
-    // Wooden fence at x=350 (vertical, from tree line to bottom)
-    if (x + w > 348 && x < 370) {
+    // L-shaped fence: vertical at x=400 (y=50 to y=300) + horizontal at y=300 (x=400 to right)
+    // Vertical segment
+    if (x + w > 398 && x < 420 && y < 300) {
       if (!state.gateUnlocked) {
-        if (y + h > 50) return true; // Full fence when locked
+        if (y + h > 50) return true;
       } else {
-        if (y + h > 50 && y < 200) return true;  // Fence above gate opening
-        if (y + h > 260) return true;              // Fence below gate opening
+        if (y + h > 50 && y < 200) return true;   // Above gate opening
+        if (y > 260 && y + h > 260) return true;  // Below gate opening
       }
     }
-    // Gate collision (redundant when locked, but explicit)
+    // Horizontal segment
+    if (y + h > 298 && y < 316 && x + w > 398) return true;
+    // Gate collision (explicit, redundant when locked)
     if (!state.gateUnlocked) {
-      if (x < 374 && x + w > 348 && y < 262 && y + h > 198) return true;
+      if (x < 424 && x + w > 398 && y < 262 && y + h > 198) return true;
     }
-    // Trees (outside fence)
-    if (x < 148 && x + w > 100 && y < 198 && y + h > 150) return true; // Tree (100, 150)
+    // Trees (open area)
+    if (x < 148 && x + w > 100 && y < 198 && y + h > 150) return true; // FallTree (100, 150)
     if (x < 248 && x + w > 200 && y < 368 && y + h > 320) return true; // Tree (200, 320)
-    // Fall trees (inside gated area)
-    if (x < 468 && x + w > 420 && y < 148 && y + h > 100) return true; // FallTree (420, 100)
-    if (x < 598 && x + w > 550 && y < 248 && y + h > 200) return true; // FallTree (550, 200)
-    if (x < 528 && x + w > 480 && y < 398 && y + h > 350) return true; // FallTree (480, 350)
+    if (x < 348 && x + w > 300 && y < 448 && y + h > 400) return true; // Tree (300, 400)
+    if (x < 598 && x + w > 550 && y < 428 && y + h > 380) return true; // Tree (550, 380)
+    // Fall trees (inside gated corner)
+    if (x < 528 && x + w > 480 && y < 128 && y + h > 80) return true;  // FallTree (480, 80)
+    if (x < 608 && x + w > 560 && y < 228 && y + h > 180) return true; // FallTree (560, 180)
     // Logs blocking north exit (corridor gap)
     if (!logsCleared) {
       if (x < LOGS_X + 60 && x + w > LOGS_X &&
@@ -107,7 +111,7 @@ export function checkCollision(x, y, w, h) {
     const birdPos = getBirdPosition();
     if (npcBlock(x, y, w, h, birdPos.x + 4, birdPos.y + 4, 16, 18)) return true;
     const sqPos = getSquirrelPosition();
-    if (npcBlock(x, y, w, h, sqPos.x, sqPos.y + 4, 22, 24)) return true;
+    if (npcBlock(x, y, w, h, sqPos.x, sqPos.y + 4, 24, 24)) return true;
   } else if (area === 'woods') {
     // Rocks only (logs removed — now in gate_area)
     if (x < 126 && x + w > 98 && y < 372 && y + h > 348) return true; // Rock at (100, 350)

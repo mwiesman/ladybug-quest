@@ -106,7 +106,7 @@ export const NPC_DATA = {
     completed: false
   },
   squirrel: {
-    x: 270, y: 280, area: 'gate_area',
+    x: 360, y: 300, area: 'gate_area',
     dialog: [
       "*CHITTER!* The gate's open!",
       "*scurries to acorn pile*",

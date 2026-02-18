@@ -212,91 +212,100 @@ export function drawCompleteArea(area, skipBoy) {
     drawFallTree(210, 5);
     // Gap at ~270-320 where logs block the path to woods
     drawFallTree(360, -5);
-    drawTree(420, 0);
-    drawFallTree(480, -10);
-    drawFallTree(550, 5);
+    drawTree(440, 0);
+    drawFallTree(500, -10);
+    drawFallTree(570, 5);
 
-    // Trees scattered across the area — mix of green and fall
+    // Trees in the open area (left/below fence corner)
     drawFallTree(100, 150);
     drawTree(200, 320);
-    drawFallTree(420, 100);
-    drawTree(550, 200);
-    drawFallTree(480, 350);
+    drawTree(300, 400);
+    drawTree(550, 380);
 
-    // Wooden fence at x=350 (vertical, from tree line to bottom of screen)
-    for (let fy = 50; fy < canvasHeight; fy += 40) {
-      // When unlocked, skip posts at gate opening (y=200 to y=260)
+    // Trees inside the gated corner (x>400, y<300)
+    drawFallTree(480, 80);   // Acorn tree — squirrel destination
+    drawFallTree(560, 180);
+
+    // L-shaped fence: vertical at x=400 (y=50 to y=300) + horizontal at y=300 (x=400 to right edge)
+    // Vertical segment
+    for (let fy = 50; fy < 300; fy += 40) {
       if (state.gateUnlocked && fy >= 200 && fy < 260) continue;
-      // Fence post
       ctx.fillStyle = '#000';
-      ctx.fillRect(349, fy, 16, 42);
+      ctx.fillRect(399, fy, 16, Math.min(42, 300 - fy));
       ctx.fillStyle = '#654321';
-      ctx.fillRect(350, fy, 14, 40);
-      // Post cap
+      ctx.fillRect(400, fy, 14, Math.min(40, 300 - fy));
       ctx.fillStyle = '#8b4513';
-      ctx.fillRect(351, fy + 1, 12, 4);
+      ctx.fillRect(401, fy + 1, 12, 4);
     }
-    // Horizontal planks on fence
-    for (let fy = 55; fy < canvasHeight; fy += 12) {
+    for (let fy = 55; fy < 300; fy += 12) {
       if (state.gateUnlocked && fy >= 200 && fy < 260) continue;
       ctx.fillStyle = '#8b4513';
-      ctx.fillRect(351, fy, 12, 3);
+      ctx.fillRect(401, fy, 12, 3);
+    }
+    // Horizontal segment
+    for (let fx = 400; fx < canvasWidth; fx += 40) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(fx, 299, Math.min(42, canvasWidth - fx), 16);
+      ctx.fillStyle = '#654321';
+      ctx.fillRect(fx, 300, Math.min(40, canvasWidth - fx), 14);
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(fx + 1, 301, 4, 12);
+    }
+    for (let fx = 405; fx < canvasWidth; fx += 12) {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(fx, 301, 3, 12);
     }
 
-    // Gate in the fence (closed when locked, double doors open when unlocked)
-    drawGate(350, 215);
+    // Gate in the vertical fence
+    drawGate(400, 215);
 
-    // Acorns clustered under the squirrel's tree (visible until squirrel completes)
+    // Acorns clustered under the squirrel's tree at (480, 80)
     if (!npcs.squirrel.completed) {
-      const acornPositions = [[418, 135], [432, 138], [425, 145], [440, 142], [415, 148], [435, 150]];
+      const acornPositions = [[478, 115], [492, 118], [485, 125], [500, 122], [475, 128], [495, 130]];
       acornPositions.forEach(([ax, ay]) => drawAcorn(ax, ay));
     }
 
     // Logs blocking north exit to woods (inside the corridor gap)
     drawLogs(290, 20);
 
-    // Leaf piles scattered across entire area
+    // Leaf piles — open area
     drawLeafPile(120, 250);
     drawLeafPile(250, 380);
     drawLeafPile(80, 420);
     drawLeafPile(180, 130);
-    drawLeafPile(450, 270);
-    drawLeafPile(550, 400);
-    drawLeafPile(480, 150);
-    drawLeafPile(400, 430);
+    drawLeafPile(350, 430);
+    // Leaf piles — inside gated corner
+    drawLeafPile(530, 130);
+    drawLeafPile(570, 240);
+    drawLeafPile(500, 200);
 
     // Bird NPC (flying back and forth when not stopped, frozen at flight position when stopped)
     const birdPos = getBirdPosition();
     drawNPC(npcs.bird, birdPos.x, birdPos.y);
 
-    // Squirrel — animates running through fence gate, stays inside after
+    // Squirrel — animates running through gate into corner, stays inside after
     {
       let sqX = npcs.squirrel.x, sqY = npcs.squirrel.y;
       if (state.gateUnlocked) {
-        // 3-leg path: approach fence → pass through gate → run to leaf pile
-        const approachX = 340, approachY = 230; // Just before fence
-        const throughX = 375, throughY = 230;    // Just past gate (inside)
-        const destX = 480, destY = 150;          // Leaf pile
+        const approachX = 390, approachY = 230;  // Just left of gate
+        const throughX = 420, throughY = 230;     // Past the gate
+        const destX = 500, destY = 120;           // Acorn tree
         if (state.squirrelRunPhase >= 0 && state.squirrelRunPhase <= 60) {
           if (state.squirrelRunPhase <= 20) {
-            // Leg 1: start → approach fence
             const p = state.squirrelRunPhase / 20;
             sqX = npcs.squirrel.x + (approachX - npcs.squirrel.x) * p;
             sqY = npcs.squirrel.y + (approachY - npcs.squirrel.y) * p;
           } else if (state.squirrelRunPhase <= 40) {
-            // Leg 2: pass through gate opening horizontally
             const p = (state.squirrelRunPhase - 20) / 20;
             sqX = approachX + (throughX - approachX) * p;
             sqY = approachY + (throughY - approachY) * p;
           } else {
-            // Leg 3: run to leaf pile inside
             const p = (state.squirrelRunPhase - 40) / 20;
             sqX = throughX + (destX - throughX) * p;
             sqY = throughY + (destY - throughY) * p;
           }
         } else {
-          // Run complete or loaded from save — already inside
-          sqX = 480; sqY = 150;
+          sqX = 500; sqY = 120;
         }
       }
       drawNPC(npcs.squirrel, sqX, sqY);
