@@ -43,7 +43,7 @@ givesItem   — item received from trade
 | Hippie | 150, 200 | park |
 | Dog | 350, 350 | park |
 | Bird | 200, 120 | gate_area |
-| Squirrel | 270, 280 | gate_area (moves to 480, 150 when gate unlocked) |
+| Squirrel | 360, 300 | gate_area (moves to 500, 120 when gate unlocked) |
 | Kid | 200, 300 | playground (runs to parent at 280, 310) |
 | Parent | 250, 320 | playground |
 | Fisherman | 450, 255 | boathouse |
@@ -141,11 +141,12 @@ if (x < right && x + w > left && y < bottom && y + h > top) return true;
 ```
 
 Key collision areas:
-- **Meadow:** Trees, rocks
-- **Gate Area:** Wooden fence (vertical at x=350), gate, tree line across top, logs, fall trees
-- **Boathouse:** Water (blocked except bridge at x: 297-353), building, trees, elm fence
+- **Meadow:** Trees, rocks, boy NPC
+- **Gate Area:** L-shaped fence (vertical at x=400, horizontal at y=300), gate, tree line, logs, trees, bird/squirrel NPCs
+- **Boathouse:** Water (blocked except bridge at x: 297-353), building (includes roof), trees, elm fence, fisherman NPC
 - **Woods:** Rocks only
-- **Park/Playground:** No obstacle collision (just screen boundaries)
+- **Park:** Coffee cart, hippie/dog NPCs
+- **Playground:** Screen boundaries, kid/parent NPCs
 
 To move an obstacle, change both the collision rect in `collision.js` AND the visual in `areas.js`.
 

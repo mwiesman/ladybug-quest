@@ -402,8 +402,9 @@ function update() {
     const dx = touchTarget.x - player.x;
     const dy = touchTarget.y - player.y;
 
-    if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
-      // Arrived at target
+    const arriveThreshold = touchInteractTarget ? 30 : 4;
+    if (Math.abs(dx) < arriveThreshold && Math.abs(dy) < arriveThreshold) {
+      // Arrived at target (or close enough to interact)
       if (touchInteractTarget) {
         checkInteraction();
       }
@@ -434,10 +435,6 @@ function update() {
       } else if (!checkCollision(player.x, tryY, player.width, player.height)) {
         newX = player.x;
         newY = tryY;
-      } else if (touchInteractTarget && Math.abs(dx) < 40 && Math.abs(dy) < 40) {
-        // Fully blocked by collision but within interaction range — trigger interact
-        checkInteraction();
-        clearTouchTarget();
       }
       // else: fully blocked, stay put (touch target remains so player retries next frame)
     }

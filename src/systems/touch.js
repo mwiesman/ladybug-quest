@@ -105,8 +105,8 @@ function hitTestInteractables(cx, cy) {
 
   // Gate
   if (!gateUnlocked && currentArea === 'gate_area' && inventory.hasItem('Key')) {
-    if (Math.abs(cx - 350) < HIT && Math.abs(cy - 215) < HIT) {
-      return { x: 350, y: 215 };
+    if (Math.abs(cx - 400) < HIT && Math.abs(cy - 215) < HIT) {
+      return { x: 400, y: 215 };
     }
   }
 

@@ -4,34 +4,42 @@ All notable changes to The Ladybug Quest project.
 
 ## [Unreleased]
 
-### Gate Area Redesign & Visual Polish
+### Gate Area Corner Redesign, NPC Collision & Touch Fixes
 **Date:** 2026-02-17
 
 #### Added
-- **Gate Area Redesign**: Replaced boxed stone wall enclosure with vertical wooden fence
-  - Fence at x=350 divides area into open (left) and gated (right) zones
-  - Gated area uses right screen edge and top tree line as natural boundaries — much larger
-  - Double-door gate swings inward when unlocked
+- **Gate Area Corner Layout**: L-shaped fence creates a gated corner (top-right) instead of splitting the area in half
+  - Vertical fence at x=400 (y=50 to y=300) + horizontal fence at y=300 (x=400 to right edge)
+  - Gated corner uses screen edges (top, right) and fence (left, bottom) as natural boundaries
+  - Double-door gate in vertical fence swings inward when unlocked (top door up, bottom door down)
+- **NPC Collision**: All NPCs now have hitboxes — player cannot walk through characters
+  - Overlap-escape logic prevents trapping if NPC moves onto player during animations
+  - Per-area NPC collision: boy (meadow), hippie/dog (park), kid/parent (playground), bird/squirrel (gate), fisherman (boathouse)
 - **Fall-Colored Trees** (`drawFallTree`): Autumn orange/red canopy variant mixed throughout gate area
 - **Improved Acorns** (`drawAcorn`): Pixel-art acorns with cap, body shading, and stem (replaces rectangles)
-  - 6 acorns clustered under the squirrel's destination tree
+  - 6 acorns clustered under the squirrel's destination tree at (480, 80)
 - **Game HUD**: BAG and MAP buttons now visible on all devices (desktop + mobile), not just touch
 - **White Boathouse**: Building changed from brown to off-white with brown trim and roof
+- **Woods Polish**: Scattered leaves (various fall colors), twigs, extra mushrooms, 2 fall trees, extra leaf piles
 
 #### Changed
-- Squirrel starting position: (270, 280) — moved away from fence for easier interaction
-- Squirrel inside position: (480, 150) — deeper in larger gated area
+- Squirrel starting position: (360, 300) — outside corner fence
+- Squirrel inside position: (500, 120) — at acorn tree inside gated corner
 - Fisherman position: (450, 255) — moved to base of boathouse (was on roof at 550, 150)
-- Gate position: (350, 215) — centered in fence
-- Boathouse collision extended to include roof area (y: 180-300, was 200-300)
-- Leaf piles spread across entire gate area (8 piles on both sides of fence)
-- Trees in gate area are a random mix of green and fall-colored (was all green outside, all fall inside)
+- Gate position: (400, 215) — in vertical fence segment
+- Boathouse collision extended to include roof (y: 168-300, was 180-300)
+
+#### Fixed
+- **Touch interaction with gate/logs/NPCs**: Player no longer needs to reach exact position — interaction triggers within 30px (was 4px)
+  - Previously, collision barriers (fence, NPC hitboxes) prevented arrival, so interaction never fired
+- **Stale squirrel position** in proximity hint check corrected
 
 #### Technical
 - New sprite functions: `drawAcorn()`, `drawFallTree()` in `sprites.js`
-- Fence collision replaces stone wall collision in `collision.js`
-- Gate interaction/touch coordinates updated to match new position
-- Build: 22 modules, ~67KB JS bundle
+- `npcBlock()` helper in collision.js — blocks entry but allows escape if already overlapping
+- Touch arrival threshold: 30px for interactables, 4px for ground movement
+- L-shaped fence collision replaces vertical-only fence in `collision.js`
+- Build: 22 modules, ~69KB JS bundle
 - Zero build errors
 
 ---
