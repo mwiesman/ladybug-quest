@@ -4,6 +4,38 @@ All notable changes to The Ladybug Quest project.
 
 ## [Unreleased]
 
+### Gate Area Redesign & Visual Polish
+**Date:** 2026-02-17
+
+#### Added
+- **Gate Area Redesign**: Replaced boxed stone wall enclosure with vertical wooden fence
+  - Fence at x=350 divides area into open (left) and gated (right) zones
+  - Gated area uses right screen edge and top tree line as natural boundaries — much larger
+  - Double-door gate swings inward when unlocked
+- **Fall-Colored Trees** (`drawFallTree`): Autumn orange/red canopy variant mixed throughout gate area
+- **Improved Acorns** (`drawAcorn`): Pixel-art acorns with cap, body shading, and stem (replaces rectangles)
+  - 6 acorns clustered under the squirrel's destination tree
+- **Game HUD**: BAG and MAP buttons now visible on all devices (desktop + mobile), not just touch
+- **White Boathouse**: Building changed from brown to off-white with brown trim and roof
+
+#### Changed
+- Squirrel starting position: (270, 280) — moved away from fence for easier interaction
+- Squirrel inside position: (480, 150) — deeper in larger gated area
+- Fisherman position: (450, 255) — moved to base of boathouse (was on roof at 550, 150)
+- Gate position: (350, 215) — centered in fence
+- Boathouse collision extended to include roof area (y: 180-300, was 200-300)
+- Leaf piles spread across entire gate area (8 piles on both sides of fence)
+- Trees in gate area are a random mix of green and fall-colored (was all green outside, all fall inside)
+
+#### Technical
+- New sprite functions: `drawAcorn()`, `drawFallTree()` in `sprites.js`
+- Fence collision replaces stone wall collision in `collision.js`
+- Gate interaction/touch coordinates updated to match new position
+- Build: 22 modules, ~67KB JS bundle
+- Zero build errors
+
+---
+
 ### Mobile Touch Support
 **Date:** 2026-02-17
 
@@ -20,7 +52,7 @@ All notable changes to The Ladybug Quest project.
   - Shows destination name with directional arrow, subtle pulse animation
   - 15px extra padding on hit area for comfortable tapping
   - Custom positioning for boathouse bridge and gate area corridor exits
-- **Mobile HUD**: Floating BAG and MAP buttons (top-left, touch devices only)
+- **Game HUD**: Floating BAG and MAP buttons (top-left, all devices)
   - BAG toggles inventory visibility, MAP opens/closes world map
 - **Trade Buttons**: Yes/No text buttons during trade prompts (all devices)
   - Green "Yes" / Red "No" centered in dialog box, replaces `[SPACE] Yes [ESC] No` text
@@ -61,7 +93,7 @@ All notable changes to The Ladybug Quest project.
 - **Bird Flight Animation**: Bird flies back and forth on sine wave until interacted with
   - `birdStopped` state persisted in save data
 - **Squirrel Gate-Unlock Behavior**: Squirrel runs through gate opening via 3-leg waypoint path
-  - Stays at inside position (500, 140) permanently after gate unlocked, even after trade
+  - Stays at inside position (480, 150) permanently after gate unlocked, even after trade
 - **Kid Interruption**: Kid runs over when parent is talked to (triggers on dialog line 3)
   - Kid uses animated position for interaction checks after running
 - **Item Received Notifications**: Gold "Received: [item]" popup at top of screen (~2 seconds)
@@ -240,4 +272,4 @@ All notable changes to The Ladybug Quest project.
 
 ### Additional Polish
 - Character scaling (larger/boxier sprites for faster feel)
-- Mobile/touch controls
+- Sound/mute HUD button (Press Start 2P font lacks music note glyph — needs custom icon or text label)

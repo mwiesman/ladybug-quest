@@ -10,7 +10,7 @@ This guide maps every adjustable parameter to its file so you can make changes w
 
 | Parameter | Current | Description |
 |-----------|---------|-------------|
-| `speed` | 3.5 | Pixels per frame. Higher = faster movement |
+| `speed` | 3 | Pixels per frame. Higher = faster movement |
 | `x`, `y` | 310, 200 | Starting position (under the oak tree in meadow) |
 | `width`, `height` | 24, 32 | Hitbox size for collision detection |
 
@@ -43,10 +43,10 @@ givesItem   — item received from trade
 | Hippie | 150, 200 | park |
 | Dog | 350, 350 | park |
 | Bird | 200, 120 | gate_area |
-| Squirrel | 340, 200 | gate_area (moves to 500, 140 when gate unlocked) |
+| Squirrel | 270, 280 | gate_area (moves to 480, 150 when gate unlocked) |
 | Kid | 200, 300 | playground (runs to parent at 280, 310) |
 | Parent | 250, 320 | playground |
-| Fisherman | 550, 150 | boathouse |
+| Fisherman | 450, 255 | boathouse |
 | Boy (static) | 290, 270 | meadow (defined in `src/game/state.js`) |
 
 ---
@@ -142,7 +142,7 @@ if (x < right && x + w > left && y < bottom && y + h > top) return true;
 
 Key collision areas:
 - **Meadow:** Trees, rocks
-- **Gate Area:** Stone walls (4 walls), gate, tree line across top, logs
+- **Gate Area:** Wooden fence (vertical at x=350), gate, tree line across top, logs, fall trees
 - **Boathouse:** Water (blocked except bridge at x: 297-353), building, trees, elm fence
 - **Woods:** Rocks only
 - **Park/Playground:** No obstacle collision (just screen boundaries)
@@ -171,7 +171,9 @@ Common colors used throughout:
 - Grass: `#6b8e23` (olive), `#7cba3f` (bright green)
 - Water: `#4682b4` (steel blue)
 - Wood: `#8b4513` (saddle brown), `#654321` (dark brown)
-- Stone walls: `#808080` (gray)
+- Boathouse: `#f0f0f0` (off-white building), `#a0522d` (brown roof)
+- Fall trees: `#b8450a` (deep orange), `#d4651e` (burnt orange), `#e8832a` (bright orange)
+- Fence: `#654321` (dark brown posts), `#8b4513` (planks)
 
 ---
 

@@ -53,14 +53,16 @@ npm run preview
 - **M**: Toggle audio mute
 - **R** (on credits screen): Restart game
 
+### On-Screen Buttons (All Devices)
+- **BAG button**: Toggle inventory
+- **MAP button**: Toggle world map
+
 ### Mobile / Touch
 - **Tap ground**: Walk to that spot
 - **Tap NPC/object**: Walk over and auto-interact
 - **Tap exit indicator**: Walk to area exit and transition
 - **Tap dialog**: Advance dialog (Yes/No buttons for trades)
 - **Tap cutscene**: Advance to next beat
-- **BAG button**: Toggle inventory
-- **MAP button**: Toggle world map
 
 ## Adding Sprites & Audio
 

@@ -3,7 +3,7 @@
 
 export const NPC_DATA = {
   fisherman: {
-    x: 550, y: 150, area: 'boathouse',
+    x: 450, y: 255, area: 'boathouse',
     dialog: [
       "Ah, is that rope you've got there?",
       "That's just what I've been looking for..."
@@ -106,7 +106,7 @@ export const NPC_DATA = {
     completed: false
   },
   squirrel: {
-    x: 340, y: 200, area: 'gate_area',
+    x: 270, y: 280, area: 'gate_area',
     dialog: [
       "*CHITTER!* The gate's open!",
       "*scurries to acorn pile*",

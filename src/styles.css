@@ -288,9 +288,9 @@ canvas {
     background: #6a6a8a;
 }
 
-/* --- Mobile HUD --- */
+/* --- Game HUD (BAG/MAP buttons) --- */
 #mobileHud {
-    display: none;
+    display: flex;
     position: absolute;
     top: 8px;
     left: 8px;
@@ -335,10 +335,6 @@ canvas {
 }
 
 /* --- Touch device overrides (applied via JS .touch class on body) --- */
-body.touch #mobileHud {
-    display: flex;
-}
-
 body.touch .restart-keyboard {
     display: none;
 }

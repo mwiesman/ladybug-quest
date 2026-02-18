@@ -4,8 +4,8 @@ import { state } from '../game/state.js';
 import { inventory } from '../systems/inventory.js';
 import { getBirdPosition } from '../systems/interaction.js';
 import {
-  drawGroundTexture, drawTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
-  drawBoy, drawGate, drawLogs, drawLeafPile, drawLadybug,
+  drawGroundTexture, drawTree, drawFallTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
+  drawBoy, drawGate, drawLogs, drawLeafPile, drawAcorn, drawLadybug,
   drawNavigationIndicator, drawButterfly, drawFirefly
 } from './sprites.js';
 
@@ -205,80 +205,81 @@ export function drawCompleteArea(area, skipBoy) {
     drawNavigationIndicator(320, 30, 'up', 'Park');
 
   } else if (area === 'gate_area') {
-    // Dense tree line across the top (blocking north except log corridor)
+    // Dense tree line across the top — mix of green and fall colors
     drawTree(20, -10);
-    drawTree(80, 0);
+    drawFallTree(80, 0);
     drawTree(150, -5);
-    drawTree(210, 5);
+    drawFallTree(210, 5);
     // Gap at ~270-320 where logs block the path to woods
-    drawTree(360, -5);
+    drawFallTree(360, -5);
     drawTree(420, 0);
-    drawTree(480, -10);
-    drawTree(550, 5);
+    drawFallTree(480, -10);
+    drawFallTree(550, 5);
 
-    // Trees in the main area
-    drawTree(100, 150);
+    // Trees scattered across the area — mix of green and fall
+    drawFallTree(100, 150);
     drawTree(200, 320);
-    drawTree(500, 350);
+    drawFallTree(420, 100);
+    drawTree(550, 200);
+    drawFallTree(480, 350);
 
-    // Stone walls forming gated corner (upper-right)
-    ctx.fillStyle = '#808080';
-    // Vertical wall on right side (extends full height)
-    for (let y = 0; y < 240; y += 16) {
-      ctx.fillRect(canvasWidth - 60 + ((y * 7) % 8), y + ((y * 13) % 8), 14, 14);
-    }
-    // Horizontal wall across top-right
-    for (let x = 380; x < canvasWidth; x += 16) {
-      ctx.fillRect(x + ((x * 11) % 8), 60 + ((x * 5) % 8), 14, 14);
-    }
-    // Left connecting wall (extends from top wall down to bottom wall)
-    for (let y = 60; y < 240; y += 16) {
-      // Skip the gate opening (y:130-175) when unlocked
-      if (state.gateUnlocked && y >= 128 && y <= 170) continue;
-      ctx.fillRect(380 + ((y * 9) % 8), y + ((y * 7) % 8), 14, 14);
-    }
-    // Bottom wall connecting left wall to right wall (seals the enclosure)
-    for (let x = 380; x < canvasWidth - 50; x += 16) {
-      ctx.fillRect(x + ((x * 7) % 8), 230 + ((x * 11) % 8), 14, 14);
-    }
-
-    // Acorns scattered in gated area (visible until squirrel completes)
-    if (!npcs.squirrel.completed) {
+    // Wooden fence at x=350 (vertical, from tree line to bottom of screen)
+    for (let fy = 50; fy < canvasHeight; fy += 40) {
+      // When unlocked, skip posts at gate opening (y=200 to y=260)
+      if (state.gateUnlocked && fy >= 200 && fy < 260) continue;
+      // Fence post
+      ctx.fillStyle = '#000';
+      ctx.fillRect(349, fy, 16, 42);
+      ctx.fillStyle = '#654321';
+      ctx.fillRect(350, fy, 14, 40);
+      // Post cap
       ctx.fillStyle = '#8b4513';
-      const acornPositions = [[500, 100], [550, 120], [520, 150], [480, 130], [560, 160]];
-      acornPositions.forEach(([ax, ay]) => {
-        ctx.fillRect(ax, ay, 4, 6);
-        ctx.fillRect(ax + 1, ay - 2, 2, 2);
-      });
+      ctx.fillRect(351, fy + 1, 12, 4);
+    }
+    // Horizontal planks on fence
+    for (let fy = 55; fy < canvasHeight; fy += 12) {
+      if (state.gateUnlocked && fy >= 200 && fy < 260) continue;
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(351, fy, 12, 3);
     }
 
-    drawGate(380, 140);
+    // Gate in the fence (closed when locked, double doors open when unlocked)
+    drawGate(350, 215);
+
+    // Acorns clustered under the squirrel's tree (visible until squirrel completes)
+    if (!npcs.squirrel.completed) {
+      const acornPositions = [[418, 135], [432, 138], [425, 145], [440, 142], [415, 148], [435, 150]];
+      acornPositions.forEach(([ax, ay]) => drawAcorn(ax, ay));
+    }
 
     // Logs blocking north exit to woods (inside the corridor gap)
     drawLogs(290, 20);
 
-    drawLeafPile(150, 250);
-    drawLeafPile(450, 300);
-    drawLeafPile(220, 380);
-
-    // Leaf pile inside gated area (squirrel rummages here)
-    drawLeafPile(500, 120);
+    // Leaf piles scattered across entire area
+    drawLeafPile(120, 250);
+    drawLeafPile(250, 380);
+    drawLeafPile(80, 420);
+    drawLeafPile(180, 130);
+    drawLeafPile(450, 270);
+    drawLeafPile(550, 400);
+    drawLeafPile(480, 150);
+    drawLeafPile(400, 430);
 
     // Bird NPC (flying back and forth when not stopped, frozen at flight position when stopped)
     const birdPos = getBirdPosition();
     drawNPC(npcs.bird, birdPos.x, birdPos.y);
 
-    // Squirrel — animates running through gate opening, stays inside after
+    // Squirrel — animates running through fence gate, stays inside after
     {
       let sqX = npcs.squirrel.x, sqY = npcs.squirrel.y;
       if (state.gateUnlocked) {
-        // 3-leg path: approach gate → pass through → run to leaf pile
-        const approachX = 375, approachY = 150; // Just before gate (left side of wall)
-        const throughX = 420, throughY = 150;    // Just past gate (inside)
-        const destX = 500, destY = 140;          // Leaf pile
+        // 3-leg path: approach fence → pass through gate → run to leaf pile
+        const approachX = 340, approachY = 230; // Just before fence
+        const throughX = 375, throughY = 230;    // Just past gate (inside)
+        const destX = 480, destY = 150;          // Leaf pile
         if (state.squirrelRunPhase >= 0 && state.squirrelRunPhase <= 60) {
           if (state.squirrelRunPhase <= 20) {
-            // Leg 1: start → approach gate
+            // Leg 1: start → approach fence
             const p = state.squirrelRunPhase / 20;
             sqX = npcs.squirrel.x + (approachX - npcs.squirrel.x) * p;
             sqY = npcs.squirrel.y + (approachY - npcs.squirrel.y) * p;
@@ -288,14 +289,14 @@ export function drawCompleteArea(area, skipBoy) {
             sqX = approachX + (throughX - approachX) * p;
             sqY = approachY + (throughY - approachY) * p;
           } else {
-            // Leg 3: run to leaf pile
+            // Leg 3: run to leaf pile inside
             const p = (state.squirrelRunPhase - 40) / 20;
             sqX = throughX + (destX - throughX) * p;
             sqY = throughY + (destY - throughY) * p;
           }
         } else {
           // Run complete or loaded from save — already inside
-          sqX = 500; sqY = 140;
+          sqX = 480; sqY = 150;
         }
       }
       drawNPC(npcs.squirrel, sqX, sqY);
@@ -324,12 +325,28 @@ export function drawCompleteArea(area, skipBoy) {
     }
     ctx.drawImage(woodsFloorCache, 0, 0);
 
+    // Scattered leaves of various colors on the forest floor
+    const leafColors = ['#b8450a', '#d4651e', '#e8832a', '#8b4513', '#cd5c5c', '#a0522d', '#228b22', '#6b8e23'];
+    const leafPositions = [
+      [45, 130], [170, 220], [300, 340], [420, 150], [530, 290],
+      [90, 310], [240, 60], [380, 440], [560, 370], [150, 440],
+      [470, 80], [610, 250], [330, 110], [200, 380], [500, 450],
+      [70, 220], [410, 260], [280, 200], [540, 140], [360, 310]
+    ];
+    leafPositions.forEach(([lx, ly], i) => {
+      ctx.fillStyle = leafColors[i % leafColors.length];
+      ctx.fillRect(lx, ly, 4, 3);
+      ctx.fillRect(lx + 2, ly + 2, 3, 2);
+    });
+
     // Leaf piles scattered through woods
     drawLeafPile(120, 160);
     drawLeafPile(380, 280);
     drawLeafPile(500, 380);
     drawLeafPile(60, 400);
     drawLeafPile(280, 100);
+    drawLeafPile(440, 200);
+    drawLeafPile(180, 350);
 
     // Fallen logs
     ctx.fillStyle = '#654321';
@@ -347,6 +364,31 @@ export function drawCompleteArea(area, skipBoy) {
     ctx.fillStyle = '#5a3a1a';
     ctx.fillRect(482, 172, 41, 4);
 
+    // Twigs scattered on ground
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 1;
+    // Twig 1 — near fallen log
+    ctx.beginPath(); ctx.moveTo(120, 260); ctx.lineTo(138, 255); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(130, 253); ctx.lineTo(136, 248); ctx.stroke();
+    // Twig 2 — upper area
+    ctx.beginPath(); ctx.moveTo(310, 90); ctx.lineTo(325, 85); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(318, 83); ctx.lineTo(322, 78); ctx.stroke();
+    // Twig 3 — near rocks
+    ctx.beginPath(); ctx.moveTo(140, 370); ctx.lineTo(158, 375); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(148, 377); ctx.lineTo(155, 382); ctx.stroke();
+    // Twig 4 — right side
+    ctx.beginPath(); ctx.moveTo(540, 310); ctx.lineTo(555, 305); ctx.stroke();
+    // Twig 5 — center
+    ctx.beginPath(); ctx.moveTo(370, 230); ctx.lineTo(385, 225); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(378, 222); ctx.lineTo(383, 218); ctx.stroke();
+    // Twig 6 — scattered
+    ctx.beginPath(); ctx.moveTo(450, 420); ctx.lineTo(465, 415); ctx.stroke();
+    // Twig 7 — near mushrooms
+    ctx.beginPath(); ctx.moveTo(80, 270); ctx.lineTo(95, 268); ctx.stroke();
+    // Twig 8 — bottom
+    ctx.beginPath(); ctx.moveTo(260, 450); ctx.lineTo(278, 445); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(270, 443); ctx.lineTo(276, 438); ctx.stroke();
+
     // Mushrooms near fallen logs
     ctx.fillStyle = '#cd5c5c';
     ctx.fillRect(55, 245, 4, 4);
@@ -356,15 +398,24 @@ export function drawCompleteArea(area, skipBoy) {
     ctx.fillRect(115, 255, 3, 3);
     ctx.fillStyle = '#deb887';
     ctx.fillRect(116, 258, 1, 2);
+    // Extra mushroom cluster
+    ctx.fillStyle = '#cd5c5c';
+    ctx.fillRect(485, 165, 3, 3);
+    ctx.fillStyle = '#deb887';
+    ctx.fillRect(486, 168, 1, 2);
+    ctx.fillStyle = '#cd853f';
+    ctx.fillRect(492, 166, 4, 3);
+    ctx.fillStyle = '#deb887';
+    ctx.fillRect(493, 169, 2, 2);
 
-    // Dense trees
+    // Dense trees — mix of green and 2 fall trees
     drawTree(80, 80);
-    drawTree(200, 100);
+    drawFallTree(200, 100);
     drawTree(150, 300);
     drawTree(500, 250);
     drawTree(550, 100);
     drawTree(320, 180);
-    drawTree(420, 360);
+    drawFallTree(420, 360);
     drawTree(30, 180);
     drawTree(580, 320);
     drawTree(440, 50);
@@ -580,11 +631,15 @@ export function drawCompleteArea(area, skipBoy) {
       ctx.fillRect(353, by, 4, 8);
     }
 
-    // Boathouse building
-    ctx.fillStyle = '#8b4513';
+    // Boathouse building (white with trim)
+    ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(480, 200, 120, 100);
-    ctx.fillStyle = '#654321';
+    ctx.fillStyle = '#e0e0e0';
     ctx.fillRect(490, 220, 100, 60);
+    // Trim/outline
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(480, 200, 120, 3);
+    ctx.fillRect(480, 297, 120, 3);
 
     ctx.fillStyle = '#87ceeb';
     ctx.fillRect(500, 230, 30, 20);
