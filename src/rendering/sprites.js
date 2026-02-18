@@ -627,21 +627,36 @@ export function drawGate(x, y) {
     ctx.fillStyle = '#000';
     ctx.fillRect(x + 12, y + 17, 2, 3);
   } else {
-    // Open gate — door swung to the side
+    // Open gate — double doors swung inward from center
+    // Top door pivots at top, swings upward along inside of fence
+    // Bottom door pivots at bottom, swings downward along inside of fence
+
+    // Fence connection posts (match fence style)
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x, y - 2, 14, 4);       // Top post
+    ctx.fillRect(x, y + 30, 14, 4);      // Bottom post
+
+    // Top door — folded upward against inside (right side) of fence
     ctx.fillStyle = '#8b4513';
-    // Left post (still standing)
-    ctx.fillRect(x, y, 4, 32);
-    // Right post (still standing)
-    ctx.fillRect(x + 20, y, 4, 32);
-    // Gate door swung open (angled to the right)
+    ctx.fillRect(x + 14, y - 16, 8, 18); // Door panel
     ctx.fillStyle = '#6b3410';
-    ctx.fillRect(x + 24, y + 2, 16, 3);
-    ctx.fillRect(x + 24, y + 12, 16, 3);
-    ctx.fillRect(x + 24, y + 22, 16, 3);
+    ctx.fillRect(x + 15, y - 14, 6, 2);  // Plank lines
+    ctx.fillRect(x + 15, y - 9, 6, 2);
+    ctx.fillRect(x + 15, y - 4, 6, 2);
     // Hinges
     ctx.fillStyle = '#808080';
-    ctx.fillRect(x + 22, y + 4, 3, 2);
-    ctx.fillRect(x + 22, y + 24, 3, 2);
+    ctx.fillRect(x + 12, y - 1, 4, 3);
+
+    // Bottom door — folded downward against inside (right side) of fence
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(x + 14, y + 30, 8, 18); // Door panel
+    ctx.fillStyle = '#6b3410';
+    ctx.fillRect(x + 15, y + 32, 6, 2);  // Plank lines
+    ctx.fillRect(x + 15, y + 37, 6, 2);
+    ctx.fillRect(x + 15, y + 42, 6, 2);
+    // Hinges
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(x + 12, y + 30, 4, 3);
   }
 }
 
@@ -674,6 +689,53 @@ export function drawLeafPile(x, y) {
     const offsetY = Math.cos(i * 2) * 6;
     ctx.fillRect(x + offsetX, y + offsetY, 6, 4);
   }
+}
+
+export function drawAcorn(x, y) {
+  // Stem
+  ctx.fillStyle = '#4a2f1a';
+  ctx.fillRect(x + 3, y, 2, 3);
+  // Cap (hat)
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x, y + 2, 8, 5);
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(x + 1, y + 3, 6, 3);
+  // Cap texture (crosshatch)
+  ctx.fillStyle = '#4a2f1a';
+  ctx.fillRect(x + 2, y + 4, 1, 1);
+  ctx.fillRect(x + 5, y + 4, 1, 1);
+  // Body
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x, y + 6, 8, 7);
+  ctx.fillStyle = '#8b4513';
+  ctx.fillRect(x + 1, y + 6, 6, 6);
+  // Body shading (lighter center)
+  ctx.fillStyle = '#a0522d';
+  ctx.fillRect(x + 2, y + 7, 4, 4);
+  // Rounded bottom (narrower at base)
+  ctx.fillStyle = '#8b4513';
+  ctx.fillRect(x + 2, y + 12, 4, 1);
+}
+
+export function drawFallTree(x, y) {
+  const sprite = getSprite('tree_fall');
+  if (sprite) { ctx.drawImage(sprite, x, y); return; }
+
+  // Same trunk as regular tree
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x + 9, y + 15, 14, 18);
+  ctx.fillRect(x + 5, y + 5, 22, 16);
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(x + 10, y + 16, 12, 16);
+  ctx.fillStyle = '#4a2f1a';
+  ctx.fillRect(x + 10, y + 16, 4, 16);
+  // Fall-colored canopy (orange/red tones)
+  ctx.fillStyle = '#b8450a';
+  ctx.fillRect(x + 6, y + 6, 20, 14);
+  ctx.fillStyle = '#d4651e';
+  ctx.fillRect(x + 8, y + 8, 16, 10);
+  ctx.fillStyle = '#e8832a';
+  ctx.fillRect(x + 10, y + 10, 12, 8);
 }
 
 export function drawTree(x, y) {

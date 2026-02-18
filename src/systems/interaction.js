@@ -31,7 +31,7 @@ export function getBirdPosition() {
 /** Get the squirrel's current display position (moves inside gate when unlocked) */
 export function getSquirrelPosition() {
   if (state.gateUnlocked) {
-    return { x: 500, y: 140 }; // Inside gated area at leaf pile
+    return { x: 480, y: 150 }; // Inside gated area at leaf pile
   }
   return { x: state.npcs.squirrel.x, y: state.npcs.squirrel.y };
 }
@@ -122,7 +122,7 @@ export function checkInteraction() {
 
   // Gate unlock with key
   if (!gateUnlocked && currentArea === 'gate_area' && inventory.hasItem('Key')) {
-    if (Math.abs(player.x - 380) < 40 && Math.abs(player.y - 140) < 40) {
+    if (Math.abs(player.x - 350) < 40 && Math.abs(player.y - 215) < 40) {
       state.gateUnlocked = true;
       playSFX('gate_unlock');
       inventory.removeItem('Key');
@@ -222,7 +222,7 @@ export function checkNearInteractable() {
 
     // Squirrel moves inside gated area when gate unlocked
     if (npc === npcs.squirrel && state.gateUnlocked) {
-      npcX = 500; npcY = 140;
+      npcX = 480; npcY = 150;
     }
 
     // Bird flight position
