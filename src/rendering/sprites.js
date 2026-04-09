@@ -196,7 +196,68 @@ export function drawPlayer(x, y) {
     ctx.fillRect(x + 8, y + 6, 3, 1);
   }
 
+  // Diamond ring after proposal
+  if (state.proposalDone) {
+    drawDiamondRing(x, y, dir);
+  }
+
   ctx.restore();
+}
+
+function drawDiamondRing(x, y, dir) {
+  // Position diamond near the girl's hand based on direction
+  let dx, dy;
+  if (dir === 'down') {
+    dx = x + 17; dy = y + 15;
+  } else if (dir === 'up') {
+    dx = x + 2; dy = y + 15;
+  } else if (dir === 'left') {
+    dx = x + 16; dy = y + 15;
+  } else {
+    dx = x + 2; dy = y + 15;
+  }
+
+  // Ring band (gold)
+  ctx.fillStyle = '#daa520';
+  ctx.fillRect(dx, dy + 7, 7, 2);
+  ctx.fillStyle = '#c49518';
+  ctx.fillRect(dx + 1, dy + 8, 5, 1); // band shadow
+
+  // Diamond shape (7px wide, 7px tall)
+  ctx.fillStyle = '#b0e0ff';
+  ctx.fillRect(dx + 3, dy, 1, 1);       // top point
+  ctx.fillRect(dx + 2, dy + 1, 3, 1);   // row 2
+  ctx.fillRect(dx + 1, dy + 2, 5, 1);   // row 3
+  ctx.fillRect(dx, dy + 3, 7, 1);       // widest row
+  ctx.fillRect(dx + 1, dy + 4, 5, 1);   // row 5
+  ctx.fillRect(dx + 2, dy + 5, 3, 1);   // row 6
+  ctx.fillRect(dx + 3, dy + 6, 1, 1);   // bottom point
+
+  // Facet highlights
+  ctx.fillStyle = '#d4f0ff';
+  ctx.fillRect(dx + 2, dy + 1, 1, 1);
+  ctx.fillRect(dx + 4, dy + 1, 1, 1);
+  ctx.fillRect(dx + 1, dy + 2, 1, 1);
+  ctx.fillRect(dx + 5, dy + 2, 1, 1);
+
+  // Sparkle (white center column)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(dx + 3, dy + 1, 1, 1);
+  ctx.fillRect(dx + 3, dy + 2, 1, 1);
+  ctx.fillRect(dx + 3, dy + 3, 1, 1);
+
+  // Shimmer pixels (flicker)
+  if (state.frameCount % 30 < 15) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(dx + 4, dy, 1, 1);
+    ctx.fillRect(dx + 5, dy + 1, 1, 1);
+    ctx.fillRect(dx + 6, dy + 2, 1, 1);
+  }
+  if (state.frameCount % 45 < 20) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(dx, dy + 2, 1, 1);
+    ctx.fillRect(dx + 1, dy + 1, 1, 1);
+  }
 }
 
 export function drawBoy(x, y, direction = 'down') {

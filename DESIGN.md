@@ -486,6 +486,24 @@ The quest chain is designed as a circular network where everyone's needs connect
 
 **Purpose:** Shows relationship dynamic - he doesn't chase, trusts her journey
 
+### Proposal Sequence (first time leaving meadow)
+**Trigger:** Player walks to the right edge of the meadow for the first time
+
+**Flow:**
+1. Player is blocked at the exit; boy says **"Wait!"** (dialog box, boy portrait)
+2. Player dismisses dialog; boy walks from his position (290, 270) toward the girl over 60 frames
+3. Dialog box: **"Adielle. I love you more than anything comprehendable in the universe / Probably even more than Snoopy"** (boy portrait)
+4. Proposal prompt: **"Will you marry me (Mat)?"** with Yes / No buttons
+5. If **No** — re-prompts with only **Yes** (no escape)
+6. If **Yes** — dialog box: **"*gives ring* *hugs* *cries* *the usual*"**
+7. Dialog closes, boy returns to resting position, game continues normally
+
+**Post-proposal:** Girl's sprite gains a small diamond ring on her hand (light blue diamond shape with gold band and flickering sparkle). The ring persists for the rest of the game.
+
+**State:** `proposalDone` flag saved/loaded — sequence only triggers once per playthrough.
+
+**Purpose:** A real proposal hidden inside the game, for Adielle.
+
 ### Ending Sequence
 **Purpose:** Deliver the message, complete the arc
 

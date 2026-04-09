@@ -75,7 +75,7 @@ export function drawCompleteArea(area, skipBoy) {
     }
 
     ctx.fillStyle = '#d2b48c';
-    for (let y = 150; y < 300; y += 20) {
+    for (let y = 10; y < 470; y += 20) {
       ctx.fillRect(canvasWidth - 60, y, 30, 10);
     }
 

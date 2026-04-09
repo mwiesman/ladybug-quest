@@ -57,13 +57,17 @@ skipButton.addEventListener('click', skipCutscene);
 // Trade buttons (work on both touch and desktop mouse)
 tradeYes.addEventListener('click', (e) => {
   e.stopPropagation();
-  if (state.tradePrompted) {
+  if (state.proposalDialogStep === 4) {
+    acceptProposal();
+  } else if (state.tradePrompted) {
     advanceDialog();
   }
 });
 tradeNo.addEventListener('click', (e) => {
   e.stopPropagation();
-  if (state.tradePrompted) {
+  if (state.proposalDialogStep === 4) {
+    declineProposal();
+  } else if (state.tradePrompted) {
     declineDialog();
   }
 });
@@ -99,6 +103,14 @@ function handleSpacePress() {
       state.currentState === GAME_STATE.CUTSCENE_ENDING) {
     // Advance to next cutscene beat
     advanceCutscene();
+  } else if (state.proposalDialogStep === 4) {
+    // Block space from advancing past the proposal Yes/No — must click buttons
+    return;
+  } else if (state.proposalDialogStep === 5 && state.currentDialog) {
+    // Post-proposal dialog ("gives ring...") — advance then finish
+    closeDialog();
+    finishProposal();
+    return;
   } else if (state.currentState === GAME_STATE.DIALOG || state.currentDialog) {
     // Handle dialog in DIALOG state or during INTRO_ANIMATION (static dialog)
     advanceDialog();
@@ -118,7 +130,9 @@ function handleMuteToggle() {
 }
 
 function handleEscape() {
-  if (state.tradePrompted) {
+  if (state.proposalDialogStep === 4) {
+    declineProposal();
+  } else if (state.tradePrompted) {
     declineDialog();
   }
 }
@@ -163,6 +177,50 @@ function handleMapToggle() {
     state.currentState = state.previousState || GAME_STATE.PLAYING;
     state.previousState = null;
   }
+}
+
+// Proposal prompt (reuses dialog box + trade buttons)
+const dialogBox = document.getElementById('dialogBox');
+const dialogText = document.getElementById('dialogText');
+const dialogPrompt = document.getElementById('dialogPrompt');
+const tradeButtonsEl = document.getElementById('tradeButtons');
+
+function showProposalPrompt(yesOnly) {
+  dialogBox.classList.add('active');
+  dialogText.textContent = 'Will you marry me (Mat)?';
+  dialogPrompt.style.display = 'none';
+  tradeButtonsEl.classList.add('active');
+  tradeNo.style.display = yesOnly ? 'none' : '';
+
+  // Set state so the dialog system doesn't interfere
+  state.currentDialog = { isStatic: true, speaker: 'boy', dialog: [] };
+  state.previousState = state.currentState;
+}
+
+function acceptProposal() {
+  // Hide trade buttons, show the post-proposal dialog
+  tradeButtonsEl.classList.remove('active');
+  dialogPrompt.style.display = '';
+  tradeNo.style.display = '';
+  state.proposalDialogStep = 5; // Move past the prompt stage
+  showDialog({
+    dialog: ["*gives ring* *hugs* *cries* *the usual*"],
+    isStatic: true,
+    speaker: 'boy'
+  });
+  // When this dialog closes, finishProposal will be called
+}
+
+function finishProposal() {
+  state.proposalDone = true;
+  state.proposalPhase = -1;
+  state.proposalDialogStep = 0;
+  // Boy stays where he walked to (state.boy.x/y already set during walk)
+}
+
+function declineProposal() {
+  // Re-prompt with only Yes
+  showProposalPrompt(true);
 }
 
 function advanceCutscene() {
@@ -339,6 +397,48 @@ function update() {
     return;
   }
 
+  // Proposal sequence (boy stops girl at meadow exit)
+  if (state.proposalPhase >= 0 && !state.proposalDone) {
+    if (state.currentDialog) {
+      // Freeze animation while dialog is showing
+    } else if (state.proposalDialogStep === 0) {
+      // Step 0: Show "Wait!" dialog
+      showDialog({
+        dialog: ["Wait!"],
+        isStatic: true,
+        speaker: 'boy'
+      });
+      state.proposalDialogStep = 1;
+    } else if (state.proposalDialogStep === 1) {
+      // Step 1: Boy walks toward girl
+      state.proposalPhase++;
+      const walkDuration = 60;
+      const boyStartX = 290, boyStartY = 270;
+      const boyEndX = player.x - 30, boyEndY = player.y;
+      const p = Math.min(state.proposalPhase / walkDuration, 1);
+      state.boy.x = boyStartX + (boyEndX - boyStartX) * p;
+      state.boy.y = boyStartY + (boyEndY - boyStartY) * p;
+      if (state.proposalPhase >= walkDuration) {
+        state.proposalDialogStep = 2;
+      }
+    } else if (state.proposalDialogStep === 2) {
+      // Step 2: Show love dialog
+      showDialog({
+        dialog: [
+          "Adielle. I love you more than anything\ncomprehendable in the universe\nProbably even more than Snoopy"
+        ],
+        isStatic: true,
+        speaker: 'boy'
+      });
+      state.proposalDialogStep = 3;
+    } else if (state.proposalDialogStep === 3) {
+      // Step 3: Show proposal with Yes/No
+      showProposalPrompt(false);
+      state.proposalDialogStep = 4;
+    }
+    return; // Block normal gameplay during proposal
+  }
+
   // Kid run animation (runs to parent when parent talked to)
   if (state.kidRunPhase >= 0 && state.kidRunPhase <= 40) {
     state.kidRunPhase++;
@@ -459,6 +559,13 @@ function update() {
     // Touch movement already collision-checked, just apply
     player.x = newX;
     player.y = newY;
+  }
+
+  // Trigger proposal when girl reaches the fence panels
+  if (state.currentArea === 'meadow' && !state.proposalDone &&
+      state.proposalPhase === -1 && player.x + player.width >= 578) {
+    state.proposalPhase = 0;
+    return;
   }
 
   // Area transitions
