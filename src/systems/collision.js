@@ -71,6 +71,8 @@ export function checkCollision(x, y, w, h) {
     // Rocks
     if (x < 146 && x + w > 118 && y < 302 && y + h > 278) return true; // Rock at (120, 280)
     if (x < 506 && x + w > 478 && y < 342 && y + h > 318) return true; // Rock at (480, 320)
+    // Fence panels block exit until proposal is done
+    if (!state.proposalDone && x + w > 580) return true;
     // Boy NPC
     if (npcBlock(x, y, w, h, state.boy.x + 2, state.boy.y + 4, 20, 24)) return true;
   } else if (area === 'gate_area') {

@@ -108,6 +108,11 @@ export const state = {
   transitionTarget: null,
   transitionPhase: 'out',
 
+  // Proposal sequence (boy stops girl before she leaves meadow)
+  proposalDone: false,       // true after player accepts — never triggers again
+  proposalPhase: -1,         // -1=inactive, 0+=animation frame counter
+  proposalDialogStep: 0,     // 0=wait, 1=walking, 2=love dialog, 3=proposal prompt, 4=yes-only
+
   // Global frame counter for environmental animations
   frameCount: 0
 };
@@ -148,5 +153,8 @@ export function resetState() {
   state.transitionAlpha = 0;
   state.transitionTarget = null;
   state.transitionPhase = 'out';
+  state.proposalDone = false;
+  state.proposalPhase = -1;
+  state.proposalDialogStep = 0;
   state.frameCount = 0;
 }

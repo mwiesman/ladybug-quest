@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, operation-shiny-ladybug]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,34 +18,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Stash main build
-        run: mv dist /tmp/dist-main
-
-      - name: Checkout shiny branch
-        uses: actions/checkout@v4
-        with:
-          ref: operation-shiny-ladybug
-          clean: true
-      - run: npm ci
-      - run: npm run build
-      - name: Combine builds
-        run: |
-          mv /tmp/dist-main dist-final
-          mv dist dist-final/shiny
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist-final
+          path: dist
 
   deploy:
     needs: build

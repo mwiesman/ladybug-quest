@@ -21,6 +21,7 @@ export function saveGame() {
     birdStopped: state.birdStopped,
     birdStoppedX: state.birdStoppedX,
     birdStoppedY: state.birdStoppedY,
+    proposalDone: state.proposalDone,
     npcs: {},
     worldItems: {},
     player: { x: player.x, y: player.y, direction: player.direction },
@@ -69,6 +70,7 @@ export function applySaveData(data) {
   state.birdStopped = data.birdStopped ?? false;
   state.birdStoppedX = data.birdStoppedX ?? 0;
   state.birdStoppedY = data.birdStoppedY ?? 0;
+  state.proposalDone = data.proposalDone ?? false;
 
   // NPC flags — merge into existing NPC data (preserves dialog, positions, etc.)
   for (const [id, saved] of Object.entries(data.npcs)) {
