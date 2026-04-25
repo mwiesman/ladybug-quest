@@ -164,7 +164,8 @@ export function initTouch(canvasEl, handlerFns) {
   const dialogBox = document.getElementById('dialogBox');
   if (dialogBox) {
     dialogBox.addEventListener('touchstart', (e) => {
-      if (state.tradePrompted) return; // let Yes/No buttons handle it
+      // Let Yes/No buttons handle their own taps for trades and the marriage proposal
+      if (state.tradePrompted || state.proposalDialogStep === 4) return;
       e.preventDefault();
       if ((state.currentState === GAME_STATE.DIALOG || state.currentDialog) && handlers.onSpace) {
         handlers.onSpace();
@@ -259,8 +260,8 @@ function onPlayingTouch(pos) {
 }
 
 function onDialogTouch() {
-  // If trade prompt is up, don't advance on generic tap — use the buttons
-  if (state.tradePrompted) return;
+  // If a Yes/No prompt is up (trade or marriage proposal), don't advance on generic tap
+  if (state.tradePrompted || state.proposalDialogStep === 4) return;
   if (handlers.onSpace) handlers.onSpace();
 }
 
