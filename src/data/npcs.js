@@ -27,7 +27,12 @@ export const NPC_DATA = {
     ],
     needsItem: 'Leash (Rope)',
     givesItem: 'Net',
-    completed: false
+    completed: false,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "Heard the news on the breeze!",
+      "That's a fine catch, you two. Congratulations."
+    ]
   },
   dog: {
     x: 350, y: 350, area: 'park',
@@ -52,7 +57,12 @@ export const NPC_DATA = {
     ],
     needsItem: 'Ball',
     givesItem: 'Leash (Rope)',
-    completed: false
+    completed: false,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "*EXCITED BARKING* CONGRATS! CONGRATS!",
+      "*runs in circles* *tail wagging intensifies*"
+    ]
   },
   kid: {
     x: 200, y: 300, area: 'playground',
@@ -77,7 +87,13 @@ export const NPC_DATA = {
     ],
     needsItem: 'Flower',
     givesItem: 'Axe',
-    completed: false
+    completed: false,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "WAIT — you're getting MARRIED?!",
+      "That's the BEST news EVER!",
+      "*spins in a circle*"
+    ]
   },
   hippie: {
     x: 150, y: 200, area: 'park',
@@ -103,7 +119,13 @@ export const NPC_DATA = {
     ],
     needsItem: 'Gum',
     givesItem: 'Flower',
-    completed: false
+    completed: false,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "*sketches a heart in the clouds*",
+      "Two souls, one path. Beautiful, man.",
+      "Congrats."
+    ]
   },
   squirrel: {
     x: 360, y: 300, area: 'gate_area',
@@ -129,7 +151,13 @@ export const NPC_DATA = {
     needsItem: 'Gate Unlocked',
     givesItem: 'Ball',
     completed: false,
-    behindGate: true
+    behindGate: true,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "*joyful chittering*",
+      "Acorns AND a wedding?! What a day!",
+      "Congrats!"
+    ]
   },
   bird: {
     x: 200, y: 120, area: 'gate_area',
@@ -157,7 +185,13 @@ export const NPC_DATA = {
     ],
     needsItem: 'Birdseed',
     givesItem: 'Key',
-    completed: false
+    completed: false,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "*celebratory chirp chirp*",
+      "Two souls building one nest...",
+      "Sweetest song there is. Congrats."
+    ]
   },
   coffeeCart: {
     x: 100, y: 100, area: 'park',
@@ -174,7 +208,12 @@ export const NPC_DATA = {
     ],
     givesItem: 'Coffee',
     completed: false,
-    isVendor: true
+    isVendor: true,
+    congratsSaid: false,
+    dialogPostProposal: [
+      "Word travels fast in the park!",
+      "Coffee's on the house — congratulations!"
+    ]
   },
   parent: {
     x: 250, y: 320, area: 'playground',
@@ -188,6 +227,11 @@ export const NPC_DATA = {
     dialogComplete: [
       "*still watching their kid*",
       "Kids have so much energy!"
+    ],
+    congratsSaid: false,
+    dialogPostProposal: [
+      "Oh my — congratulations to you both!",
+      "What a wonderful thing."
     ]
   }
 };

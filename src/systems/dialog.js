@@ -38,6 +38,12 @@ export function showDialog(npc) {
   state.dialogIndex = 0;
   state.dialogPhase = 'main';
 
+  // After the proposal, NPCs greet the player with congrats once before resuming normal dialog
+  if (state.proposalDone && !npc.isStatic && !npc.congratsSaid &&
+      npc.dialogPostProposal && npc.dialogPostProposal.length > 0) {
+    state.dialogPhase = 'postProposal';
+  }
+
   // Stop bird when interacting with it — freeze at current flight position
   if (npc === state.npcs.bird && npc.flies && !state.birdStopped) {
     state.birdStopped = true;
@@ -82,6 +88,15 @@ export function advanceDialog() {
 
   // Check if we've reached the end of the current dialog phase
   if (state.dialogIndex >= dialogArray.length) {
+    if (state.dialogPhase === 'postProposal') {
+      // Congrats finished — flip to normal dialog without closing
+      npc.congratsSaid = true;
+      state.dialogPhase = 'main';
+      state.dialogIndex = 0;
+      drawPortrait(resolvePortraitChar(npc), npc);
+      updateDialogText();
+      return;
+    }
     if (state.dialogPhase === 'main' && shouldPromptTrade(npc)) {
       // Show trade confirmation prompt
       state.tradePrompted = true;
@@ -131,6 +146,9 @@ export function closeDialog() {
 function getActiveDialogArray(npc) {
   if (!npc) return [];
 
+  if (state.dialogPhase === 'postProposal') {
+    return npc.dialogPostProposal || [];
+  }
   if (state.dialogPhase === 'afterTrade') {
     return npc.dialogAfterTrade || [];
   }

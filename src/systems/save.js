@@ -33,6 +33,9 @@ export function saveGame() {
     if (npc.behindGate !== undefined) {
       saveData.npcs[id].behindGate = npc.behindGate;
     }
+    if (npc.congratsSaid !== undefined) {
+      saveData.npcs[id].congratsSaid = npc.congratsSaid;
+    }
   }
 
   for (const [id, item] of Object.entries(state.worldItems)) {
@@ -78,6 +81,9 @@ export function applySaveData(data) {
       state.npcs[id].completed = saved.completed;
       if (saved.behindGate !== undefined) {
         state.npcs[id].behindGate = saved.behindGate;
+      }
+      if (saved.congratsSaid !== undefined) {
+        state.npcs[id].congratsSaid = saved.congratsSaid;
       }
     }
   }
