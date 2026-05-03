@@ -5,7 +5,7 @@ import { inventory } from '../systems/inventory.js';
 import { getBirdPosition } from '../systems/interaction.js';
 import {
   drawGroundTexture, drawTree, drawFallTree, drawLargeTree, drawCamperdownElm, drawFlowers, drawRock, drawNPC,
-  drawBoy, drawGate, drawLogs, drawLeafPile, drawAcorn, drawLadybug,
+  drawBoy, drawGate, drawLogs, drawLeafPile, drawAcorn, drawLadybug, drawHorsePoop,
   drawNavigationIndicator, drawButterfly, drawFirefly
 } from './sprites.js';
 
@@ -51,6 +51,9 @@ export function drawCompleteArea(area, skipBoy) {
 
     drawRock(120, 280);
     drawRock(480, 320);
+
+    // Horse poop in the bottom-left corner (engagement easter egg)
+    drawHorsePoop(60, 445);
 
     // Butterflies drifting through the meadow
     drawButterfly(200, 300, state.frameCount);

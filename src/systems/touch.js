@@ -89,6 +89,13 @@ function hitTestInteractables(cx, cy) {
     }
   }
 
+  // Horse poop in meadow (bottom-left)
+  if (currentArea === 'meadow') {
+    if (Math.abs(cx - 69) < HIT && Math.abs(cy - 451) < HIT) {
+      return { x: 69, y: 451 };
+    }
+  }
+
   // Birdseed
   if (!worldItems.birdseed.collected && currentArea === 'park') {
     if (Math.abs(cx - worldItems.birdseed.x) < HIT && Math.abs(cy - worldItems.birdseed.y) < HIT) {

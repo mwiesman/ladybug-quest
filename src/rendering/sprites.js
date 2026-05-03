@@ -778,6 +778,31 @@ export function drawAcorn(x, y) {
   ctx.fillRect(x + 2, y + 12, 4, 1);
 }
 
+export function drawHorsePoop(x, y) {
+  // Three stacked lumps, ~18x12 footprint, top-left anchored
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x, y + 6, 18, 5);
+
+  ctx.fillStyle = '#3a2614';
+  ctx.fillRect(x + 1, y + 6, 16, 4);
+  ctx.fillRect(x + 2, y + 5, 14, 1);
+
+  ctx.fillStyle = '#4a3018';
+  ctx.fillRect(x + 3, y + 2, 12, 4);
+  ctx.fillRect(x + 4, y + 1, 10, 1);
+  ctx.fillRect(x + 5, y, 8, 1);
+
+  ctx.fillStyle = '#5d3d22';
+  ctx.fillRect(x + 6, y + 1, 4, 1);
+  ctx.fillRect(x + 5, y + 3, 5, 1);
+  ctx.fillRect(x + 3, y + 7, 6, 1);
+
+  // Tiny flies
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(x + 16, y - 2, 1, 1);
+  ctx.fillRect(x - 1, y + 1, 1, 1);
+}
+
 export function drawFallTree(x, y) {
   const sprite = getSprite('tree_fall');
   if (sprite) { ctx.drawImage(sprite, x, y); return; }

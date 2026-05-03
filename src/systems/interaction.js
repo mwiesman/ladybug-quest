@@ -164,6 +164,17 @@ export function checkInteraction() {
     }
   }
 
+  // Horse poop easter egg (meadow, bottom-left corner)
+  if (currentArea === 'meadow') {
+    if (Math.abs(player.x - 69) < 30 && Math.abs(player.y - 451) < 30) {
+      showDialog({
+        dialog: ["*Faithful-to-real-life engagement horse poop.*"],
+        isStatic: true
+      });
+      return;
+    }
+  }
+
   // Boy interaction (meadow) - different dialog depending on progress
   if (currentArea === 'meadow') {
     if (inRange(player.x, player.y, state.boy.x, state.boy.y, 40)) {
@@ -273,6 +284,11 @@ export function checkNearInteractable() {
   // Boy in meadow
   if (currentArea === 'meadow') {
     if (inRange(player.x, player.y, state.boy.x, state.boy.y, 40)) return true;
+  }
+
+  // Horse poop in meadow
+  if (currentArea === 'meadow') {
+    if (Math.abs(player.x - 69) < 30 && Math.abs(player.y - 451) < 30) return true;
   }
 
   return false;
