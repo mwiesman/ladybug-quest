@@ -69,6 +69,11 @@ export const state = {
   // Area transition
   transitioning: false,
 
+  // Proposal sequence (boy stops girl before she first leaves the meadow)
+  proposalDone: false,     // true after accepting — never triggers again
+  proposalPhase: -1,       // -1 = inactive, 0+ = walk animation progress
+  proposalDialogStep: 0,   // 0=wait, 1=walking, 2=love dialog, 3=prompt, 4=yes/no, 5=ring
+
   elapsed: 0
 };
 

@@ -5,6 +5,7 @@
 
 import { state, MODE, toX, toZ } from './state.js';
 import { setFade, showAreaLabel } from './hud.js';
+import { touchTarget, clearTouchTarget } from './touch.js';
 
 export const player = {
   x: 320,
@@ -53,12 +54,31 @@ function isBlocked(area, x, y, obstacles) {
 
 // --- Movement --------------------------------------------------------
 
+// Returns 'arrived-interact' when a tapped interactable has been reached
 export function updatePlayer(dt, obstacles) {
   let dx = 0, dy = 0;
   if (keys.KeyW || keys.ArrowUp) dy -= 1;
   if (keys.KeyS || keys.ArrowDown) dy += 1;
   if (keys.KeyA || keys.ArrowLeft) dx -= 1;
   if (keys.KeyD || keys.ArrowRight) dx += 1;
+
+  // Keyboard takes priority and cancels any tap target
+  if (dx !== 0 || dy !== 0) {
+    clearTouchTarget();
+  } else if (touchTarget) {
+    const tdx = touchTarget.x - player.x;
+    const tdy = touchTarget.y - player.y;
+    const dist = Math.hypot(tdx, tdy);
+    const arriveRadius = touchTarget.interact ? 32 : 6;
+    if (dist < arriveRadius) {
+      const wasInteract = touchTarget.interact;
+      clearTouchTarget();
+      if (wasInteract) return 'arrived-interact';
+    } else {
+      dx = tdx / dist;
+      dy = tdy / dist;
+    }
+  }
 
   player.moving = dx !== 0 || dy !== 0;
   if (!player.moving) return;
@@ -70,12 +90,21 @@ export function updatePlayer(dt, obstacles) {
   const ny = player.y + dy * player.speed * dt;
 
   // Axis-separated so you slide along obstacles
+  const prevX = player.x, prevY = player.y;
   if (!isBlocked(state.currentArea, nx, player.y, obstacles)) player.x = nx;
   if (!isBlocked(state.currentArea, player.x, ny, obstacles)) player.y = ny;
 
   // Clamp inside the area (transitions trigger near the edge first)
   player.x = Math.max(8, Math.min(632, player.x));
   player.y = Math.max(8, Math.min(472, player.y));
+
+  // Stuck against an obstacle or the bounds while walking to a tap —
+  // give up on the target
+  if (touchTarget && player.x === prevX && player.y === prevY) {
+    clearTouchTarget();
+    player.moving = false;
+    return;
+  }
 
   // Face movement direction (+x logical = +x world, +y logical = +z world)
   player.facing = Math.atan2(dx, dy);
@@ -89,6 +118,7 @@ let fade = { active: false, alpha: 0, phase: 'out', target: null };
 
 export function startTransition(newArea) {
   if (fade.active) return;
+  clearTouchTarget();
   fade = { active: true, alpha: 0, phase: 'out', target: newArea };
   state.transitioning = true;
 }

@@ -38,10 +38,17 @@ npm run build     # builds BOTH games into dist/ (8-bit at /, 3D at /3d/)
 
 ## Controls
 
+Desktop:
 - **WASD / Arrow keys** — move
 - **SPACE / Enter** — interact, advance dialog
 - **I** — toggle inventory
 - Click **Yes / No** on trade prompts
+
+Mobile / touch:
+- **Tap ground** — walk to that spot (tap past an area edge to exit)
+- **Tap NPC / object** — walk over and auto-interact
+- **Tap dialog** — advance (Yes/No buttons for trades and the proposal)
+- **Tap cutscene** — next beat
 
 ## The full quest chain works
 
@@ -51,6 +58,11 @@ Fisherman → Net → the ladybug by the old oak tree → ending.
 
 Easter eggs made the jump too: the Gold Doubloons in the woods, the
 Camperdown Elm plaque, and the faithful-to-real-life engagement horse poop.
+
+The **proposal sequence** is in as well: the boy stops the girl before she
+first leaves the meadow — "Wait!", the walk over, the Snoopy line, the
+Yes/No prompt (declining re-asks with only Yes, as is right and proper),
+the ring, floating hearts, and every NPC congratulating you once afterward.
 
 ## Architecture
 
@@ -63,6 +75,7 @@ Camperdown Elm plaque, and the faithful-to-real-life engagement horse poop.
     player.js         movement, collision, camera follow, area transitions
     quest.js          interaction checks (port of systems/interaction.js)
     dialog.js         dialog phase machine (port of systems/dialog.js)
+    touch.js          tap-to-move / tap-to-interact (ground-plane raycast)
     areas3d.js        procedural low-poly builders for the six areas
     characters.js     primitive-based character meshes (no external assets)
     hud.js            HTML overlay helpers
@@ -74,8 +87,6 @@ Everything is procedural geometry — no models, textures, or other assets to lo
 
 - Audio (the 2D synth engine in `src/systems/audio.js` could be reused)
 - Save/load (localStorage, same approach as `src/systems/save.js`)
-- Touch controls / mobile
-- The proposal sequence and post-proposal NPC congrats dialog
 - Character animation rigs (characters bob, flap, and wag procedurally)
 
 ## Standalone desktop app?

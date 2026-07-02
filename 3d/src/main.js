@@ -9,7 +9,8 @@ import { buildAllAreas } from './areas3d.js';
 import { buildGirl, buildBoy, NPC_BUILDERS } from './characters.js';
 import { player, initInput, updatePlayer, updateCamera, checkAreaTransition, updateTransition } from './player.js';
 import { checkInteraction, checkNearInteractable, getNPCPosition } from './quest.js';
-import { advanceDialog, acceptTrade, declineTrade, isDialogOpen } from './dialog.js';
+import { advanceDialog, acceptTrade, declineTrade, isDialogOpen, showDialog, closeDialog, showProposalPrompt, hideProposalPrompt } from './dialog.js';
+import { initTouch, isTouchDevice, clearTouchTarget } from './touch.js';
 import { initHUD, setInteractPrompt, toggleInventory, showAreaLabel, showCutsceneOverlay, setCutsceneText } from './hud.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from '../../src/data/cutscenes.js';
 import { inventory } from './state.js';
@@ -57,7 +58,8 @@ for (const area of Object.values(areas)) scene.add(area.group);
 const girl = buildGirl();
 scene.add(girl);
 
-// Boy (meadow)
+// Boy (meadow) — position tracked from state.boy so he can walk over
+// during the proposal sequence
 const boy = buildBoy();
 areas.meadow.group.add(boy);
 boy.position.set(toX(state.boy.x), 0, toZ(state.boy.y));
@@ -79,6 +81,103 @@ function setActiveArea(areaId) {
   }
 }
 setActiveArea(state.currentArea);
+
+// --- Proposal sequence (boy stops girl before she first leaves the meadow;
+// port of the sequence in the 8-bit main.js) ------------------------------
+
+function updateProposal(dt) {
+  if (state.proposalPhase < 0 || state.proposalDone) return false;
+
+  if (isDialogOpen()) {
+    // Frozen while a dialog line is showing
+  } else if (state.proposalDialogStep === 0) {
+    showDialog({ dialog: ['Wait!'], isStatic: true, speaker: 'boy' });
+    state.proposalDialogStep = 1;
+  } else if (state.proposalDialogStep === 1) {
+    // Boy walks from the oak to the girl (~1s)
+    state.proposalPhase += dt * 60;
+    const walkDuration = 60;
+    const boyStartX = 290, boyStartY = 270;
+    const boyEndX = player.x - 30, boyEndY = player.y;
+    const p = Math.min(state.proposalPhase / walkDuration, 1);
+    state.boy.x = boyStartX + (boyEndX - boyStartX) * p;
+    state.boy.y = boyStartY + (boyEndY - boyStartY) * p;
+    if (state.proposalPhase >= walkDuration) {
+      state.proposalDialogStep = 2;
+    }
+  } else if (state.proposalDialogStep === 2) {
+    showDialog({
+      dialog: ['Adielle. I love you more than anything\ncomprehendable in the universe\nProbably even more than Snoopy'],
+      isStatic: true, speaker: 'boy'
+    });
+    state.proposalDialogStep = 3;
+  } else if (state.proposalDialogStep === 3) {
+    showProposalPrompt(false);
+    state.proposalDialogStep = 4;
+  }
+  return true; // block normal gameplay while active
+}
+
+function acceptProposal() {
+  hideProposalPrompt();
+  state.proposalDialogStep = 5;
+  showDialog({
+    dialog: ['*gives ring* *hugs* *cries* *the usual*'],
+    isStatic: true, speaker: 'boy'
+  });
+}
+
+function declineProposal() {
+  showProposalPrompt(true); // she can only say yes
+}
+
+function finishProposal() {
+  state.proposalDone = true;
+  state.proposalPhase = -1;
+  state.proposalDialogStep = 0;
+  spawnHearts();
+}
+
+// Floating hearts above the newly engaged couple
+const hearts = [];
+
+function makeHeartTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.font = '52px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❤️', 32, 36);
+  return new THREE.CanvasTexture(c);
+}
+
+function spawnHearts() {
+  const tex = makeHeartTexture();
+  const cx = (toX(player.x) + toX(state.boy.x)) / 2;
+  const cz = (toZ(player.y) + toZ(state.boy.y)) / 2;
+  for (let i = 0; i < 9; i++) {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+    sprite.scale.setScalar(0.35 + Math.random() * 0.25);
+    sprite.position.set(cx + (Math.random() - 0.5) * 1.6, 1.2 + Math.random() * 0.4, cz + (Math.random() - 0.5) * 1.2);
+    scene.add(sprite);
+    hearts.push({ sprite, vy: 0.5 + Math.random() * 0.4, life: 2.5 + Math.random() });
+  }
+}
+
+function updateHearts(dt) {
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const h = hearts[i];
+    h.life -= dt;
+    h.sprite.position.y += h.vy * dt;
+    h.sprite.material.opacity = Math.min(1, h.life);
+    if (h.life <= 0) {
+      scene.remove(h.sprite);
+      h.sprite.material.dispose();
+      hearts.splice(i, 1);
+    }
+  }
+}
 
 // --- Per-frame world updates -------------------------------------------
 
@@ -152,6 +251,20 @@ function updateWorldVisuals(dt) {
   girl.rotation.y = player.facing;
   girl.position.y = player.moving ? Math.abs(Math.sin(t * 10)) * 0.06 : 0;
 
+  // Boy mesh follows his logical position (walks over during the proposal)
+  boy.position.x = toX(state.boy.x);
+  boy.position.z = toZ(state.boy.y);
+  if (state.proposalPhase >= 0 || state.proposalDone) {
+    boy.rotation.y = Math.atan2(girl.position.x - boy.position.x, girl.position.z - boy.position.z);
+    if (state.proposalDialogStep === 1) {
+      boy.position.y = Math.abs(Math.sin(t * 10)) * 0.06; // walking bob
+    }
+  }
+  // During the proposal, the girl turns to face him
+  if (state.proposalPhase >= 0 && !state.proposalDone && state.proposalDialogStep >= 2) {
+    girl.rotation.y = Math.atan2(boy.position.x - girl.position.x, boy.position.z - girl.position.z);
+  }
+
   // NPCs turn to face the player when close (little life without animation rigs)
   for (const [id, npc] of Object.entries(state.npcs)) {
     if (npc.area !== state.currentArea || id === 'bird') continue;
@@ -208,6 +321,15 @@ initInput();
 initHUD();
 
 function handleAction() {
+  // Proposal: the Yes/No prompt only answers via its buttons; the ring
+  // dialog closes into finishProposal
+  if (state.proposalDialogStep === 4) return;
+  if (state.proposalDialogStep === 5 && isDialogOpen()) {
+    closeDialog();
+    finishProposal();
+    return;
+  }
+
   switch (state.mode) {
     case MODE.INTRO:
     case MODE.ENDING:
@@ -224,11 +346,16 @@ function handleAction() {
         advanceDialog(); // static dialogs keep mode = PLAYING
         break;
       }
-      if (checkInteraction() === 'ending') {
-        state.mode = MODE.ENDING;
-        startCutscene(ENDING_CUTSCENE, showCredits);
-      }
+      if (state.proposalPhase >= 0 && !state.proposalDone) break;
+      triggerInteraction();
       break;
+  }
+}
+
+function triggerInteraction() {
+  if (checkInteraction() === 'ending') {
+    state.mode = MODE.ENDING;
+    startCutscene(ENDING_CUTSCENE, showCredits);
   }
 }
 
@@ -245,8 +372,23 @@ document.getElementById('cutscene').addEventListener('click', () => {
   if (state.mode === MODE.INTRO || state.mode === MODE.ENDING) advanceCutscene();
   else if (state.mode === MODE.CREDITS) restart();
 });
-document.getElementById('tradeYes').addEventListener('click', acceptTrade);
-document.getElementById('tradeNo').addEventListener('click', declineTrade);
+document.getElementById('tradeYes').addEventListener('click', () => {
+  if (state.proposalDialogStep === 4) acceptProposal();
+  else acceptTrade();
+});
+document.getElementById('tradeNo').addEventListener('click', () => {
+  if (state.proposalDialogStep === 4) declineProposal();
+  else declineTrade();
+});
+
+// Touch: tap-to-move / tap-to-interact
+initTouch(camera, renderer.domElement, handleAction);
+if (isTouchDevice()) {
+  document.getElementById('controlsHint').textContent = 'Tap ground — walk · Tap characters — talk';
+  document.getElementById('interactPrompt').innerHTML = 'Tap to interact';
+  document.getElementById('dialogPromptHint').textContent = '▼ Tap to continue';
+  document.getElementById('cutsceneHint').textContent = 'Tap to continue';
+}
 
 // --- Main loop -------------------------------------------------------------
 
@@ -265,16 +407,37 @@ function loop() {
   const dt = Math.min(clock.getDelta(), 0.05);
   state.elapsed += dt;
 
-  const inTransition = updateTransition(dt, (newArea) => setActiveArea(newArea));
+  const inTransition = updateTransition(dt, (newArea, oldArea) => {
+    setActiveArea(newArea);
+    if (oldArea === 'meadow') {
+      // Boy returns to his resting spot by the oak
+      state.boy.x = 290;
+      state.boy.y = 270;
+    }
+  });
 
-  if (state.mode === MODE.PLAYING && !inTransition && !isDialogOpen()) {
-    updatePlayer(dt, areas[state.currentArea].obstacles);
-    checkAreaTransition();
-    setInteractPrompt(checkNearInteractable());
-  } else {
-    setInteractPrompt(false);
+  let showPrompt = false;
+  if (state.mode === MODE.PLAYING && !inTransition) {
+    const proposalActive = updateProposal(dt);
+    if (!proposalActive && !isDialogOpen()) {
+      const moved = updatePlayer(dt, areas[state.currentArea].obstacles);
+      if (moved === 'arrived-interact') triggerInteraction();
+
+      // The boy stops her before she can first leave the meadow
+      if (state.currentArea === 'meadow' && !state.proposalDone &&
+          state.proposalPhase === -1 && player.x >= 578) {
+        state.proposalPhase = 0;
+        state.proposalDialogStep = 0;
+        clearTouchTarget();
+      } else {
+        checkAreaTransition();
+      }
+      showPrompt = checkNearInteractable();
+    }
   }
+  setInteractPrompt(showPrompt);
 
+  updateHearts(dt);
   updateWorldVisuals(dt);
   updateCamera(camera, dt);
   renderer.render(scene, camera);

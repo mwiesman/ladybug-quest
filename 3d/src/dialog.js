@@ -34,6 +34,12 @@ export function showDialog(npc) {
   state.dialogPhase = 'main';
   state.tradePrompted = false;
 
+  // After the proposal, NPCs greet the player with congrats once
+  if (state.proposalDone && !npc.isStatic && !npc.congratsSaid &&
+      npc.dialogPostProposal && npc.dialogPostProposal.length > 0) {
+    state.dialogPhase = 'postProposal';
+  }
+
   // Bird lands when you talk to it
   if (npc === state.npcs.bird && npc.flies && !state.birdStopped) {
     state.birdStopped = true;
@@ -56,6 +62,14 @@ export function advanceDialog() {
   const dialogArray = getActiveDialogArray(npc);
 
   if (state.dialogIndex >= dialogArray.length) {
+    if (state.dialogPhase === 'postProposal') {
+      // Congrats finished — flip to normal dialog without closing
+      npc.congratsSaid = true;
+      state.dialogPhase = 'main';
+      state.dialogIndex = 0;
+      updateDialogText();
+      return;
+    }
     if (state.dialogPhase === 'main' && shouldPromptTrade(npc)) {
       state.tradePrompted = true;
       showTradePrompt(npc);
@@ -114,6 +128,7 @@ export function isDialogOpen() {
 
 function getActiveDialogArray(npc) {
   if (!npc) return [];
+  if (state.dialogPhase === 'postProposal') return npc.dialogPostProposal || [];
   if (state.dialogPhase === 'afterTrade') return npc.dialogAfterTrade || [];
   if (state.dialogPhase === 'decline') return npc.dialogDecline || [];
   return resolveDialogArray(npc);
@@ -186,6 +201,25 @@ function resolveSpeaker(npc) {
 function setPortrait(speaker) {
   dialogPortrait.textContent = PORTRAITS[speaker] ?? '🐞';
   dialogSpeaker.textContent = NAMES[speaker] ?? '';
+}
+
+// Marriage proposal prompt — reuses the dialog box and Yes/No buttons.
+// The Yes/No clicks are routed to accept/declineProposal in main.js
+// while state.proposalDialogStep === 4.
+export function showProposalPrompt(yesOnly) {
+  dialogBox.classList.add('active');
+  state.currentDialog = { isStatic: true, speaker: 'boy', dialog: [] };
+  setPortrait('boy');
+  dialogText.textContent = 'Will you marry me (Mat)?';
+  dialogPromptHint.style.display = 'none';
+  tradeButtonsEl.classList.add('active');
+  document.getElementById('tradeNo').style.display = yesOnly ? 'none' : '';
+}
+
+export function hideProposalPrompt() {
+  tradeButtonsEl.classList.remove('active');
+  dialogPromptHint.style.display = '';
+  document.getElementById('tradeNo').style.display = '';
 }
 
 export function processNPCTrade(npc) {
