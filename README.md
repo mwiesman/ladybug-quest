@@ -2,6 +2,8 @@
 
 A pixel art adventure game where you help a young girl find her lost ladybug friend. Explore 6 interconnected areas, solve item-based puzzles, and interact with quirky NPCs in this Pokemon GBA-inspired adventure.
 
+> **🎲 3D version:** an experimental three.js remake lives in the isolated [`3d/`](3d/) folder (play at `/3d/` in dev or after build). It shares this game's dialog and quest data but builds as a completely separate bundle — it has zero impact on the 8-bit game's load time. See [3d/README.md](3d/README.md).
+
 ## Prerequisites
 
 - **Node.js** (v16 or higher)

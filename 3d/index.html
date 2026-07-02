@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Ladybug Quest 3D</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a14; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; }
+    #app { position: relative; width: 100%; height: 100%; }
+    canvas { display: block; }
+
+    /* --- Overlay UI --- */
+    .overlay { position: absolute; pointer-events: none; }
+
+    #areaLabel {
+      top: 16px; left: 50%; transform: translateX(-50%);
+      font-size: 14px; letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      opacity: 0; transition: opacity 0.6s;
+    }
+    #areaLabel.visible { opacity: 1; }
+
+    #interactPrompt {
+      bottom: 130px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 20px; padding: 6px 18px; font-size: 14px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    #interactPrompt.visible { opacity: 1; }
+
+    /* Dialog box */
+    #dialogBox {
+      display: none;
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: min(680px, 92%); background: rgba(12, 16, 30, 0.92);
+      border: 2px solid rgba(255,255,255,0.5); border-radius: 14px;
+      padding: 18px 22px; pointer-events: auto;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    #dialogBox.active { display: flex; gap: 16px; align-items: flex-start; }
+    #dialogPortrait {
+      font-size: 40px; line-height: 1; width: 58px; height: 58px; flex: none;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.08); border-radius: 10px;
+    }
+    #dialogContent { flex: 1; min-width: 0; }
+    #dialogSpeaker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #ffb3c1; margin-bottom: 6px; }
+    #dialogText { font-size: 17px; line-height: 1.45; white-space: pre-line; min-height: 44px; }
+    #dialogPromptHint { margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.55); }
+    #tradeButtons { display: none; margin-top: 10px; gap: 10px; }
+    #tradeButtons.active { display: flex; }
+    #tradeButtons button {
+      pointer-events: auto; cursor: pointer; font-size: 15px; padding: 8px 26px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.12); color: #fff;
+    }
+    #tradeButtons button:hover { background: rgba(255,255,255,0.28); }
+
+    /* Inventory */
+    #inventory {
+      top: 16px; right: 16px; background: rgba(12,16,30,0.85);
+      border: 1px solid rgba(255,255,255,0.35); border-radius: 10px;
+      padding: 12px 16px; min-width: 160px; pointer-events: auto;
+    }
+    #inventory h3 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #ffb3c1; margin-bottom: 8px; }
+    .inventory-item { font-size: 14px; padding: 2px 0; color: rgba(255,255,255,0.9); }
+
+    /* Item notification */
+    #notification {
+      top: 70px; left: 50%; transform: translateX(-50%);
+      background: rgba(30, 60, 30, 0.9); border: 1px solid #8f8;
+      border-radius: 10px; padding: 10px 24px; font-size: 15px;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    #notification.visible { opacity: 1; }
+
+    /* Cutscene / ending overlay */
+    #cutscene {
+      display: none; inset: 0; background: #000;
+      align-items: center; justify-content: center; flex-direction: column;
+      pointer-events: auto; z-index: 20; text-align: center;
+    }
+    #cutscene.active { display: flex; }
+    #cutsceneText {
+      font-size: clamp(18px, 3vw, 28px); line-height: 1.6; white-space: pre-line;
+      max-width: 700px; padding: 0 24px; color: #eee;
+      opacity: 0; transition: opacity 0.8s;
+    }
+    #cutsceneText.visible { opacity: 1; }
+    #cutsceneHint { position: absolute; bottom: 30px; font-size: 13px; color: rgba(255,255,255,0.4); }
+    #cutscene .ladybug-dot { font-size: 44px; margin-bottom: 26px; }
+
+    #fade {
+      inset: 0; background: #000; opacity: 0; z-index: 10;
+      transition: none;
+    }
+
+    #controlsHint {
+      bottom: 16px; left: 16px; font-size: 12px; color: rgba(255,255,255,0.5);
+      text-shadow: 0 1px 3px #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="fade" class="overlay"></div>
+    <div id="areaLabel" class="overlay"></div>
+    <div id="interactPrompt" class="overlay">Press <b>SPACE</b> to interact</div>
+    <div id="notification" class="overlay"></div>
+    <div id="inventory" class="overlay">
+      <h3>Inventory</h3>
+      <div id="inventoryItems"></div>
+    </div>
+    <div id="controlsHint" class="overlay">WASD / Arrows — move · SPACE — interact · I — inventory</div>
+
+    <div id="dialogBox" class="overlay">
+      <div id="dialogPortrait">🐞</div>
+      <div id="dialogContent">
+        <div id="dialogSpeaker"></div>
+        <div id="dialogText"></div>
+        <div id="dialogPromptHint">▼ SPACE</div>
+        <div id="tradeButtons">
+          <button id="tradeYes">Yes</button>
+          <button id="tradeNo">No</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="cutscene" class="overlay">
+      <div class="ladybug-dot">🐞</div>
+      <div id="cutsceneText"></div>
+      <div id="cutsceneHint">SPACE / click to continue</div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
