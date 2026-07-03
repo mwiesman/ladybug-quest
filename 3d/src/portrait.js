@@ -431,12 +431,11 @@ function drawBoy(ctx) {
   backdrop(ctx, 'rgba(80, 130, 200, 0.5)');
   withLean(ctx, 0.06, () => {
     const m = metrics();
-    const skin = '#b0714a'; // mixed race — warm brown skin
-    animeBody(ctx, m, { skin, torso: '#4682b4', sleeves: '#5a9bd4', shoulderTilt: -10 });
-    animeHeadBase(ctx, m, skin);
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#4682b4', sleeves: '#5a9bd4', shoulderTilt: -10 });
+    animeHeadBase(ctx, m, '#fbd3a2');
 
     // Spiky dark hair, JoJo energy
-    shape(ctx, '#1c1815', 6, (c) => {
+    shape(ctx, '#23201e', 6, (c) => {
       c.moveTo(m.cx - m.hw - 6, m.cy + 6);
       c.lineTo(m.cx - m.hw - 18, m.cy - 40);
       c.lineTo(m.cx - m.hw + 10, m.cy - 52);
@@ -456,7 +455,7 @@ function drawBoy(ctx) {
       c.closePath();
     });
 
-    animeEyes(ctx, m, { iris: '#3a2415' });
+    animeEyes(ctx, m, { iris: '#3c5a78' });
     animeMask(ctx, m, {
       color: '#7b68ee',
       pattern: (c, x, y, r) => {
@@ -623,8 +622,9 @@ function drawKid(ctx) {
   backdrop(ctx, 'rgba(255, 160, 40, 0.5)');
   withLean(ctx, -0.07, () => {
     const m = metrics();
-    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#ffa500', sleeves: '#ff8c00', shoulderTilt: 11 });
-    animeHeadBase(ctx, m, '#fbd3a2');
+    const skin = '#b0714a'; // the kid is mixed race — warm brown skin
+    animeBody(ctx, m, { skin, torso: '#ffa500', sleeves: '#ff8c00', shoulderTilt: 11 });
+    animeHeadBase(ctx, m, skin);
 
     // Backwards cap with attitude
     shape(ctx, '#e87c00', 6, (c) => {
@@ -644,16 +644,22 @@ function drawKid(ctx) {
       c.moveTo(m.cx, m.cy - 96);
       c.lineTo(m.cx, m.cy - 56);
     });
-    // Hair spikes poking out
-    shape(ctx, '#5a3a14', 4, (c) => {
+    // Dark curls poking out from under the cap
+    shape(ctx, '#2a1f18', 4, (c) => {
       c.moveTo(m.cx + 26, m.cy - 44);
-      c.lineTo(m.cx + 48, m.cy - 58);
-      c.lineTo(m.cx + 52, m.cy - 34);
+      c.quadraticCurveTo(m.cx + 46, m.cy - 60, m.cx + 52, m.cy - 40);
+      c.quadraticCurveTo(m.cx + 44, m.cy - 30, m.cx + 26, m.cy - 44);
+      c.closePath();
+    });
+    shape(ctx, '#2a1f18', 4, (c) => {
+      c.moveTo(m.cx - 30, m.cy - 46);
+      c.quadraticCurveTo(m.cx - 48, m.cy - 58, m.cx - 52, m.cy - 38);
+      c.quadraticCurveTo(m.cx - 42, m.cy - 30, m.cx - 30, m.cy - 46);
       c.closePath();
     });
 
-    animeEyes(ctx, m, { iris: '#5a3a1a' });
-    ctx.fillStyle = 'rgba(200, 130, 90, 0.7)';
+    animeEyes(ctx, m, { iris: '#33210f' });
+    ctx.fillStyle = 'rgba(90, 50, 30, 0.75)';
     for (const [dx, dy] of [[-44, 22], [-36, 28], [-48, 30], [44, 20], [36, 26], [48, 28]]) {
       ctx.beginPath();
       ctx.arc(m.cx + dx, m.cy + dy - 6, 2.4, 0, Math.PI * 2);

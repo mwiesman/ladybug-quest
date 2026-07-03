@@ -262,11 +262,10 @@ export function buildGirl() {
 }
 
 export function buildBoy() {
-  // Steel-blue shirt, lighter sleeves, dark hair, navy pants, tie-dye
-  // bandana. He's mixed race — warm brown skin.
+  // drawBoy palette: steel-blue shirt, lighter sleeves, dark hair,
+  // navy pants, tie-dye bandana
   const g = buildHumanoid({
-    skin: 0xb5764d, torso: 0x4682b4, sleeves: 0x5a9bd4, legs: 0x2c5aa0,
-    shoes: 0x1a1a1a, hair: 0x201c1a
+    torso: 0x4682b4, sleeves: 0x5a9bd4, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x2c2c2c
   });
   const { head } = g.userData.parts;
 
@@ -358,7 +357,11 @@ export function buildHippie() {
 export function buildKid() {
   // Orange tee, backwards cap, jeans, arms up — light blue disposable
   // mask, slightly askew (kid energy)
-  const g = buildHumanoid({ torso: 0xffa500, legs: 0x4169e1, shoes: 0x654321, hair: 0x654321, scale: 0.65 });
+  // The kid is mixed race — warm brown skin, dark curls under the cap
+  const g = buildHumanoid({
+    skin: 0xb5764d, torso: 0xffa500, legs: 0x4169e1, shoes: 0x654321,
+    hair: 0x2a1f18, scale: 0.65
+  });
   const { head, armL, armR } = g.userData.parts;
 
   // Arms thrown up (rotate the shoulder pivots past horizontal)
