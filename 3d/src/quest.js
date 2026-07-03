@@ -5,6 +5,8 @@ import { state, inventory } from './state.js';
 import { player } from './player.js';
 import { showDialog } from './dialog.js';
 import { showItemNotification } from './hud.js';
+import { playSFX } from '../../src/systems/audio.js';
+import { saveGame } from './save.js';
 
 export function getBirdPosition() {
   const bird = state.npcs.bird;
@@ -55,9 +57,11 @@ export function checkInteraction() {
     if (Math.abs(player.x - worldItems.birdseed.x) < 30 &&
         Math.abs(player.y - worldItems.birdseed.y) < 30) {
       worldItems.birdseed.collected = true;
+      playSFX('pickup');
       inventory.addItem('Birdseed');
       showItemNotification('Birdseed');
       showDialog({ dialog: ['*Birds seem to have plenty to spare.*'], isStatic: true });
+      saveGame();
       return 'dialog';
     }
   }
@@ -67,8 +71,10 @@ export function checkInteraction() {
     if (Math.abs(player.x - worldItems.doubloons.x) < 30 &&
         Math.abs(player.y - worldItems.doubloons.y) < 30) {
       worldItems.doubloons.collected = true;
+      playSFX('pickup');
       inventory.addItem('Gold Doubloons');
       showItemNotification('Gold Doubloons');
+      saveGame();
       return 'pickup';
     }
   }
@@ -77,9 +83,11 @@ export function checkInteraction() {
   if (!gateUnlocked && currentArea === 'gate_area' && inventory.hasItem('Key')) {
     if (Math.abs(player.x - 400) < 40 && Math.abs(player.y - 215) < 40) {
       state.gateUnlocked = true;
+      playSFX('gate_unlock');
       inventory.removeItem('Key');
       state.npcs.squirrel.behindGate = false;
       showItemNotification('Gate Unlocked!', 'action');
+      saveGame();
       return 'gate';
     }
   }
@@ -89,8 +97,10 @@ export function checkInteraction() {
     if (Math.abs(player.x - 300) < 45 && Math.abs(player.y - 65) < 45) {
       if (inventory.hasItem('Axe')) {
         state.logsCleared = true;
+        playSFX('logs_clear');
         inventory.removeItem('Axe');
         showItemNotification('Logs Cleared!', 'action');
+        saveGame();
         return 'logs';
       }
       showDialog({

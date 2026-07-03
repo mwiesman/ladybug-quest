@@ -11,7 +11,9 @@ import { player, initInput, updatePlayer, updateCamera, checkAreaTransition, upd
 import { checkInteraction, checkNearInteractable, getNPCPosition } from './quest.js';
 import { advanceDialog, acceptTrade, declineTrade, isDialogOpen, showDialog, closeDialog, showProposalPrompt, hideProposalPrompt } from './dialog.js';
 import { initTouch, isTouchDevice, clearTouchTarget } from './touch.js';
-import { initHUD, setInteractPrompt, toggleInventory, showAreaLabel, showCutsceneOverlay, setCutsceneText } from './hud.js';
+import { initHUD, setInteractPrompt, toggleInventory, showAreaLabel, showCutsceneOverlay, setCutsceneText, updateInventoryDisplay, showItemNotification } from './hud.js';
+import { initAudio, playMusic, resumeAudioOnInteraction, toggleMute } from '../../src/systems/audio.js';
+import { saveGame, loadSaveData, applySaveData, hasSave, deleteSave } from './save.js';
 import { INTRO_CUTSCENE, ENDING_CUTSCENE } from '../../src/data/cutscenes.js';
 import { inventory } from './state.js';
 
@@ -136,6 +138,7 @@ function finishProposal() {
   state.proposalPhase = -1;
   state.proposalDialogStep = 0;
   spawnHearts();
+  saveGame();
 }
 
 // Floating hearts above the newly engaged couple
@@ -304,6 +307,7 @@ function advanceCutscene() {
 function showCredits() {
   state.mode = MODE.CREDITS;
   state.ladybug.found = true;
+  saveGame();
   showCutsceneOverlay(true);
   setCutsceneText(
     'The Ladybug Quest 3D\n\nA story of infinite beginnings,\nnow with one more dimension.\n\n— Press SPACE to play again —',
@@ -321,6 +325,9 @@ initInput();
 initHUD();
 
 function handleAction() {
+  resumeAudioOnInteraction();
+  if (showingSavePrompt) return; // must pick Continue / New Game
+
   // Proposal: the Yes/No prompt only answers via its buttons; the ring
   // dialog closes into finishProposal
   if (state.proposalDialogStep === 4) return;
@@ -365,10 +372,16 @@ window.addEventListener('keydown', (e) => {
     handleAction();
   } else if (e.code === 'KeyI' && state.mode === MODE.PLAYING) {
     toggleInventory();
+  } else if (e.code === 'KeyM') {
+    showItemNotification(toggleMute() ? 'Muted' : 'Sound On', 'action');
+  } else if (e.code === 'KeyP' && state.mode === MODE.PLAYING) {
+    saveGame();
+    showItemNotification('Game Saved', 'action');
   }
 });
 
 document.getElementById('cutscene').addEventListener('click', () => {
+  if (showingSavePrompt) return; // buttons handle this screen
   if (state.mode === MODE.INTRO || state.mode === MODE.ENDING) advanceCutscene();
   else if (state.mode === MODE.CREDITS) restart();
 });
@@ -390,12 +403,61 @@ if (isTouchDevice()) {
   document.getElementById('cutsceneHint').textContent = 'Tap to continue';
 }
 
-// --- Main loop -------------------------------------------------------------
+// --- Boot: audio + Continue/New Game prompt --------------------------------
 
-startCutscene(INTRO_CUTSCENE, () => {
+initAudio('../'); // shared public/audio/ folder is one level up from /3d/
+
+const savePromptEl = document.getElementById('savePrompt');
+const cutsceneHintEl = document.getElementById('cutsceneHint');
+let showingSavePrompt = false;
+
+function startNewGame() {
+  playMusic('cutscene');
+  startCutscene(INTRO_CUTSCENE, () => {
+    state.mode = MODE.PLAYING;
+    showAreaLabel(state.currentArea);
+    playMusic(state.currentArea);
+  });
+}
+
+document.getElementById('saveContinueBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!showingSavePrompt) return;
+  resumeAudioOnInteraction();
+  applySaveData(loadSaveData());
+  updateInventoryDisplay();
+  setActiveArea(state.currentArea);
+  showingSavePrompt = false;
+  savePromptEl.classList.remove('active');
+  cutsceneHintEl.style.display = '';
+  showCutsceneOverlay(false);
   state.mode = MODE.PLAYING;
   showAreaLabel(state.currentArea);
+  playMusic(state.currentArea);
 });
+
+document.getElementById('saveNewBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!showingSavePrompt) return;
+  resumeAudioOnInteraction();
+  deleteSave();
+  showingSavePrompt = false;
+  savePromptEl.classList.remove('active');
+  cutsceneHintEl.style.display = '';
+  startNewGame();
+});
+
+// --- Main loop -------------------------------------------------------------
+
+if (hasSave()) {
+  showingSavePrompt = true;
+  showCutsceneOverlay(true);
+  setCutsceneText('Welcome back.', true);
+  savePromptEl.classList.add('active');
+  cutsceneHintEl.style.display = 'none';
+} else {
+  startNewGame();
+}
 
 // Dev/debug hook (also handy in the browser console)
 window.__LBQ3D = { state, player, setActiveArea };

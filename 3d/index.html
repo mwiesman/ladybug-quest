@@ -91,6 +91,14 @@
     #cutsceneText.visible { opacity: 1; }
     #cutsceneHint { position: absolute; bottom: 30px; font-size: 13px; color: rgba(255,255,255,0.4); }
     #cutscene .ladybug-dot { font-size: 44px; margin-bottom: 26px; }
+    #savePrompt { display: none; margin-top: 30px; gap: 14px; }
+    #savePrompt.active { display: flex; }
+    #savePrompt button {
+      pointer-events: auto; cursor: pointer; font-size: 16px; padding: 12px 30px;
+      border-radius: 10px; border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.1); color: #fff;
+    }
+    #savePrompt button:hover { background: rgba(255,255,255,0.25); }
 
     #fade {
       inset: 0; background: #000; opacity: 0; z-index: 10;
@@ -131,6 +139,10 @@
     <div id="cutscene" class="overlay">
       <div class="ladybug-dot">🐞</div>
       <div id="cutsceneText"></div>
+      <div id="savePrompt">
+        <button id="saveContinueBtn">Continue</button>
+        <button id="saveNewBtn">New Game</button>
+      </div>
       <div id="cutsceneHint">SPACE / click to continue</div>
     </div>
   </div>

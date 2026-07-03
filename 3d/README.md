@@ -42,6 +42,7 @@ Desktop:
 - **WASD / Arrow keys** — move
 - **SPACE / Enter** — interact, advance dialog
 - **I** — toggle inventory
+- **P** — manual save · **M** — mute
 - Click **Yes / No** on trade prompts
 
 Mobile / touch:
@@ -78,15 +79,25 @@ the ring, floating hearts, and every NPC congratulating you once afterward.
     touch.js          tap-to-move / tap-to-interact (ground-plane raycast)
     areas3d.js        procedural low-poly builders for the six areas
     characters.js     primitive-based character meshes (no external assets)
+    save.js           localStorage save/load (own key, never collides with 2D)
     hud.js            HTML overlay helpers
 ```
 
 Everything is procedural geometry — no models, textures, or other assets to load.
 
+## Audio & saves
+
+- **Audio** reuses the 8-bit game's `src/systems/audio.js` directly — the same
+  drop-in MP3s in `public/audio/` play in both games (music per area + SFX for
+  dialog, trades, pickups, gate, logs, transitions). Missing files stay silent.
+  **M** toggles mute.
+- **Saves** auto-write at every trade, pickup, area change, and after the
+  proposal (**P** saves manually). Relaunching shows a Continue / New Game
+  prompt. The 3D game uses its own localStorage key, so 2D and 3D saves
+  coexist.
+
 ## Not (yet) in the 3D version
 
-- Audio (the 2D synth engine in `src/systems/audio.js` could be reused)
-- Save/load (localStorage, same approach as `src/systems/save.js`)
 - Character animation rigs (characters bob, flap, and wag procedurally)
 
 ## Standalone desktop app?

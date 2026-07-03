@@ -4,6 +4,8 @@
 
 import { state, inventory, MODE } from './state.js';
 import { showItemNotification } from './hud.js';
+import { playSFX } from '../../src/systems/audio.js';
+import { saveGame } from './save.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
@@ -47,6 +49,7 @@ export function showDialog(npc) {
     state.birdStoppedY = npc.y + Math.sin(state.elapsed * 1.8) * 8;
   }
 
+  playSFX('dialog_open');
   setPortrait(resolveSpeaker(npc));
   updateDialogText();
 }
@@ -54,6 +57,7 @@ export function showDialog(npc) {
 export function advanceDialog() {
   const npc = state.currentDialog;
   if (!npc) return;
+  playSFX('dialog_advance');
 
   // Trade prompt is answered by the Yes/No buttons only
   if (state.tradePrompted) return;
@@ -226,24 +230,30 @@ export function processNPCTrade(npc) {
   if (!npc || npc.completed) return;
 
   if (npc.isVendor) {
+    playSFX('trade');
     inventory.addItem(npc.givesItem);
     showItemNotification(npc.givesItem);
     npc.completed = true;
+    saveGame();
     return;
   }
 
   if (npc.needsItem === 'Gate Unlocked' && state.gateUnlocked) {
+    playSFX('trade');
     inventory.addItem(npc.givesItem);
     showItemNotification(npc.givesItem);
     npc.completed = true;
     npc.behindGate = false;
+    saveGame();
     return;
   }
 
   if (npc.needsItem && inventory.hasItem(npc.needsItem)) {
+    playSFX('trade');
     inventory.removeItem(npc.needsItem);
     inventory.addItem(npc.givesItem);
     showItemNotification(npc.givesItem);
     npc.completed = true;
+    saveGame();
   }
 }

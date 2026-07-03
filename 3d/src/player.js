@@ -6,6 +6,8 @@
 import { state, MODE, toX, toZ } from './state.js';
 import { setFade, showAreaLabel } from './hud.js';
 import { touchTarget, clearTouchTarget } from './touch.js';
+import { playSFX, playMusic } from '../../src/systems/audio.js';
+import { saveGame } from './save.js';
 
 export const player = {
   x: 320,
@@ -119,6 +121,7 @@ let fade = { active: false, alpha: 0, phase: 'out', target: null };
 export function startTransition(newArea) {
   if (fade.active) return;
   clearTouchTarget();
+  playSFX('area_transition');
   fade = { active: true, alpha: 0, phase: 'out', target: newArea };
   state.transitioning = true;
 }
@@ -159,8 +162,10 @@ function executeAreaSwap(newArea, onSwap) {
   const pos = ENTRY_POS[`${old}>${newArea}`] || [320, 240];
   player.x = pos[0];
   player.y = pos[1];
+  playMusic(newArea);
   showAreaLabel(newArea);
   if (onSwap) onSwap(newArea, old);
+  saveGame();
 }
 
 export function checkAreaTransition() {

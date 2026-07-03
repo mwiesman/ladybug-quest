@@ -43,10 +43,14 @@ function loadAudio(src) {
 /**
  * Load all audio in parallel. Missing files resolve to null.
  * Call once at startup.
+ * basePrefix lets pages served from a subdirectory (e.g. the 3D version
+ * at /3d/) reach the shared public/audio/ folder ('../').
  */
-export async function initAudio() {
-  const musicEntries = Object.entries(AUDIO_MANIFEST.music);
-  const sfxEntries = Object.entries(AUDIO_MANIFEST.sfx);
+export async function initAudio(basePrefix = '') {
+  const musicEntries = Object.entries(AUDIO_MANIFEST.music)
+    .map(([key, src]) => [key, basePrefix + src]);
+  const sfxEntries = Object.entries(AUDIO_MANIFEST.sfx)
+    .map(([key, src]) => [key, basePrefix + src]);
 
   const musicResults = await Promise.all(
     musicEntries.map(([key, src]) => loadAudio(src).then(audio => [key, audio]))
