@@ -79,11 +79,16 @@ the ring, floating hearts, and every NPC congratulating you once afterward.
     touch.js          tap-to-move / tap-to-interact (ground-plane raycast)
     areas3d.js        procedural low-poly builders for the six areas
     characters.js     primitive-based character meshes (no external assets)
+    lineup.js         cast viewer (/3d/lineup.html) — turntable of all models
     save.js           localStorage save/load (own key, never collides with 2D)
     hud.js            HTML overlay helpers
 ```
 
 Everything is procedural geometry — no models, textures, or other assets to load.
+Character colors are taken from each sprite's palette in
+`src/rendering/sprites.js` (the bird is a robin, the dog a golden retriever,
+the fisherman wears slate waders, and so on). To iterate on the models, open
+**`/3d/lineup.html`** — a slow-turntable lineup of the whole cast.
 
 ## Audio & saves
 

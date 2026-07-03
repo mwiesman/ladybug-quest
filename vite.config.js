@@ -11,6 +11,7 @@ export default defineConfig({
         // pages with separate bundles — three.js is only loaded by /3d/.
         main: resolve(__dirname, 'index.html'),
         '3d': resolve(__dirname, '3d/index.html'),
+        '3d-lineup': resolve(__dirname, '3d/lineup.html'),
       },
     },
   },

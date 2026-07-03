@@ -195,12 +195,13 @@ function updateWorldVisuals(dt) {
     const pos = getNPCPosition(state.npcs.bird);
     const height = state.birdStopped ? 0.25 : 1.6 + Math.sin(t * 2.5) * 0.2;
     birdMesh.position.set(toX(pos.x), height, toZ(pos.y));
-    birdMesh.rotation.y = state.birdStopped ? 0 : Math.cos(t * 1.2) > 0 ? 0 : Math.PI;
-    const flap = state.birdStopped ? 0.1 : Math.sin(t * 14) * 0.7;
+    // Robin faces its direction of flight (sine path along x); faces +z when landed
+    birdMesh.rotation.y = state.birdStopped ? 0 : (Math.cos(t * 1.2) > 0 ? Math.PI / 2 : -Math.PI / 2);
+    const flap = state.birdStopped ? 0.05 : Math.sin(t * 14) * 0.6;
     const wingL = birdMesh.getObjectByName('wingL');
     const wingR = birdMesh.getObjectByName('wingR');
-    if (wingL) wingL.rotation.x = flap;
-    if (wingR) wingR.rotation.x = -flap;
+    if (wingL) wingL.rotation.z = 0.15 + flap;
+    if (wingR) wingR.rotation.z = -0.15 - flap;
   }
 
   // Squirrel darts to the acorn pile once the gate opens
@@ -213,13 +214,18 @@ function updateWorldVisuals(dt) {
     squirrelMesh.position.y = Math.abs(Math.sin(t * 8)) * 0.06;
   }
 
-  // Dog tail wag (faster once it has its ball)
+  // Dog tail wag, side to side (faster once it has its ball)
   const dogMesh = npcMeshes.dog;
   if (dogMesh) {
     const tail = dogMesh.getObjectByName('tail');
     const rate = state.npcs.dog.completed ? 18 : 6;
-    if (tail) tail.rotation.x = Math.sin(t * rate) * 0.5;
-    dogMesh.rotation.y = -0.4;
+    if (tail) tail.rotation.z = Math.sin(t * rate) * 0.45;
+  }
+
+  // Squirrel tail sways gently
+  if (squirrelMesh) {
+    const sqTail = squirrelMesh.getObjectByName('tail');
+    if (sqTail) sqTail.rotation.x = Math.sin(t * 2.2) * 0.12;
   }
 
   // Gate swings open
