@@ -80,6 +80,7 @@ the ring, floating hearts, and every NPC congratulating you once afterward.
     areas3d.js        procedural low-poly builders for the six areas
     characters.js     primitive-based character meshes (no external assets)
     lineup.js         cast viewer (/3d/lineup.html) — turntable of all models
+    portrait.js       hand-drawn 2D dialog portraits (review at /3d/portraits.html)
     save.js           localStorage save/load (own key, never collides with 2D)
     hud.js            HTML overlay helpers
 ```

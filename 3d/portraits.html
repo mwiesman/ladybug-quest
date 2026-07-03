@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ladybug Quest 3D — Portraits</title>
+  <style>
+    body { background: #14181f; margin: 0; padding: 24px; font-family: system-ui, sans-serif;
+           display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+    figure { margin: 0; text-align: center; color: #ccc; font-size: 13px; }
+    canvas { width: 170px; height: 260px; border-radius: 10px;
+             border: 3px solid rgba(240,230,207,0.85); transform: rotate(-2deg);
+             box-shadow: 0 10px 24px rgba(0,0,0,0.5); }
+    figcaption { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import { drawPortraitTo } from './src/portrait.js';
+    const cast = ['girl', 'boy', 'fisherman', 'hippie', 'kid', 'parent',
+                  'dog', 'squirrel', 'bird', 'coffeeCart', 'ladybug'];
+    for (const who of cast) {
+      const fig = document.createElement('figure');
+      const c = document.createElement('canvas');
+      c.width = 340; c.height = 520;
+      drawPortraitTo(c.getContext('2d'), who);
+      const cap = document.createElement('figcaption');
+      cap.textContent = who;
+      fig.append(c, cap);
+      document.body.appendChild(fig);
+    }
+  </script>
+</body>
+</html>
