@@ -1,6 +1,8 @@
 // Low-poly character mesh builders (primitives only, no external assets).
-// Colors match each character's 8-bit sprite palette (src/rendering/sprites.js)
-// so the cast reads as the same people, one dimension up.
+// Colors, outfits, and face coverings match each character's 8-bit sprite
+// (src/rendering/sprites.js) — the story takes place during covid, so the
+// humans all wear masks: the girl's crimson with white dots, the boy's
+// tie-dye, the fisherman's gray, exactly like their sprites.
 
 import * as THREE from 'three';
 
@@ -16,7 +18,7 @@ function shadow(mesh) {
 // Characters face +z when rotation.y === 0 (the game rotates them with
 // atan2(dx, dz) toward the player), so faces go on the +z side.
 
-function addEyes(head, { y = 0.04, spread = 0.075, size = 0.032, forward = 0.17 } = {}) {
+function addEyes(head, { y = 0.05, spread = 0.075, size = 0.032, forward = 0.17 } = {}) {
   const geo = new THREE.SphereGeometry(size, 6, 5);
   for (const side of [-1, 1]) {
     const eye = new THREE.Mesh(geo, mat(0x1a1a1a));
@@ -25,20 +27,47 @@ function addEyes(head, { y = 0.04, spread = 0.075, size = 0.032, forward = 0.17 
   }
 }
 
+// Face mask over the lower half of the face, with ear straps.
+function addMask(head, color, { dots = null } = {}) {
+  const mask = new THREE.Mesh(new THREE.SphereGeometry(0.145, 10, 8), mat(color));
+  mask.scale.set(0.95, 0.6, 0.56);
+  mask.position.set(0, -0.075, 0.11);
+  head.add(mask);
+
+  // Straps back to the ears
+  for (const side of [-1, 1]) {
+    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 4), mat(color));
+    strap.position.set(side * 0.185, -0.03, 0.02);
+    strap.rotation.set(1.35, 0, side * 0.35);
+    head.add(strap);
+  }
+
+  // Polka dots (the girl's ladybug-style mask)
+  if (dots) {
+    const dotGeo = new THREE.SphereGeometry(0.009, 5, 4);
+    for (const [dx, dy] of [[-0.055, -0.06], [0, -0.05], [0.055, -0.06], [-0.028, -0.1], [0.028, -0.1]]) {
+      const dot = new THREE.Mesh(dotGeo, mat(dots));
+      dot.position.set(dx, dy, 0.19);
+      head.add(dot);
+    }
+  }
+  return mask;
+}
+
 // --- Shared humanoid rig ------------------------------------------------
 
-function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, legs = 0x2c5aa0,
-                          shoes = 0x654321, hair = 0x442200, dress = false,
-                          scale = 1 } = {}) {
+function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
+                          legs = 0x2c5aa0, shoes = 0x654321, hair = 0x442200,
+                          dress = false, scale = 1 } = {}) {
   const g = new THREE.Group();
   const parts = {};
+  const armColor = sleeves ?? torso;
 
   if (dress) {
     const dressMesh = shadow(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.78, 8), mat(torso)));
     dressMesh.position.y = 0.5;
     g.add(dressMesh);
     parts.torso = dressMesh;
-    // Little shoes peeking out
     for (const side of [-1, 1]) {
       const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.08, 0.16), mat(shoes));
       shoe.position.set(side * 0.1, 0.04, 0.03);
@@ -60,7 +89,7 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, legs = 0x2c5aa0,
   }
 
   for (const side of [-1, 1]) {
-    const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.4, 6), mat(torso)));
+    const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.4, 6), mat(armColor)));
     arm.position.set(side * (dress ? 0.24 : 0.27), 0.68, 0);
     arm.rotation.z = side * -0.22;
     g.add(arm);
@@ -68,6 +97,7 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, legs = 0x2c5aa0,
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), mat(skin));
     hand.position.set(side * (dress ? 0.29 : 0.32), 0.47, 0);
     g.add(hand);
+    parts[side === -1 ? 'handL' : 'handR'] = hand;
   }
 
   const head = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 9), mat(skin)));
@@ -92,16 +122,25 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, legs = 0x2c5aa0,
 // --- The couple ----------------------------------------------------------
 
 export function buildGirl() {
-  // Pink dress, brown pigtails, ladybug-red bow — palette from drawPlayer
-  const g = buildHumanoid({ torso: 0xff69b4, hair: 0x8b4513, dress: true, shoes: 0x654321 });
+  // drawPlayer palette: pink dress #ff69b4, lighter #ff8dc7 sleeves, brown
+  // hair, blue leggings, crimson mask with white dots
+  const g = buildHumanoid({
+    torso: 0xff69b4, sleeves: 0xff8dc7, hair: 0x8b4513, dress: true, shoes: 0x654321
+  });
   const { head } = g.userData.parts;
 
-  // Dress highlight stripe
   const hem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.345, 0.09, 8), mat(0xff8dc7));
   hem.position.y = 0.18;
   g.add(hem);
 
-  // Pigtails: two-sphere bunches low on the head
+  // Blue leggings peeking under the dress
+  for (const side of [-1, 1]) {
+    const legging = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.14, 6), mat(0x4169e1));
+    legging.position.set(side * 0.1, 0.12, 0.02);
+    g.add(legging);
+  }
+
+  // Pigtails
   for (const side of [-1, 1]) {
     const a = new THREE.Mesh(new THREE.SphereGeometry(0.095, 8, 6), mat(0x8b4513));
     a.position.set(side * 0.21, -0.05, -0.04);
@@ -110,57 +149,52 @@ export function buildGirl() {
     head.add(a, b);
   }
 
-  // Ladybug bow: red sphere pair with black dot
-  const bow = new THREE.Group();
-  for (const side of [-1, 1]) {
-    const loop = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 5), mat(0xdc143c));
-    loop.scale.set(1.3, 0.8, 0.7);
-    loop.position.x = side * 0.055;
-    bow.add(loop);
-  }
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.032, 6, 5), mat(0x1a1a1a));
-  bow.add(knot);
-  bow.position.set(0.09, 0.17, 0.06);
-  bow.rotation.z = -0.4;
-  head.add(bow);
+  // Her sprite's mask: crimson with white dots
+  addMask(head, 0xdc143c, { dots: 0xffffff });
   return g;
 }
 
 export function buildBoy() {
-  // Steel-blue shirt, dark hair — palette from drawBoy
-  const g = buildHumanoid({ torso: 0x4682b4, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x2c2c2c });
-  // Shirt highlight
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.12, 0.27), mat(0x5a9bd4));
-  stripe.position.y = 0.76;
-  g.add(stripe);
+  // drawBoy palette: steel-blue shirt, lighter sleeves, dark hair,
+  // navy pants, tie-dye mask (pink/purple/blue)
+  const g = buildHumanoid({
+    torso: 0x4682b4, sleeves: 0x5a9bd4, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x2c2c2c
+  });
+  const { head } = g.userData.parts;
+
+  // Tie-dye mask: violet base with pink and blue swirl patches
+  addMask(head, 0x7b68ee);
+  const patchGeo = new THREE.SphereGeometry(0.026, 6, 5);
+  for (const [dx, dy, color] of [[-0.05, -0.06, 0xff1493], [0.048, -0.07, 0x4169e1],
+                                  [0, -0.105, 0x9370db], [0.015, -0.04, 0xff1493]]) {
+    const patch = new THREE.Mesh(patchGeo, mat(color));
+    patch.scale.z = 0.4;
+    patch.position.set(dx, dy, 0.185);
+    head.add(patch);
+  }
   return g;
 }
 
 // --- NPCs ------------------------------------------------------------------
 
 export function buildFisherman() {
-  // Slate vest and waders, gray beard, brown bucket hat, rod with bobber
+  // Slate vest and waders, brown bucket hat, gray mask (like the sprite),
+  // rod with line and bobber
   const g = buildHumanoid({ torso: 0x2f4f4f, legs: 0x2f4f4f, shoes: 0x654321, hair: null });
   const { head } = g.userData.parts;
 
-  // Waders bib
   const bib = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.05), mat(0x3d5f5f));
   bib.position.set(0, 0.86, 0.13);
   g.add(bib);
 
-  // Gray beard: flattened box hanging from the face
-  const beard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.1), mat(0x696969));
-  beard.position.set(0, -0.12, 0.13);
-  head.add(beard);
+  addMask(head, 0x696969);
 
-  // Bucket hat
   const brim = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.32, 0.05, 10), mat(0x8b4513)));
   brim.position.y = 0.12;
   const crown = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.16, 10), mat(0x8b4513)));
   crown.position.y = 0.22;
   head.add(brim, crown);
 
-  // Fishing rod with line and bobber
   const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 1.5, 5), mat(0x8b4513));
   rod.position.set(0.42, 1.0, 0.25);
   rod.rotation.set(0.5, 0, -0.5);
@@ -173,11 +207,11 @@ export function buildFisherman() {
 }
 
 export function buildHippie() {
-  // Purple shirt, long brown hair, red headband, round glasses, sketchbook
+  // Purple shirt, jeans, long hair, red headband, round glasses,
+  // sketchbook — face covered by a matching red-orange bandana
   const g = buildHumanoid({ torso: 0x9370db, legs: 0x4169e1, shoes: 0xc8a878, hair: 0x8b7355 });
   const { head } = g.userData.parts;
 
-  // Long hair: open cylinder draped around the head down to the shoulders
   // (theta 0 is +z in CylinderGeometry, so start past the face and wrap
   // around the back, leaving a 0.6PI gap centered on the front)
   const mane = new THREE.Mesh(
@@ -187,20 +221,25 @@ export function buildHippie() {
   mane.position.set(0, -0.12, 0);
   head.add(mane);
 
-  // Red headband
   const band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 6, 14), mat(0xff6347));
   band.position.y = 0.09;
   band.rotation.x = Math.PI / 2;
   head.add(band);
 
-  // Round glasses
   for (const side of [-1, 1]) {
     const lens = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 5, 10), mat(0x333333));
-    lens.position.set(side * 0.075, 0.04, 0.185);
+    lens.position.set(side * 0.075, 0.05, 0.185);
     head.add(lens);
   }
 
-  // Sketchbook in the left hand, pencil in the right
+  // Bandana: masked upper part + hanging triangle
+  addMask(head, 0xff6347);
+  const kerchief = new THREE.Mesh(new THREE.ConeGeometry(0.115, 0.18, 4), mat(0xff6347));
+  kerchief.position.set(0, -0.2, 0.1);
+  kerchief.rotation.set(Math.PI, Math.PI / 4, 0); // apex down — hanging point
+  kerchief.scale.z = 0.5;
+  head.add(kerchief);
+
   const book = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.32), mat(0xf5f0dc));
   book.position.set(-0.32, 0.5, 0.12);
   book.rotation.z = 0.3;
@@ -215,23 +254,18 @@ export function buildHippie() {
 }
 
 export function buildKid() {
-  // Orange tee, backwards cap, jeans — two-thirds size, arms up with joy
+  // Orange tee, backwards cap, jeans, arms up — light blue disposable
+  // mask, slightly askew (kid energy)
   const g = buildHumanoid({ torso: 0xffa500, legs: 0x4169e1, shoes: 0x654321, hair: 0x654321, scale: 0.65 });
-  const { head, armL, armR } = g.userData.parts;
+  const { head, armL, armR, handL, handR } = g.userData.parts;
 
-  // Arms thrown up
   armL.rotation.z = 2.5;
   armL.position.y = 0.82;
   armR.rotation.z = -2.5;
   armR.position.y = 0.82;
-  // Move hands up with the arms
-  g.children.forEach((c) => {
-    if (c.geometry?.type === 'SphereGeometry' && c.position.y === 0.47 && Math.abs(c.position.x) > 0.25) {
-      c.position.y = 1.0;
-    }
-  });
+  handL.position.y = 1.0;
+  handR.position.y = 1.0;
 
-  // Backwards cap: crown + brim at the back
   const crown = shadow(new THREE.Mesh(
     new THREE.SphereGeometry(0.215, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.45), mat(0xff8c00)));
   crown.position.y = 0.04;
@@ -240,28 +274,34 @@ export function buildKid() {
   brim.rotation.x = 0.25;
   head.add(crown, brim);
 
-  // Freckle cheeks
-  for (const side of [-1, 1]) {
-    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), mat(0xc97a5f));
-    cheek.position.set(side * 0.11, -0.03, 0.155);
-    head.add(cheek);
-  }
+  const mask = addMask(head, 0x87ceeb);
+  mask.rotation.z = 0.12; // a little crooked, as kids' masks are
   return g;
 }
 
 export function buildParent() {
-  // Olive shirt, flat cap, coffee in hand — relaxed park-watching energy
-  const g = buildHumanoid({ torso: 0x6b8e23, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x221100 });
+  // The mother: olive top, jeans, sun hat, shoulder-length hair,
+  // coffee in hand, soft white mask
+  const g = buildHumanoid({ torso: 0x6b8e23, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x3b2412 });
   const { head } = g.userData.parts;
 
-  // Flat cap
-  const cap = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.23, 0.07, 10), mat(0x4a4a4a)));
-  cap.position.y = 0.13;
-  const capBrim = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.025, 0.12), mat(0x4a4a4a));
-  capBrim.position.set(0, 0.1, 0.22);
-  head.add(cap, capBrim);
+  // Shoulder-length hair falling around the back of the head
+  const bob = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.215, 0.24, 0.34, 10, 1, true,
+      Math.PI * 0.35, Math.PI * 1.3),
+    new THREE.MeshLambertMaterial({ color: 0x3b2412, side: THREE.DoubleSide }));
+  bob.position.y = -0.1;
+  head.add(bob);
 
-  // Coffee cup in the right hand
+  // Wide-brim sun hat (her sprite's #4a4a4a hat, made summery)
+  const hatBrim = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.36, 0.035, 12), mat(0x4a4a4a)));
+  hatBrim.position.y = 0.12;
+  const hatCrown = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.13, 10), mat(0x4a4a4a)));
+  hatCrown.position.y = 0.19;
+  head.add(hatBrim, hatCrown);
+
+  addMask(head, 0xf5f0e6);
+
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.038, 0.1, 8), mat(0xf5f0e6));
   cup.position.set(0.32, 0.52, 0.08);
   const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.02, 8), mat(0x8b4513));
@@ -271,8 +311,7 @@ export function buildParent() {
 }
 
 export function buildDog() {
-  // Golden retriever palette: #daa520 coat, cream belly, floppy ears,
-  // red collar with gold tag, pink tongue. Faces +z.
+  // Golden retriever: cream belly, floppy ears, red collar with gold tag
   const g = new THREE.Group();
   const coat = 0xdaa520, cream = 0xf0e68c, dark = 0xb8860b;
 
@@ -294,7 +333,6 @@ export function buildDog() {
   addEyes(head, { y: 0.06, spread: 0.08, size: 0.035, forward: 0.13 });
   head.add(snout, nose, tongue);
 
-  // Floppy ears
   for (const side of [-1, 1]) {
     const ear = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.2, 0.12), mat(dark));
     ear.position.set(side * 0.17, 0.02, 0);
@@ -303,7 +341,6 @@ export function buildDog() {
   }
   g.add(head);
 
-  // Red collar with gold tag
   const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.05, 10), mat(0xdc143c));
   collar.position.set(0, 0.5, 0.22);
   collar.rotation.x = 0.3;
@@ -311,7 +348,6 @@ export function buildDog() {
   tag.position.set(0, 0.44, 0.32);
   g.add(collar, tag);
 
-  // Legs + tail
   const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.24, 5);
   for (const [x, z] of [[-0.11, 0.12], [0.11, 0.12], [-0.11, -0.28], [0.11, -0.28]]) {
     const leg = shadow(new THREE.Mesh(legGeo, mat(coat)));
@@ -329,7 +365,7 @@ export function buildDog() {
 }
 
 export function buildSquirrel() {
-  // Sienna coat, cream belly, big S-curved tail, ears, acorn in paws
+  // Sienna coat, cream belly, smooth S-curved tail, ears, acorn in paws
   const g = new THREE.Group();
   const coat = 0xa0522d, cream = 0xd2a679, tailC = 0x8b6914;
 
@@ -356,21 +392,26 @@ export function buildSquirrel() {
   }
   g.add(head);
 
-  // Big S-curve tail: arc of shrinking spheres behind the body
+  // Smooth S-curve tail: one tube along a spline, thicker mid-section
+  // suggested by a soft sphere, tapered tip
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.06, -0.12),
+    new THREE.Vector3(0, 0.18, -0.2),
+    new THREE.Vector3(0, 0.32, -0.19),
+    new THREE.Vector3(0, 0.44, -0.1),
+    new THREE.Vector3(0, 0.5, 0.01)
+  ]);
   const tail = new THREE.Group();
-  const arc = [
-    [0, 0.06, -0.14, 0.075], [0, 0.16, -0.2, 0.09], [0, 0.28, -0.21, 0.1],
-    [0, 0.39, -0.16, 0.09], [0, 0.46, -0.07, 0.075], [0, 0.49, 0.02, 0.055]
-  ];
-  for (const [x, y, z, r] of arc) {
-    const seg = shadow(new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), mat(tailC)));
-    seg.position.set(x, y, z);
-    tail.add(seg);
-  }
+  const tube = shadow(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 16, 0.07, 8, false), mat(tailC)));
+  const mid = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.095, 9, 7), mat(tailC)));
+  mid.position.set(0, 0.32, -0.19);
+  mid.scale.set(0.95, 1.25, 1);
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), mat(tailC));
+  tip.position.set(0, 0.5, 0.01);
+  tail.add(tube, mid, tip);
   tail.name = 'tail';
   g.add(tail);
 
-  // Little acorn held at the chest
   const acorn = new THREE.Mesh(new THREE.SphereGeometry(0.04, 7, 5), mat(0xc8a038));
   acorn.position.set(0, 0.24, 0.15);
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.042, 0.025, 7), mat(0x654321));
@@ -399,7 +440,6 @@ export function buildBird() {
   head.add(beak);
   g.add(head);
 
-  // Wings (named for the flap animation) + fanned tail feathers
   for (const side of [-1, 1]) {
     const wing = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.02, 0.16), mat(0x654321));
     wing.position.set(side * 0.13, 0.03, -0.02);
@@ -412,7 +452,6 @@ export function buildBird() {
   tailF.rotation.x = -0.25;
   g.add(tailF);
 
-  // Legs tucked for flight (visible when landed)
   for (const side of [-1, 1]) {
     const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.08, 4), mat(0xff8c00));
     leg.position.set(side * 0.035, -0.13, 0.02);
@@ -422,18 +461,55 @@ export function buildBird() {
 }
 
 export function buildCoffeeCart() {
-  // Brown cart, striped awning, COFFEE sign, cups, aproned barista
+  // A little coffee shack: wooden kiosk with a service window, striped
+  // awning, COFFEE sign — the barista inside is masked and capped, mostly
+  // in shadow, but you know he's there.
   const g = new THREE.Group();
+  const wood = 0x8b4513, woodDark = 0x6b3410, trim = 0xa0522d;
 
-  const cart = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.7), mat(0x8b4513)));
-  cart.position.y = 0.6;
-  const panel = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.03), mat(0x87ceeb));
-  panel.position.set(0, 0.62, 0.36);
-  const counter = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.06, 0.84), mat(0xd8c8a8)));
-  counter.position.y = 1.03;
-  g.add(cart, panel, counter);
+  // Walls: back, sides, and a front counter wall with a window opening
+  // above. Kiosk proportions: wide and squat, not a monolith.
+  const back = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.5, 0.06), mat(wood)));
+  back.position.set(0, 0.75, -0.45);
+  const sideL = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.5, 0.9), mat(woodDark)));
+  sideL.position.set(-0.77, 0.75, 0);
+  const sideR = sideL.clone();
+  sideR.position.x = 0.77;
+  const front = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.85, 0.06), mat(wood)));
+  front.position.set(0, 0.425, 0.45);
+  // Header above the window
+  const header = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.22, 0.06), mat(wood)));
+  header.position.set(0, 1.39, 0.45);
+  g.add(back, sideL, sideR, front, header);
 
-  // COFFEE sign (canvas texture keeps it asset-free)
+  // Dark back panel behind the barista (so the window reads as a dim
+  // interior without swallowing him)
+  const interior = new THREE.Mesh(new THREE.BoxGeometry(1.48, 1.4, 0.03),
+    new THREE.MeshBasicMaterial({ color: 0x241408 }));
+  interior.position.set(0, 0.72, -0.35);
+  g.add(interior);
+
+  // Service counter at the window sill
+  const counter = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.07, 0.34), mat(0xd8c8a8)));
+  counter.position.set(0, 0.88, 0.47);
+  g.add(counter);
+
+  // Sloped roof with a slight overhang
+  const roof = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.07, 1.25), mat(woodDark)));
+  roof.position.set(0, 1.56, -0.02);
+  roof.rotation.x = -0.1;
+  g.add(roof);
+
+  // Striped awning over the window
+  for (let i = 0; i < 6; i++) {
+    const stripe = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.267, 0.04, 0.5),
+      mat(i % 2 ? 0xf5f0e6 : 0xcc4444)));
+    stripe.position.set(-0.667 + i * 0.267, 1.3, 0.7);
+    stripe.rotation.x = 0.5;
+    g.add(stripe);
+  }
+
+  // COFFEE sign on the header
   const signCanvas = document.createElement('canvas');
   signCanvas.width = 128; signCanvas.height = 32;
   const sctx = signCanvas.getContext('2d');
@@ -444,65 +520,115 @@ export function buildCoffeeCart() {
   sctx.textAlign = 'center';
   sctx.textBaseline = 'middle';
   sctx.fillText('COFFEE', 64, 17);
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.04),
+  // Rooftop sign on two little posts
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.2, 0.04),
     [mat(0x5a3a1a), mat(0x5a3a1a), mat(0x5a3a1a), mat(0x5a3a1a),
      new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(signCanvas) }), mat(0x5a3a1a)]);
-  sign.position.set(0, 1.28, 0.34);
+  sign.position.set(0, 1.78, 0.3);
   g.add(sign);
-
-  // Umbrella pole + striped awning cone (alternating wedges)
-  const pole = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6), mat(0x888888)));
-  pole.position.y = 1.7;
-  g.add(pole);
-  const WEDGES = 8;
-  for (let i = 0; i < WEDGES; i++) {
-    const wedge = shadow(new THREE.Mesh(
-      new THREE.ConeGeometry(1.05, 0.42, 8, 1, true, (i * Math.PI * 2) / WEDGES, (Math.PI * 2) / WEDGES),
-      new THREE.MeshLambertMaterial({ color: i % 2 ? 0xf5f0e6 : 0xcc4444, side: THREE.DoubleSide })));
-    wedge.position.y = 2.3;
-    g.add(wedge);
+  for (const side of [-1, 1]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 5), mat(woodDark));
+    post.position.set(side * 0.35, 1.63, 0.3);
+    g.add(post);
   }
 
+  // Menu board on the side wall
+  const menu = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.38), mat(0x2c2c2c));
+  menu.position.set(0.8, 1.0, 0.05);
+  g.add(menu);
+
   // Cups on the counter
-  for (const [x, z] of [[-0.45, 0.2], [-0.33, 0.28], [-0.39, 0.1]]) {
+  for (const [x, z] of [[-0.6, 0.45], [-0.47, 0.51], [-0.54, 0.39]]) {
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.036, 0.11, 8), mat(0xf5f0e6));
-    cup.position.set(x, 1.11, z);
+    cup.position.set(x, 0.97, z);
     g.add(cup);
   }
 
-  // Barista: warm brown shirt + cream apron, behind the cart
-  const barista = buildHumanoid({ torso: 0x8b5a2b, legs: 0x333333, shoes: 0x1a1a1a, hair: 0x111111, scale: 0.92 });
-  const apron = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.42, 0.04), mat(0xf5f0dc));
-  apron.position.set(0, 0.62, 0.15);
-  barista.add(apron);
-  barista.position.set(0.1, 0, -0.62);
+  // The barista, framed in the window: cap pulled low, black mask,
+  // eyes catching the light — you know he's there
+  const barista = new THREE.Group();
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.5, 0.24), mat(0x5a3a22));
+  torso.position.y = 0.85;
+  const apron = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.4, 0.03), mat(0xcfc5ae));
+  apron.position.set(0, 0.87, 0.13);
+  const bHead = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 9), mat(0xc9a175));
+  bHead.position.y = 1.08; // framed in the service window (0.88–1.28)
+  addEyes(bHead, { y: 0.03, spread: 0.065, size: 0.028, forward: 0.14 });
+  const bMask = new THREE.Mesh(new THREE.SphereGeometry(0.125, 10, 8), mat(0x2c2c2c));
+  bMask.scale.set(0.95, 0.6, 0.56);
+  bMask.position.set(0, -0.065, 0.095);
+  bHead.add(bMask);
+  const bCap = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.185, 0.09, 10), mat(0x2c2c2c));
+  bCap.position.y = 0.1;
+  const bBrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.12), mat(0x2c2c2c));
+  bBrim.position.set(0, 0.06, 0.18);
+  bHead.add(bCap, bBrim);
+  barista.add(torso, apron, bHead);
+  barista.position.set(0.08, 0, 0.02);
   g.add(barista);
+
   return g;
 }
 
 export function buildLadybug() {
+  // Small and unmistakably a ladybug: red dome with a black wing seam,
+  // black head with white eye-dots, antennae, spots on the shell
   const g = new THREE.Group();
-  // Leaf
-  const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.35, 8), mat(0x55aa44));
+
+  const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.28, 8), mat(0x55aa44));
   leaf.rotation.x = -Math.PI / 2;
-  leaf.position.y = 0.02;
-  leaf.scale.set(1, 1.4, 1);
-  // Body
-  const body = new THREE.Mesh(
-    new THREE.SphereGeometry(0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-    mat(0xdd2222));
-  body.position.y = 0.03;
-  const headB = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), mat(0x111111));
-  headB.position.set(0.12, 0.06, 0);
-  const dotGeo = new THREE.SphereGeometry(0.025, 6, 4);
-  for (const [x, z] of [[-0.04, -0.07], [-0.04, 0.07], [0.04, -0.05], [0.04, 0.05], [-0.09, 0]]) {
-    const dot = new THREE.Mesh(dotGeo, mat(0x111111));
-    dot.position.set(x, 0.13, z);
-    g.add(dot);
+  leaf.position.y = 0.015;
+  leaf.scale.set(1, 1.5, 1);
+  const stemV = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 4), mat(0x3d7a30));
+  stemV.rotation.x = Math.PI / 2;
+  stemV.position.set(0, 0.012, -0.44);
+  g.add(leaf, stemV);
+
+  // Body: red dome, slightly oval
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 12, 9, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xcc1111));
+  dome.scale.set(1, 0.85, 1.25);
+  dome.position.y = 0.02;
+  g.add(dome);
+
+  // Wing seam down the middle of the shell
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.09, 0.2), mat(0x1a1a1a));
+  seam.position.set(0, 0.045, -0.015);
+  g.add(seam);
+
+  // Head: black half-sphere tucked at the front, with white eye dots
+  const bugHead = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), mat(0x1a1a1a));
+  bugHead.position.set(0, 0.035, 0.115);
+  bugHead.scale.set(1.15, 0.8, 0.9);
+  for (const side of [-1, 1]) {
+    const eyeDot = new THREE.Mesh(new THREE.SphereGeometry(0.011, 5, 4), mat(0xffffff));
+    eyeDot.position.set(side * 0.026, 0.02, 0.035);
+    bugHead.add(eyeDot);
   }
-  g.add(leaf, body, headB);
+  g.add(bugHead);
+
+  // Antennae
+  for (const side of [-1, 1]) {
+    const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.06, 4), mat(0x1a1a1a));
+    antenna.position.set(side * 0.025, 0.08, 0.15);
+    antenna.rotation.set(0.7, 0, side * -0.5);
+    g.add(antenna);
+  }
+
+  // Spots sitting on the dome surface, three per side
+  const spotGeo = new THREE.SphereGeometry(0.018, 6, 4);
+  for (const [x, y, z] of [
+    [-0.05, 0.075, 0.04], [0.05, 0.075, 0.04],
+    [-0.06, 0.06, -0.05], [0.06, 0.06, -0.05],
+    [-0.035, 0.085, -0.01], [0.035, 0.085, -0.01]
+  ]) {
+    const spot = new THREE.Mesh(spotGeo, mat(0x1a1a1a));
+    spot.scale.y = 0.5;
+    spot.position.set(x, y, z);
+    g.add(spot);
+  }
+
   g.name = 'ladybug';
-  g.scale.setScalar(1.6);
   return g;
 }
 

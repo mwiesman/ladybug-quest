@@ -57,11 +57,11 @@ const cast = [
   ['Fisherman', NPC_BUILDERS.fisherman()],
   ['Hippie', NPC_BUILDERS.hippie()],
   ['Kid', NPC_BUILDERS.kid()],
-  ['Parent', NPC_BUILDERS.parent()],
+  ['Mother', NPC_BUILDERS.parent()],
   ['Dog', NPC_BUILDERS.dog()],
   ['Squirrel', NPC_BUILDERS.squirrel()],
   ['Bird', NPC_BUILDERS.bird()],
-  ['Coffee Cart', NPC_BUILDERS.coffeeCart()],
+  ['Coffee Shack', NPC_BUILDERS.coffeeCart()],
   ['Ladybug', buildLadybug()]
 ];
 
@@ -77,12 +77,22 @@ for (let i = 0; i < cast.length; i++) {
   scene.add(pivot);
   turntables.push(pivot);
   const label = nameLabel(name);
-  label.position.set(x, name === 'Coffee Cart' ? 2.9 : 1.9, 0);
+  label.position.set(x, name === 'Coffee Shack' ? 2.9 : 1.9, 0);
   scene.add(label);
 }
 
-camera.position.set(0, 2.6, 9.8);
-camera.lookAt(0, 0.9, 0);
+// ?focus=Name zooms the camera onto one model for close inspection
+const focus = new URLSearchParams(location.search).get('focus');
+const focusIdx = cast.findIndex(([name]) => name.toLowerCase() === (focus || '').toLowerCase());
+if (focusIdx >= 0) {
+  const fx = (focusIdx - (cast.length - 1) / 2) * spacing;
+  const big = cast[focusIdx][0] === 'Coffee Shack';
+  camera.position.set(fx, big ? 1.6 : 1.1, big ? 4.2 : 2.4);
+  camera.lookAt(fx, big ? 0.9 : 0.55, 0);
+} else {
+  camera.position.set(0, 2.6, 9.8);
+  camera.lookAt(0, 0.9, 0);
+}
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;

@@ -16,14 +16,14 @@ const tradeButtonsEl = document.getElementById('tradeButtons');
 
 const PORTRAITS = {
   girl: '👧', boy: '👦', dog: '🐕', bird: '🐦', squirrel: '🐿️',
-  fisherman: '🎣', hippie: '✌️', kid: '🧒', parent: '🧑', coffeeCart: '☕',
+  fisherman: '🎣', hippie: '✌️', kid: '🧒', parent: '👩', coffeeCart: '☕',
   ladybug: '🐞'
 };
 
 const NAMES = {
   girl: 'You', boy: 'Boy', dog: 'Dog', bird: 'Bird', squirrel: 'Squirrel',
-  fisherman: 'Fisherman', hippie: 'Hippie', kid: 'Kid', parent: 'Parent',
-  coffeeCart: 'Coffee Cart', ladybug: 'Ladybug'
+  fisherman: 'Fisherman', hippie: 'Hippie', kid: 'Kid', parent: 'Mother',
+  coffeeCart: 'Coffee Shack', ladybug: 'Ladybug'
 };
 
 export function showDialog(npc) {

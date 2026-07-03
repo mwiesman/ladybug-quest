@@ -274,9 +274,10 @@ function updateWorldVisuals(dt) {
     girl.rotation.y = Math.atan2(boy.position.x - girl.position.x, boy.position.z - girl.position.z);
   }
 
-  // NPCs turn to face the player when close (little life without animation rigs)
+  // NPCs turn to face the player when close (little life without animation
+  // rigs) — except the bird (flight heading) and the coffee shack (a building)
   for (const [id, npc] of Object.entries(state.npcs)) {
-    if (npc.area !== state.currentArea || id === 'bird') continue;
+    if (npc.area !== state.currentArea || id === 'bird' || id === 'coffeeCart') continue;
     const mesh = npcMeshes[id];
     if (!mesh) continue;
     const pos = getNPCPosition(npc);

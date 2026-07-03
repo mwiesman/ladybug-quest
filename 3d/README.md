@@ -85,10 +85,15 @@ the ring, floating hearts, and every NPC congratulating you once afterward.
 ```
 
 Everything is procedural geometry — no models, textures, or other assets to load.
-Character colors are taken from each sprite's palette in
+Character colors and outfits are taken from each sprite in
 `src/rendering/sprites.js` (the bird is a robin, the dog a golden retriever,
-the fisherman wears slate waders, and so on). To iterate on the models, open
-**`/3d/lineup.html`** — a slow-turntable lineup of the whole cast.
+the fisherman wears slate waders, and so on) — including the masks: the story
+takes place during covid, so every human wears one, matching their sprite
+(the girl's crimson with white dots, the boy's tie-dye, the fisherman's gray).
+The coffee vendor works from a little shack; his masked, capped face peeks
+out of the service window. To iterate on the models, open
+**`/3d/lineup.html`** — a slow-turntable lineup of the whole cast
+(add `?focus=Name` for a close-up of one model).
 
 ## Audio & saves
 
