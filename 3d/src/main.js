@@ -283,9 +283,25 @@ function updateWorldVisuals(dt) {
     ladybug.position.y = 0.05 + Math.sin(t * 3) * 0.03;
   }
 
-  // Water shimmer
-  const water = areas.boathouse.refs.water;
-  water.material.opacity = 0.85 + Math.sin(t * 1.7) * 0.05;
+  // Boathouse lake life: shimmering water, tumbling falls, drifting ducks,
+  // the turtle bobbing on its log
+  const bh = areas.boathouse.refs;
+  bh.water.material.opacity = 0.88 + Math.sin(t * 1.7) * 0.05;
+  for (let i = 0; i < bh.waterfallStreams.length; i++) {
+    const s = bh.waterfallStreams[i];
+    s.position.x = -0.6 + i * 0.55 + Math.sin(t * 6 + i * 2) * 0.05;
+    s.material.opacity = 0.7 + Math.sin(t * 9 + i) * 0.2;
+  }
+  bh.splash.scale.setScalar(1 + Math.sin(t * 5) * 0.12);
+  for (const duck of bh.ducks) {
+    const p = duck.userData.phase;
+    duck.position.x = toX(180 + Math.sin(t * 0.12 + p) * 90);
+    duck.position.z = toZ(360 + Math.sin(t * 0.09 + p * 1.7) * 40);
+    duck.rotation.y = Math.cos(t * 0.12 + p) > 0 ? Math.PI / 2 : -Math.PI / 2;
+    duck.position.y = 0.06 + Math.sin(t * 2 + p) * 0.015;
+  }
+  bh.turtleLog.position.y = 0.02 + Math.sin(t * 1.3) * 0.03;
+  bh.turtleLog.rotation.z = Math.sin(t * 1.1) * 0.03;
 
   // Player mesh
   girl.position.set(toX(player.x), 0, toZ(player.y));

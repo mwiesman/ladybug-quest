@@ -453,50 +453,172 @@ function buildPlayground() {
 }
 
 function buildBoathouse() {
+  // Faithful to the 8-bit layout: land on top, the lake across the bottom,
+  // a railed footbridge in from the park, the waterfall spilling in on the
+  // far left, ducks, the turtle on its floating log, and the grand white
+  // Prospect Park boathouse (arched, terracotta-roofed) on the right with
+  // its dock — the Camperdown Elm up on the hill.
   const group = new THREE.Group();
   group.add(ground(0x6c9c5e));
 
-  // Water along the top edge (y < 80)
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 80 * WORLD_SCALE * 2),
-    new THREE.MeshLambertMaterial({ color: 0x3a7ac8, transparent: true, opacity: 0.9 }));
+  // The lake: everything below y=290
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 190 * WORLD_SCALE),
+    new THREE.MeshLambertMaterial({ color: 0x4682b4, transparent: true, opacity: 0.94 }));
   water.rotation.x = -Math.PI / 2;
-  water.position.set(0, 0.02, toZ(40));
+  water.position.set(0, 0.02, toZ(385));
   water.name = 'water';
-  group.add(water);
+  const shoreline = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 0.3), mat(0xb8a878));
+  shoreline.rotation.x = -Math.PI / 2;
+  shoreline.position.set(0, 0.016, toZ(288));
+  group.add(water, shoreline);
 
-  // Dock reaching into the water
-  const dock = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.08, 3.4), mat(0x8a6a4a));
-  dock.position.set(toX(320), 0.1, toZ(95));
-  dock.castShadow = true;
-  group.add(dock);
+  // Footbridge from the park entrance (bottom edge) onto the land
+  const bridge = new THREE.Group();
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.1, 10.2), mat(0x8b5a2b));
+  deck.position.set(0, 0.08, 0);
+  deck.castShadow = true;
+  bridge.add(deck);
+  for (const side of [-1, 1]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 10.2), mat(0x654321));
+    rail.position.set(side * 1.45, 0.62, 0);
+    bridge.add(rail);
+    for (let i = 0; i < 6; i++) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.55, 0.07), mat(0x654321));
+      post.position.set(side * 1.45, 0.35, -4.6 + i * 1.85);
+      bridge.add(post);
+    }
+  }
+  bridge.position.set(toX(325), 0, toZ(382));
+  group.add(bridge);
 
-  // Boathouse building
+  // Waterfall on the far left, tumbling over rock into the lake
+  const falls = new THREE.Group();
+  const cliff = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.5, 1.6), mat(0x777772));
+  cliff.position.set(0, 0.75, 0);
+  cliff.castShadow = true;
+  const cliffTop = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.5, 1.2), mat(0x8a8a84));
+  cliffTop.position.set(-0.2, 1.55, 0);
+  cliffTop.castShadow = true;
+  falls.add(cliff, cliffTop);
+  const waterfallStreams = [];
+  for (let i = 0; i < 3; i++) {
+    const stream = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 1.5),
+      new THREE.MeshLambertMaterial({ color: 0xa8d8f0, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    stream.position.set(-0.6 + i * 0.55, 0.75, 0.82);
+    falls.add(stream);
+    waterfallStreams.push(stream);
+  }
+  const splash = new THREE.Mesh(new THREE.CircleGeometry(1.1, 10),
+    new THREE.MeshLambertMaterial({ color: 0xd8eefa, transparent: true, opacity: 0.6 }));
+  splash.rotation.x = -Math.PI / 2;
+  splash.position.set(0, 0.03, 1.4);
+  splash.name = 'splash';
+  falls.add(splash);
+  falls.position.set(toX(22), 0, toZ(255));
+  group.add(falls);
+
+  // Ducks drifting on the lake (animated in main.js)
+  const ducks = [];
+  for (let i = 0; i < 3; i++) {
+    const duck = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), mat(i === 2 ? 0xd3d3d3 : 0xf5f5f0));
+    body.scale.set(1, 0.8, 1.3);
+    const headD = new THREE.Mesh(new THREE.SphereGeometry(0.06, 7, 5), mat(i === 2 ? 0x2c2c2c : 0xf5f5f0));
+    headD.position.set(0, 0.13, 0.12);
+    const bill = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.06, 4), mat(0xffa500));
+    bill.position.set(0, 0.12, 0.19);
+    bill.rotation.x = Math.PI / 2;
+    duck.add(body, headD, bill);
+    duck.position.set(toX(150 + i * 60), 0.08, toZ(340 + i * 30));
+    duck.userData.phase = i * 2.1;
+    group.add(duck);
+    ducks.push(duck);
+  }
+
+  // The turtle on its floating log (bobs gently)
+  const turtleLog = new THREE.Group();
+  const log = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.6, 7), mat(0x654321));
+  log.rotation.z = Math.PI / 2;
+  log.position.y = 0.06;
+  const shell = new THREE.Mesh(
+    new THREE.SphereGeometry(0.13, 9, 7, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x556b2f));
+  shell.scale.set(1, 0.7, 1.2);
+  shell.position.set(0.2, 0.14, 0);
+  const shellRim = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.14, 0.035, 9), mat(0x4a5c20));
+  shellRim.position.set(0.2, 0.14, 0);
+  const tHead = new THREE.Mesh(new THREE.SphereGeometry(0.05, 7, 5), mat(0x6b8e23));
+  tHead.position.set(0.2, 0.16, 0.2);
+  turtleLog.add(log, shell, shellRim, tHead);
+  turtleLog.position.set(toX(400), 0.02, toZ(345));
+  group.add(turtleLog);
+
+  // The grand boathouse: white beaux-arts facade with three arches,
+  // cornice, and terracotta roof, up on a stone terrace
   const house = new THREE.Group();
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.4, 1.8), mat(0xc8b090));
-  walls.position.y = 0.7;
-  walls.castShadow = true;
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(2.1, 0.9, 4), mat(0x8a3a2a));
-  roof.position.y = 1.85;
-  roof.rotation.y = Math.PI / 4;
+  const terrace = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.18, 3.2), mat(0xcfc8b8));
+  terrace.position.y = 0.09;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(6.0, 2.1, 2.6), mat(0xf2f0ea));
+  body.position.y = 1.14;
+  body.castShadow = true;
+  const cornice = new THREE.Mesh(new THREE.BoxGeometry(6.3, 0.16, 2.9), mat(0xe4e0d4));
+  cornice.position.y = 2.24;
+  cornice.castShadow = true;
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(6.1, 0.5, 2.7), mat(0xb06040));
+  roof.position.y = 2.55;
+  roof.scale.set(1, 1, 1);
   roof.castShadow = true;
-  house.add(walls, roof);
-  house.position.set(toX(120), 0, toZ(140));
+  const roofTop = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.35, 2.1), mat(0xa05838));
+  roofTop.position.y = 2.95;
+  roofTop.castShadow = true;
+  house.add(terrace, body, cornice, roof, roofTop);
+  // Three arched openings along the front
+  for (let i = -1; i <= 1; i++) {
+    const archBox = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.1), mat(0x3a4a52));
+    archBox.position.set(i * 1.7, 0.75, 1.28);
+    const archTop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.45, 0.1, 12, 1, false, 0, Math.PI),
+      mat(0x3a4a52));
+    archTop.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+    archTop.position.set(i * 1.7, 1.3, 1.28);
+    // White column between arches
+    if (i < 1) {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 1.9, 8), mat(0xfaf8f2));
+      col.position.set(i * 1.7 + 0.85, 1.05, 1.32);
+      col.castShadow = true;
+      house.add(col);
+    }
+    house.add(archBox, archTop);
+  }
+  house.position.set(toX(540), 0, toZ(212));
   group.add(house);
 
-  // Camperdown Elm — weeping, twisted (drooping foliage) + plaque
+  // Dock in front of the boathouse, over the water
+  const dock = new THREE.Mesh(new THREE.BoxGeometry(9, 0.12, 1.4), mat(0x8b5a2b));
+  dock.position.set(toX(510), 0.1, toZ(287));
+  dock.castShadow = true;
+  const dockPosts = new THREE.Group();
+  for (const px of [430, 470, 510, 550, 590]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 5), mat(0x654321));
+    post.position.set(toX(px), 0.12, toZ(300));
+    dockPosts.add(post);
+  }
+  group.add(dock, dockPosts);
+
+  // Camperdown Elm — the rare weeping tree, up on the hill, with its plaque
   const elm = new THREE.Group();
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 1.0, 7), mat(0x5a4a3a));
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.24, 1.0, 7), mat(0x5a4a3a));
   trunk.position.y = 0.5;
   trunk.rotation.z = 0.18;
   trunk.castShadow = true;
-  const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.9, 9, 7), mat(0x3a6a2a));
-  canopy.position.y = 1.15;
-  canopy.scale.set(1.3, 0.7, 1.3);
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1.0, 9, 7), mat(0x3a6a2a));
+  canopy.position.y = 1.2;
+  canopy.scale.set(1.35, 0.7, 1.35);
   canopy.castShadow = true;
-  const droop = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.0, 0.7, 9, 1, true), mat(0x356226));
-  droop.position.y = 0.75;
+  const droop = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.15, 0.8, 10, 1, true),
+    new THREE.MeshLambertMaterial({ color: 0x356226, side: THREE.DoubleSide }));
+  droop.position.y = 0.72;
   elm.add(trunk, canopy, droop);
-  elm.position.set(toX(440), 0, toZ(105));
+  elm.position.set(toX(400), 0, toZ(60));
   group.add(elm);
 
   const plaque = new THREE.Group();
@@ -506,25 +628,30 @@ function buildBoathouse() {
   sign.position.y = 0.55;
   sign.rotation.x = -0.3;
   plaque.add(post, sign);
-  plaque.position.set(toX(418), 0, toZ(120));
+  plaque.position.set(toX(418), 0, toZ(90));
   group.add(plaque);
 
-  // Reeds along the shoreline, a bench facing the water, greenery
-  group.add(reeds(200, 92), reeds(500, 90), reeds(560, 95));
-  group.add(bench(250, 190, Math.PI), lamp(500, 300));
-  group.add(tree(560, 380, 'round', 1.1), tree(60, 400, 'pine', 1.0), tree(620, 250, 'round', 1.0));
-  group.add(bush(80, 300), bush(360, 380), rock(200, 430, 0.9, 0.4));
-  group.add(signPost(280, 140, 'BOATHOUSE', 0.2));
+  // Paths: bridge head up to the elm, and along the shore to the boathouse
+  group.add(windingPath([[322, 282], [345, 210], [382, 130], [400, 82]], 1.1));
+  group.add(windingPath([[330, 262], [420, 248], [482, 238]], 1.1));
+
+  // Trees, reeds, greenery — as placed in the original
+  group.add(tree(100, 80, 'round', 1.1), tree(300, 100, 'round', 1.0), tree(50, 200, 'round', 0.9));
+  group.add(reeds(160, 282), reeds(250, 280), reeds(80, 284));
+  group.add(bush(180, 150), bush(560, 110));
+  group.add(signPost(270, 240, 'BOATHOUSE →', 0.25));
   addExitPads(group, 'boathouse');
 
   return {
     group,
     obstacles: [
-      { x: 120, y: 140, r: 34 }, { x: 440, y: 105, r: 22 },
-      { x: 560, y: 380, r: 18 }, { x: 60, y: 400, r: 18 }, { x: 620, y: 250, r: 16 },
-      { x: 250, y: 190, r: 14 }, { x: 200, y: 430, r: 9 }
+      { x: 510, y: 205, r: 40 }, { x: 572, y: 205, r: 40 }, // the boathouse
+
+      { x: 22, y: 255, r: 34 }, // waterfall rocks
+      { x: 400, y: 60, r: 20 }, // the elm
+      { x: 100, y: 80, r: 16 }, { x: 300, y: 100, r: 16 }, { x: 50, y: 200, r: 14 }
     ],
-    refs: { water }
+    refs: { water, waterfallStreams, splash, ducks, turtleLog }
   };
 }
 

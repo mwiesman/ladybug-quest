@@ -87,8 +87,8 @@ function hitTestInteractables(cx, cy) {
   }
 
   if (currentArea === 'boathouse' &&
-      Math.abs(cx - 418) < HIT && Math.abs(cy - 120) < HIT) {
-    return { x: 418, y: 145 }; // stand in front of the plaque
+      Math.abs(cx - 418) < HIT && Math.abs(cy - 90) < HIT) {
+    return { x: 418, y: 112 }; // stand in front of the plaque
   }
 
   return null;

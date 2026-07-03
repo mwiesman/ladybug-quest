@@ -27,18 +27,62 @@ function addEyes(head, { y = 0.05, spread = 0.075, size = 0.032, forward = 0.17 
   }
 }
 
+// Swirly tie-dye canvas texture for the boy's bandana
+function tieDyeTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const colors = ['#7b68ee', '#ff1493', '#4169e1', '#e6d8ff', '#9370db', '#ff69b4'];
+  x.fillStyle = colors[0];
+  x.fillRect(0, 0, 64, 64);
+  for (let ring = 0; ring < 11; ring++) {
+    const r = 46 - ring * 4;
+    x.fillStyle = colors[ring % colors.length];
+    x.beginPath();
+    for (let a = 0; a <= Math.PI * 2 + 0.15; a += 0.25) {
+      const wob = r + Math.sin(a * 3 + ring * 1.7) * 4;
+      const px = 30 + Math.cos(a) * wob;
+      const py = 34 + Math.sin(a) * wob;
+      if (a === 0) x.moveTo(px, py);
+      else x.lineTo(px, py);
+    }
+    x.closePath();
+    x.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 // Face covering that hugs the head: a spherical shell over the lower face
 // (radius just past the head's), wrapping toward the ears, with visible
-// straps. kerchief: true turns it into a bandana with a hanging point.
-function addMask(head, color, { dots = null, kerchief = false } = {}) {
+// straps. kerchief adds a hanging point; knot ties it at the back of the
+// head; lower drops the whole covering (bandana worn low).
+function addMask(head, color, { dots = null, kerchief = false, knot = false,
+                                 map = null, lower = false } = {}) {
   // phi (around y) is centered on +z (the face); theta runs from the nose
   // down to the chin — eyes, forehead, and the sides of the face all show
   const mask = new THREE.Mesh(
     new THREE.SphereGeometry(0.212, 18, 10,
       Math.PI / 2 - 0.58, 1.16, // front of the face only
-      1.58, 0.66),
-    new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
+      lower ? 1.7 : 1.58, lower ? 0.58 : 0.66),
+    new THREE.MeshLambertMaterial({ color, map, side: THREE.DoubleSide }));
   head.add(mask);
+
+  // Tied at the back of the head, bandana-style
+  if (knot) {
+    const knotBall = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5),
+      new THREE.MeshLambertMaterial({ color, map }));
+    knotBall.position.set(0, -0.03, -0.2);
+    head.add(knotBall);
+    for (const side of [-1, 1]) {
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 4),
+        new THREE.MeshLambertMaterial({ color, map }));
+      tail.position.set(side * 0.035, -0.12, -0.21);
+      tail.rotation.set(Math.PI, 0, side * 0.35);
+      head.add(tail);
+    }
+  }
 
   // Straps from the mask edge back over the ears
   for (const side of [-1, 1]) {
@@ -159,11 +203,21 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
   parts.head = head;
 
   if (hair) {
-    const hairMesh = shadow(new THREE.Mesh(
-      new THREE.SphereGeometry(0.215, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52), mat(hair)));
-    hairMesh.position.y = 0.02;
-    head.add(hairMesh);
-    parts.hair = hairMesh;
+    // Realistic hairline: short fringe high on the forehead, and a longer
+    // shell wrapping the sides and well down the back of the head
+    const hairMat = mat(hair);
+    const back = shadow(new THREE.Mesh(
+      new THREE.SphereGeometry(0.218, 14, 9,
+        Math.PI / 2 + 0.62, Math.PI * 2 - 1.24, // all around except the face
+        0, Math.PI * 0.62), // down past the nape
+      hairMat));
+    const fringe = shadow(new THREE.Mesh(
+      new THREE.SphereGeometry(0.218, 8, 4,
+        Math.PI / 2 - 0.62, 1.24, // the front gap
+        0, Math.PI * 0.3), // stays high above the eyes
+      hairMat));
+    head.add(back, fringe);
+    parts.hair = back;
   }
 
   g.scale.setScalar(scale);
@@ -215,18 +269,8 @@ export function buildBoy() {
   });
   const { head } = g.userData.parts;
 
-  // Fitted tie-dye mask: violet with pink and blue swirl patches
-  addMask(head, 0x7b68ee);
-  const patchGeo = new THREE.SphereGeometry(0.026, 6, 5);
-  const patchPos = new THREE.Vector3();
-  for (const [polar, az, color] of [[1.74, -0.3, 0xff1493], [1.84, 0.28, 0x4169e1],
-                                     [2.02, 0, 0x9370db], [1.68, 0.08, 0xff1493]]) {
-    const patch = new THREE.Mesh(patchGeo, mat(color));
-    patch.scale.z = 0.4;
-    patchPos.setFromSphericalCoords(0.214, polar, az);
-    patch.position.copy(patchPos);
-    head.add(patch);
-  }
+  // Tie-dye bandana with real swirls, tied at the back of the head
+  addMask(head, 0xffffff, { map: tieDyeTexture(), knot: true });
   return g;
 }
 
@@ -290,8 +334,8 @@ export function buildHippie() {
     head.add(lens);
   }
 
-  // Red-orange bandana matching the headband
-  addMask(head, 0xff6347, { kerchief: true });
+  // Red-orange bandana matching the headband, worn low over mouth and chin
+  addMask(head, 0xff6347, { kerchief: true, lower: true });
 
   // Arms forward, holding the sketchbook in front
   const { armL, armR } = g.userData.parts;

@@ -111,9 +111,9 @@ export function checkInteraction() {
     }
   }
 
-  // Camperdown Elm plaque
+  // Camperdown Elm plaque (at 418,90 like the original)
   if (currentArea === 'boathouse') {
-    if (Math.abs(player.x - 418) < 30 && Math.abs(player.y - 120) < 30) {
+    if (Math.abs(player.x - 418) < 30 && Math.abs(player.y - 90) < 30) {
       showDialog({
         dialog: ['*You read the plaque...*',
           '"Camperdown Elm — a rare weeping tree,\ntwisted by nature into living art."'],
@@ -200,7 +200,7 @@ export function checkNearInteractable() {
       Math.abs(player.y - worldItems.doubloons.y) < 30) return true;
 
   if (currentArea === 'boathouse' &&
-      Math.abs(player.x - 418) < 30 && Math.abs(player.y - 120) < 30) return true;
+      Math.abs(player.x - 418) < 30 && Math.abs(player.y - 90) < 30) return true;
 
   if (currentArea === 'meadow') {
     if (inRange(player.x, player.y, state.boy.x, state.boy.y, 40)) return true;

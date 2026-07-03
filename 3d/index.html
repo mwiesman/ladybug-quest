@@ -40,13 +40,14 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
     }
     #dialogBox.active { display: flex; gap: 16px; align-items: flex-start; }
-    /* Hades-style portrait: the speaker's illustrated bust rises out of
-       the top of the dialog box */
+    /* Hades-style portrait: a tall sketched full-character illustration
+       rising out of the top of the dialog box, tilted with a bit of energy */
     #dialogPortrait {
-      width: 128px; height: 164px; flex: none; margin-top: -80px;
-      border-radius: 12px; border: 2px solid rgba(255,255,255,0.45);
+      width: 172px; height: 263px; flex: none; margin-top: -185px;
+      border-radius: 10px; border: 3px solid rgba(240, 230, 207, 0.85);
       background: #f0e6cf;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+      transform: rotate(-2deg);
     }
     #dialogContent { flex: 1; min-width: 0; }
     #dialogSpeaker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #ffb3c1; margin-bottom: 6px; }
@@ -127,7 +128,7 @@
     <div id="controlsHint" class="overlay">WASD / Arrows — move · SPACE — interact · I — inventory</div>
 
     <div id="dialogBox" class="overlay">
-      <canvas id="dialogPortrait" width="256" height="328"></canvas>
+      <canvas id="dialogPortrait" width="340" height="520"></canvas>
       <div id="dialogContent">
         <div id="dialogSpeaker"></div>
         <div id="dialogText"></div>

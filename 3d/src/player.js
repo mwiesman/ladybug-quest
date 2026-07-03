@@ -47,8 +47,9 @@ function isBlocked(area, x, y, obstacles) {
   }
 
   if (area === 'boathouse') {
-    // Water above y=80, except on the dock (x 300..340)
-    if (y < 80 && !(x > 300 && x < 340)) return true;
+    // The lake fills the bottom (y > 285), except the footbridge in from
+    // the park (x 300..350)
+    if (y > 285 && !(x > 300 && x < 350)) return true;
   }
 
   return false;
