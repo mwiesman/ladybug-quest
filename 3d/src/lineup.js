@@ -57,7 +57,7 @@ const cast = [
   ['Fisherman', NPC_BUILDERS.fisherman()],
   ['Hippie', NPC_BUILDERS.hippie()],
   ['Kid', NPC_BUILDERS.kid()],
-  ['Mother', NPC_BUILDERS.parent()],
+  ['Parent', NPC_BUILDERS.parent()],
   ['Dog', NPC_BUILDERS.dog()],
   ['Squirrel', NPC_BUILDERS.squirrel()],
   ['Bird', NPC_BUILDERS.bird()],

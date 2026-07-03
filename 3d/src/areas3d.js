@@ -49,6 +49,103 @@ function tree(x, y, kind = 'round', scale = 1) {
   return g;
 }
 
+function bush(x, y, scale = 1) {
+  const g = new THREE.Group();
+  for (const [dx, dz, r] of [[0, 0, 0.32], [0.22, 0.08, 0.24], [-0.2, -0.06, 0.22]]) {
+    const blob = new THREE.Mesh(new THREE.SphereGeometry(r * scale, 8, 6), mat(0x2e6e30));
+    blob.position.set(dx * scale, r * scale * 0.75, dz * scale);
+    blob.castShadow = true;
+    g.add(blob);
+  }
+  g.position.set(toX(x), 0, toZ(y));
+  return g;
+}
+
+function rock(x, y, scale = 1, rotY = 0) {
+  const g = new THREE.Group();
+  const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(0.35 * scale, 0), mat(0x8a8a86));
+  boulder.position.y = 0.22 * scale;
+  boulder.scale.set(1.2, 0.75, 1);
+  boulder.castShadow = true;
+  const pebble = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16 * scale, 0), mat(0x77776f));
+  pebble.position.set(0.35 * scale, 0.1 * scale, 0.15 * scale);
+  pebble.castShadow = true;
+  g.add(boulder, pebble);
+  g.position.set(toX(x), 0, toZ(y));
+  g.rotation.y = rotY;
+  return g;
+}
+
+// Grassy mound (Long Meadow rolling-hill feel) — pair with an obstacle
+function mound(x, y, radius = 60, height = 0.9) {
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(radius * WORLD_SCALE, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+    mat(0x549a48));
+  m.scale.y = height / (radius * WORLD_SCALE);
+  m.position.set(toX(x), 0, toZ(y));
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+// Wooden sign post with painted text
+function signPost(x, y, text, rotY = 0) {
+  const g = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.9, 6), mat(0x6a4a2a));
+  post.position.y = 0.45;
+  post.castShadow = true;
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 32;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#8a6a3a';
+  ctx.fillRect(0, 0, 128, 32);
+  ctx.fillStyle = '#f5ead0';
+  ctx.font = 'bold 15px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 64, 17);
+  const board = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.22, 0.04),
+    [mat(0x8a6a3a), mat(0x8a6a3a), mat(0x8a6a3a), mat(0x8a6a3a),
+     new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(c) }), mat(0x8a6a3a)]);
+  board.position.y = 0.82;
+  board.castShadow = true;
+  g.add(post, board);
+  g.position.set(toX(x), 0, toZ(y));
+  g.rotation.y = rotY;
+  return g;
+}
+
+// Cattail reeds at a water's edge
+function reeds(x, y) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.016, 0.55, 4), mat(0x4a7a3a));
+    stalk.position.set((i - 2) * 0.09 + (i % 2) * 0.04, 0.27, (i % 3) * 0.06);
+    stalk.rotation.z = (i - 2) * 0.06;
+    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.14, 5), mat(0x6a4a2a));
+    tip.position.set(stalk.position.x + (i - 2) * 0.03, 0.58, stalk.position.z);
+    g.add(stalk, tip);
+  }
+  g.position.set(toX(x), 0, toZ(y));
+  return g;
+}
+
+// Winding dirt path made of overlapping angled segments
+function windingPath(points, width = 1.4) {
+  const g = new THREE.Group();
+  for (let i = 0; i < points.length - 1; i++) {
+    const ax = toX(points[i][0]), az = toZ(points[i][1]);
+    const bx = toX(points[i + 1][0]), bz = toZ(points[i + 1][1]);
+    const len = Math.hypot(bx - ax, bz - az);
+    const seg = new THREE.Mesh(new THREE.PlaneGeometry(len + width * 0.5, width), mat(0xc2a875));
+    seg.rotation.x = -Math.PI / 2;
+    seg.rotation.z = -Math.atan2(bz - az, bx - ax);
+    seg.position.set((ax + bx) / 2, 0.012, (az + bz) / 2);
+    g.add(seg);
+  }
+  return g;
+}
+
 function flower(x, y, color) {
   const g = new THREE.Group();
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 5), mat(0x3a8a3a));
@@ -150,11 +247,17 @@ function buildMeadow(state) {
   ladybug.visible = false;
   group.add(ladybug);
 
-  // Scattered flowers
+  // Scattered flowers, thick like early summer
   const colors = [0xffe066, 0xff7799, 0xffffff, 0xcc88ff];
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 34; i++) {
     group.add(flower(60 + ((i * 97) % 520), 80 + ((i * 173) % 360), colors[i % colors.length]));
   }
+
+  // Rolling edges, brush, and stone
+  group.add(mound(585, 75, 45, 0.6), mound(58, 62, 38, 0.5));
+  group.add(bush(500, 105), bush(92, 330), bush(510, 430));
+  group.add(rock(450, 420, 0.8, 1.7));
+  group.add(tree(170, 62, 'round', 0.9), tree(618, 315, 'pine', 1.0));
 
   // Faithful-to-real-life engagement horse poop (easter egg)
   const poop = new THREE.Group();
@@ -171,16 +274,30 @@ function buildMeadow(state) {
 
   return {
     group,
-    obstacles: [{ x: 295, y: 150, r: 28 }, { x: 80, y: 120, r: 18 }, { x: 560, y: 380, r: 18 }],
+    obstacles: [
+      { x: 295, y: 150, r: 28 }, { x: 80, y: 120, r: 18 }, { x: 560, y: 380, r: 18 },
+      { x: 585, y: 75, r: 38 }, { x: 58, y: 62, r: 32 },
+      { x: 170, y: 62, r: 16 }, { x: 618, y: 315, r: 16 }, { x: 450, y: 420, r: 9 }
+    ],
     refs: { ladybug }
   };
 }
 
 function buildPark(state) {
+  // Prospect Park energy: the Long Meadow's rolling mounds, a pond with
+  // reeds, winding side paths, mixed trees, benches, and trail signs
   const group = new THREE.Group();
   group.add(ground(0x63a653));
 
-  // Dirt path crossing the park
+  // Lighter grass patches break up the flat green
+  for (const [px, py, r] of [[420, 180, 3.2], [180, 380, 2.6], [520, 300, 2.2]]) {
+    const patch = new THREE.Mesh(new THREE.CircleGeometry(r, 12), mat(0x6fb35d));
+    patch.rotation.x = -Math.PI / 2;
+    patch.position.set(toX(px), 0.008, toZ(py));
+    group.add(patch);
+  }
+
+  // Main crossing paths + winding spurs to the pond and the coffee shack
   const path = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 2.2), mat(0xc2a875));
   path.rotation.x = -Math.PI / 2;
   path.position.y = 0.01;
@@ -189,10 +306,45 @@ function buildPark(state) {
   pathV.rotation.x = -Math.PI / 2;
   pathV.position.y = 0.01;
   group.add(pathV);
+  group.add(windingPath([[340, 260], [420, 310], [480, 360], [520, 395]], 1.2));
+  group.add(windingPath([[250, 240], [180, 195], [125, 145]], 1.1));
 
-  group.add(bench(480, 200, Math.PI), bench(160, 330));
-  group.add(lamp(250, 180), lamp(420, 300));
-  group.add(tree(550, 100, 'round', 1.2), tree(60, 400, 'round', 1.1), tree(600, 420, 'pine', 1.0));
+  // The pond, bottom-right, ringed with reeds
+  const pond = new THREE.Mesh(new THREE.CircleGeometry(3.4, 18),
+    new THREE.MeshLambertMaterial({ color: 0x3a7ac8, transparent: true, opacity: 0.92 }));
+  pond.rotation.x = -Math.PI / 2;
+  pond.scale.y = 0.62; // squash into an ellipse (pre-rotation y = world z)
+  pond.position.set(toX(545), 0.015, toZ(415));
+  pond.name = 'pond';
+  const pondEdge = new THREE.Mesh(new THREE.RingGeometry(3.4, 3.65, 18),
+    mat(0xb8a878));
+  pondEdge.rotation.x = -Math.PI / 2;
+  pondEdge.scale.y = 0.62;
+  pondEdge.position.set(toX(545), 0.012, toZ(415));
+  group.add(pond, pondEdge);
+  group.add(reeds(478, 390), reeds(600, 375), reeds(505, 448));
+
+  // Long Meadow mounds
+  group.add(mound(520, 60, 55, 0.75), mound(55, 335, 42, 0.6));
+
+  // Benches, lamps, signs
+  group.add(bench(480, 200, Math.PI), bench(160, 330), bench(465, 425, -1.1));
+  group.add(lamp(250, 180), lamp(420, 300), lamp(150, 260));
+  group.add(signPost(345, 218, 'LONG MEADOW', 0.4), signPost(462, 340, 'THE POND', -0.5));
+
+  // Mixed trees around the edges
+  group.add(
+    tree(550, 100, 'oak', 1.4), tree(60, 400, 'round', 1.1), tree(615, 420, 'pine', 1.0),
+    tree(60, 60, 'pine', 1.1), tree(620, 180, 'round', 1.3), tree(450, 60, 'round', 1.0),
+    tree(40, 180, 'round', 0.9), tree(255, 430, 'round', 1.2), tree(620, 300, 'pine', 0.9)
+  );
+  group.add(bush(300, 100), bush(420, 150), bush(95, 380), bush(270, 330), bush(500, 180), bush(610, 250));
+  group.add(rock(380, 80, 1, 0.6), rock(60, 445, 0.8, 2.1), rock(470, 250, 0.7, 1.2));
+
+  const colors = [0xffe066, 0xff7799, 0xffffff];
+  for (let i = 0; i < 10; i++) {
+    group.add(flower(70 + ((i * 131) % 500), 100 + ((i * 211) % 320), colors[i % 3]));
+  }
 
   // Bird feeder with birdseed (pickup)
   const feeder = new THREE.Group();
@@ -212,9 +364,17 @@ function buildPark(state) {
   return {
     group,
     obstacles: [
-      { x: 550, y: 100, r: 20 }, { x: 60, y: 400, r: 18 }, { x: 600, y: 420, r: 18 },
-      { x: 480, y: 200, r: 16 }, { x: 160, y: 330, r: 16 },
-      { x: 100, y: 100, r: 26 } // coffee cart
+      // trees
+      { x: 550, y: 100, r: 22 }, { x: 60, y: 400, r: 18 }, { x: 615, y: 420, r: 18 },
+      { x: 60, y: 60, r: 18 }, { x: 620, y: 180, r: 20 }, { x: 450, y: 60, r: 18 },
+      { x: 40, y: 180, r: 16 }, { x: 255, y: 430, r: 20 }, { x: 620, y: 300, r: 16 },
+      // benches
+      { x: 480, y: 200, r: 16 }, { x: 160, y: 330, r: 16 }, { x: 465, y: 425, r: 16 },
+      // mounds, pond (three circles approximate the ellipse), rocks
+      { x: 520, y: 60, r: 48 }, { x: 55, y: 335, r: 36 },
+      { x: 545, y: 415, r: 42 }, { x: 495, y: 405, r: 26 }, { x: 600, y: 425, r: 26 },
+      { x: 380, y: 80, r: 10 }, { x: 470, y: 250, r: 9 },
+      { x: 100, y: 100, r: 26 } // coffee shack
     ],
     refs: { birdseedMesh: seeds }
   };
@@ -270,14 +430,25 @@ function buildPlayground() {
   swing.position.set(toX(420), 0, toZ(360));
   group.add(swing);
 
-  group.add(tree(60, 80, 'round', 1.0), tree(590, 420, 'round', 1.1));
+  group.add(tree(60, 80, 'round', 1.0), tree(590, 420, 'round', 1.1), tree(240, 70, 'round', 0.9));
+  group.add(bench(300, 290, Math.PI), bush(555, 200), bush(80, 300), rock(520, 80, 0.8, 0.9));
+
+  // Toys left in the sandbox
+  for (const [dx, dz, color] of [[0.4, 0.2, 0xdd4444], [-0.3, -0.3, 0x4477dd], [0.1, -0.45, 0xffcc33]]) {
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), mat(color));
+    ball.position.set(toX(450) + dx, 0.12, toZ(180) + dz);
+    ball.castShadow = true;
+    group.add(ball);
+  }
+
   addExitPads(group, 'playground');
 
   return {
     group,
     obstacles: [
       { x: 150, y: 150, r: 24 }, { x: 420, y: 360, r: 30 },
-      { x: 60, y: 80, r: 18 }, { x: 590, y: 420, r: 18 }
+      { x: 60, y: 80, r: 18 }, { x: 590, y: 420, r: 18 }, { x: 240, y: 70, r: 16 },
+      { x: 300, y: 290, r: 14 }, { x: 520, y: 80, r: 9 }
     ],
     refs: {}
   };
@@ -340,14 +511,20 @@ function buildBoathouse() {
   plaque.position.set(toX(418), 0, toZ(120));
   group.add(plaque);
 
-  group.add(tree(560, 380, 'round', 1.1), tree(60, 400, 'pine', 1.0));
+  // Reeds along the shoreline, a bench facing the water, greenery
+  group.add(reeds(200, 92), reeds(500, 90), reeds(560, 95));
+  group.add(bench(250, 190, Math.PI), lamp(500, 300));
+  group.add(tree(560, 380, 'round', 1.1), tree(60, 400, 'pine', 1.0), tree(620, 250, 'round', 1.0));
+  group.add(bush(80, 300), bush(360, 380), rock(200, 430, 0.9, 0.4));
+  group.add(signPost(280, 140, 'BOATHOUSE', 0.2));
   addExitPads(group, 'boathouse');
 
   return {
     group,
     obstacles: [
       { x: 120, y: 140, r: 34 }, { x: 440, y: 105, r: 22 },
-      { x: 560, y: 380, r: 18 }, { x: 60, y: 400, r: 18 }
+      { x: 560, y: 380, r: 18 }, { x: 60, y: 400, r: 18 }, { x: 620, y: 250, r: 16 },
+      { x: 250, y: 190, r: 14 }, { x: 200, y: 430, r: 9 }
     ],
     refs: { water }
   };
@@ -395,14 +572,19 @@ function buildGateArea(state) {
   logs.position.set(toX(300), 0, toZ(35));
   group.add(logs);
 
-  group.add(tree(80, 100, 'pine', 1.2), tree(150, 400, 'round', 1.0), tree(560, 400, 'round', 1.1));
+  group.add(tree(80, 100, 'pine', 1.2), tree(150, 400, 'round', 1.0), tree(560, 400, 'round', 1.1),
+    tree(60, 330, 'pine', 0.9));
+  group.add(bush(200, 180), bush(560, 300), bush(300, 420));
+  group.add(rock(90, 445, 0.9, 1.3), rock(250, 120, 0.7, 2.4));
+  group.add(signPost(180, 260, 'THE WOODS ↑', -0.3));
   addExitPads(group, 'gate_area');
 
   return {
     group,
     obstacles: [
       { x: 500, y: 80, r: 22 }, { x: 80, y: 100, r: 18 },
-      { x: 150, y: 400, r: 18 }, { x: 560, y: 400, r: 18 }
+      { x: 150, y: 400, r: 18 }, { x: 560, y: 400, r: 18 }, { x: 60, y: 330, r: 16 },
+      { x: 90, y: 445, r: 9 }, { x: 250, y: 120, r: 8 }
     ],
     refs: { gate, logs }
   };
@@ -438,6 +620,19 @@ function buildWoods(state) {
   }
   leaves.position.set(toX(450), 0, toZ(300));
   group.add(leaves);
+
+  // Mushrooms and mossy rocks on the forest floor
+  for (const [mx, my] of [[290, 350], [355, 225], [500, 250], [230, 260]]) {
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.12, 6), mat(0xe8e0d0));
+    stem.position.set(toX(mx), 0.06, toZ(my));
+    const capM = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xbb3333));
+    capM.position.set(toX(mx), 0.11, toZ(my));
+    capM.scale.y = 0.6;
+    group.add(stem, capM);
+  }
+  group.add(rock(280, 245, 0.8, 0.8), rock(390, 415, 1.0, 2.0));
+  obstacles.push({ x: 280, y: 245, r: 9 }, { x: 390, y: 415, r: 10 });
 
   addExitPads(group, 'woods');
   return { group, obstacles, refs: { doubloonsMesh: leaves } };

@@ -27,44 +27,90 @@ function addEyes(head, { y = 0.05, spread = 0.075, size = 0.032, forward = 0.17 
   }
 }
 
-// Face mask over the lower half of the face, with ear straps.
-function addMask(head, color, { dots = null } = {}) {
-  const mask = new THREE.Mesh(new THREE.SphereGeometry(0.145, 10, 8), mat(color));
-  mask.scale.set(0.95, 0.6, 0.56);
-  mask.position.set(0, -0.075, 0.11);
+// Face covering that hugs the head: a spherical shell over the lower face
+// (radius just past the head's), wrapping toward the ears, with visible
+// straps. kerchief: true turns it into a bandana with a hanging point.
+function addMask(head, color, { dots = null, kerchief = false } = {}) {
+  // phi (around y) is centered on +z (the face); theta runs from just
+  // under the nose to the chin — mouth and nose covered, face visible
+  const mask = new THREE.Mesh(
+    new THREE.SphereGeometry(0.212, 18, 10,
+      Math.PI / 2 - 0.8, 1.6, // partway toward the ears
+      1.52, 0.72),
+    new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
   head.add(mask);
 
-  // Straps back to the ears
+  // Straps: thicker, running from the mask edge back over the ears
   for (const side of [-1, 1]) {
-    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 4), mat(color));
-    strap.position.set(side * 0.185, -0.03, 0.02);
-    strap.rotation.set(1.35, 0, side * 0.35);
+    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.16, 5), mat(color));
+    strap.position.set(side * 0.19, -0.04, -0.01);
+    strap.rotation.set(1.4, 0, side * 0.5);
     head.add(strap);
   }
 
-  // Polka dots (the girl's ladybug-style mask)
+  // Polka dots sitting on the shell (the girl's ladybug-style mask)
   if (dots) {
-    const dotGeo = new THREE.SphereGeometry(0.009, 5, 4);
-    for (const [dx, dy] of [[-0.055, -0.06], [0, -0.05], [0.055, -0.06], [-0.028, -0.1], [0.028, -0.1]]) {
-      const dot = new THREE.Mesh(dotGeo, mat(dots));
-      dot.position.set(dx, dy, 0.19);
-      head.add(dot);
+    const dotGeo = new THREE.SphereGeometry(0.011, 5, 4);
+    const pos = new THREE.Vector3();
+    for (const [polar, azimuths] of [
+      [1.64, [-0.5, -0.17, 0.17, 0.5]],
+      [1.85, [-0.33, 0, 0.33]],
+      [2.05, [-0.4, -0.13, 0.13, 0.4]]
+    ]) {
+      for (const az of azimuths) {
+        const dot = new THREE.Mesh(dotGeo, mat(dots));
+        pos.setFromSphericalCoords(0.216, polar, az);
+        dot.position.copy(pos);
+        head.add(dot);
+      }
     }
   }
+
+  // Bandana: hanging point below the shell
+  if (kerchief) {
+    const point = new THREE.Mesh(new THREE.ConeGeometry(0.115, 0.18, 4),
+      new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
+    point.position.set(0, -0.2, 0.1);
+    point.rotation.set(Math.PI, Math.PI / 4, 0); // apex down
+    point.scale.z = 0.5;
+    head.add(point);
+  }
   return mask;
+}
+
+// Red-and-cream gingham (picnic check) canvas texture for the girl's dress
+function ginghamTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  x.fillStyle = '#f6f1e7';
+  x.fillRect(0, 0, 64, 64);
+  x.fillStyle = 'rgba(204, 34, 34, 0.55)';
+  for (let i = 0; i < 64; i += 16) {
+    x.fillRect(i, 0, 8, 64);
+    x.fillRect(0, i, 64, 8);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(4, 3);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 // --- Shared humanoid rig ------------------------------------------------
 
 function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
-                          legs = 0x2c5aa0, shoes = 0x654321, hair = 0x442200,
-                          dress = false, scale = 1 } = {}) {
+                          torsoMap = null, legs = 0x2c5aa0, shoes = 0x654321,
+                          hair = 0x442200, dress = false, scale = 1 } = {}) {
   const g = new THREE.Group();
   const parts = {};
   const armColor = sleeves ?? torso;
+  const torsoMat = torsoMap
+    ? new THREE.MeshLambertMaterial({ map: torsoMap })
+    : mat(torso);
 
   if (dress) {
-    const dressMesh = shadow(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.78, 8), mat(torso)));
+    const dressMesh = shadow(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.78, 8), torsoMat));
     dressMesh.position.y = 0.5;
     g.add(dressMesh);
     parts.torso = dressMesh;
@@ -82,22 +128,25 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
       shoe.position.set(side * 0.11, 0.045, 0.04);
       g.add(shoe);
     }
-    const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), mat(torso)));
+    const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), torsoMat));
     body.position.y = 0.64;
     g.add(body);
     parts.torso = body;
   }
 
+  // Arms pivot from the shoulder, hanging down and slightly outward, with
+  // the hand at the end — pose by rotating parts.armL/armR
   for (const side of [-1, 1]) {
-    const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.4, 6), mat(armColor)));
-    arm.position.set(side * (dress ? 0.24 : 0.27), 0.68, 0);
-    arm.rotation.z = side * -0.22;
-    g.add(arm);
-    parts[side === -1 ? 'armL' : 'armR'] = arm;
+    const shoulder = new THREE.Group();
+    shoulder.position.set(side * (dress ? 0.2 : 0.24), dress ? 0.78 : 0.85, 0);
+    const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.38, 6), mat(armColor)));
+    arm.position.y = -0.18;
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), mat(skin));
-    hand.position.set(side * (dress ? 0.29 : 0.32), 0.47, 0);
-    g.add(hand);
-    parts[side === -1 ? 'handL' : 'handR'] = hand;
+    hand.position.y = -0.4;
+    shoulder.add(arm, hand);
+    shoulder.rotation.z = side * 0.3; // hang outward
+    g.add(shoulder);
+    parts[side === -1 ? 'armL' : 'armR'] = shoulder;
   }
 
   const head = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 9), mat(skin)));
@@ -122,14 +171,15 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
 // --- The couple ----------------------------------------------------------
 
 export function buildGirl() {
-  // drawPlayer palette: pink dress #ff69b4, lighter #ff8dc7 sleeves, brown
-  // hair, blue leggings, crimson mask with white dots
+  // Red gingham picnic dress with cream sleeves, brown hair, blue
+  // leggings, and her sprite's crimson mask with white dots
   const g = buildHumanoid({
-    torso: 0xff69b4, sleeves: 0xff8dc7, hair: 0x8b4513, dress: true, shoes: 0x654321
+    torsoMap: ginghamTexture(), sleeves: 0xf6f1e7, hair: 0x8b4513,
+    dress: true, shoes: 0x654321
   });
   const { head } = g.userData.parts;
 
-  const hem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.345, 0.09, 8), mat(0xff8dc7));
+  const hem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.345, 0.09, 8), mat(0xcc2222));
   hem.position.y = 0.18;
   g.add(hem);
 
@@ -162,14 +212,17 @@ export function buildBoy() {
   });
   const { head } = g.userData.parts;
 
-  // Tie-dye mask: violet base with pink and blue swirl patches
-  addMask(head, 0x7b68ee);
+  // Tie-dye bandana (his sprite's covering is a bandana, not an ear-loop
+  // mask): violet with pink and blue swirl patches and a hanging point
+  addMask(head, 0x7b68ee, { kerchief: true });
   const patchGeo = new THREE.SphereGeometry(0.026, 6, 5);
-  for (const [dx, dy, color] of [[-0.05, -0.06, 0xff1493], [0.048, -0.07, 0x4169e1],
-                                  [0, -0.105, 0x9370db], [0.015, -0.04, 0xff1493]]) {
+  const patchPos = new THREE.Vector3();
+  for (const [polar, az, color] of [[1.68, -0.4, 0xff1493], [1.78, 0.38, 0x4169e1],
+                                     [2.0, 0, 0x9370db], [1.62, 0.1, 0xff1493]]) {
     const patch = new THREE.Mesh(patchGeo, mat(color));
     patch.scale.z = 0.4;
-    patch.position.set(dx, dy, 0.185);
+    patchPos.setFromSphericalCoords(0.214, polar, az);
+    patch.position.copy(patchPos);
     head.add(patch);
   }
   return g;
@@ -195,13 +248,16 @@ export function buildFisherman() {
   crown.position.y = 0.22;
   head.add(brim, crown);
 
+  // Right arm raised holding the rod
+  const { armR } = g.userData.parts;
+  armR.rotation.set(-0.85, 0, 0.25);
   const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 1.5, 5), mat(0x8b4513));
-  rod.position.set(0.42, 1.0, 0.25);
+  rod.position.set(0.42, 0.95, 0.4);
   rod.rotation.set(0.5, 0, -0.5);
   const line = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.7, 3), mat(0xdddddd));
-  line.position.set(0.68, 1.15, 0.75);
+  line.position.set(0.68, 1.1, 0.9);
   const bobber = new THREE.Mesh(new THREE.SphereGeometry(0.045, 7, 5), mat(0xff6347));
-  bobber.position.set(0.68, 0.8, 0.75);
+  bobber.position.set(0.68, 0.75, 0.9);
   g.add(rod, line, bobber);
   return g;
 }
@@ -232,22 +288,21 @@ export function buildHippie() {
     head.add(lens);
   }
 
-  // Bandana: masked upper part + hanging triangle
-  addMask(head, 0xff6347);
-  const kerchief = new THREE.Mesh(new THREE.ConeGeometry(0.115, 0.18, 4), mat(0xff6347));
-  kerchief.position.set(0, -0.2, 0.1);
-  kerchief.rotation.set(Math.PI, Math.PI / 4, 0); // apex down — hanging point
-  kerchief.scale.z = 0.5;
-  head.add(kerchief);
+  // Red-orange bandana matching the headband
+  addMask(head, 0xff6347, { kerchief: true });
 
-  const book = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.32), mat(0xf5f0dc));
-  book.position.set(-0.32, 0.5, 0.12);
-  book.rotation.z = 0.3;
-  const cover = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.015, 0.33), mat(0x8b5a2b));
-  cover.position.set(-0.33, 0.48, 0.12);
-  cover.rotation.z = 0.3;
+  // Arms forward, holding the sketchbook in front
+  const { armL, armR } = g.userData.parts;
+  armL.rotation.set(-1.05, 0, -0.1);
+  armR.rotation.set(-1.05, 0, 0.1);
+  const book = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.03, 0.34), mat(0xf5f0dc));
+  book.position.set(0, 0.64, 0.36);
+  book.rotation.x = 0.3;
+  const cover = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.015, 0.35), mat(0x8b5a2b));
+  cover.position.set(0, 0.615, 0.365);
+  cover.rotation.x = 0.3;
   const pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18, 5), mat(0xffc832));
-  pencil.position.set(0.32, 0.5, 0.1);
+  pencil.position.set(0.22, 0.68, 0.36);
   pencil.rotation.x = 0.9;
   g.add(book, cover, pencil);
   return g;
@@ -257,14 +312,11 @@ export function buildKid() {
   // Orange tee, backwards cap, jeans, arms up — light blue disposable
   // mask, slightly askew (kid energy)
   const g = buildHumanoid({ torso: 0xffa500, legs: 0x4169e1, shoes: 0x654321, hair: 0x654321, scale: 0.65 });
-  const { head, armL, armR, handL, handR } = g.userData.parts;
+  const { head, armL, armR } = g.userData.parts;
 
-  armL.rotation.z = 2.5;
-  armL.position.y = 0.82;
-  armR.rotation.z = -2.5;
-  armR.position.y = 0.82;
-  handL.position.y = 1.0;
-  handR.position.y = 1.0;
+  // Arms thrown up (rotate the shoulder pivots past horizontal)
+  armL.rotation.z = -2.5;
+  armR.rotation.z = 2.5;
 
   const crown = shadow(new THREE.Mesh(
     new THREE.SphereGeometry(0.215, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.45), mat(0xff8c00)));
@@ -302,10 +354,13 @@ export function buildParent() {
 
   addMask(head, 0xf5f0e6);
 
+  // Right arm bent forward, coffee at the hand
+  const { armR } = g.userData.parts;
+  armR.rotation.set(-1.15, 0, 0.1);
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.038, 0.1, 8), mat(0xf5f0e6));
-  cup.position.set(0.32, 0.52, 0.08);
+  cup.position.set(0.27, 0.73, 0.37);
   const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.02, 8), mat(0x8b4513));
-  lid.position.set(0.32, 0.58, 0.08);
+  lid.position.set(0.27, 0.79, 0.37);
   g.add(cup, lid);
   return g;
 }

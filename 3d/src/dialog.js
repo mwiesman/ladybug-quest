@@ -6,6 +6,7 @@ import { state, inventory, MODE } from './state.js';
 import { showItemNotification } from './hud.js';
 import { playSFX } from '../../src/systems/audio.js';
 import { saveGame } from './save.js';
+import { initPortraits, renderPortrait } from './portrait.js';
 
 const dialogBox = document.getElementById('dialogBox');
 const dialogText = document.getElementById('dialogText');
@@ -14,17 +15,13 @@ const dialogPortrait = document.getElementById('dialogPortrait');
 const dialogPromptHint = document.getElementById('dialogPromptHint');
 const tradeButtonsEl = document.getElementById('tradeButtons');
 
-const PORTRAITS = {
-  girl: '👧', boy: '👦', dog: '🐕', bird: '🐦', squirrel: '🐿️',
-  fisherman: '🎣', hippie: '✌️', kid: '🧒', parent: '👩', coffeeCart: '☕',
-  ladybug: '🐞'
-};
-
 const NAMES = {
   girl: 'You', boy: 'Boy', dog: 'Dog', bird: 'Bird', squirrel: 'Squirrel',
-  fisherman: 'Fisherman', hippie: 'Hippie', kid: 'Kid', parent: 'Mother',
+  fisherman: 'Fisherman', hippie: 'Hippie', kid: 'Kid', parent: 'Parent',
   coffeeCart: 'Coffee Shack', ladybug: 'Ladybug'
 };
+
+initPortraits(dialogPortrait);
 
 export function showDialog(npc) {
   if (!npc.isStatic) {
@@ -203,7 +200,7 @@ function resolveSpeaker(npc) {
 }
 
 function setPortrait(speaker) {
-  dialogPortrait.textContent = PORTRAITS[speaker] ?? '🐞';
+  renderPortrait(speaker);
   dialogSpeaker.textContent = NAMES[speaker] ?? '';
 }
 

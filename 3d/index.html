@@ -40,10 +40,13 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
     }
     #dialogBox.active { display: flex; gap: 16px; align-items: flex-start; }
+    /* Hades-style portrait: the speaker's illustrated bust rises out of
+       the top of the dialog box */
     #dialogPortrait {
-      font-size: 40px; line-height: 1; width: 58px; height: 58px; flex: none;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.08); border-radius: 10px;
+      width: 128px; height: 164px; flex: none; margin-top: -80px;
+      border-radius: 12px; border: 2px solid rgba(255,255,255,0.45);
+      background: #f0e6cf;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.5);
     }
     #dialogContent { flex: 1; min-width: 0; }
     #dialogSpeaker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #ffb3c1; margin-bottom: 6px; }
@@ -124,7 +127,7 @@
     <div id="controlsHint" class="overlay">WASD / Arrows — move · SPACE — interact · I — inventory</div>
 
     <div id="dialogBox" class="overlay">
-      <div id="dialogPortrait">🐞</div>
+      <canvas id="dialogPortrait" width="256" height="328"></canvas>
       <div id="dialogContent">
         <div id="dialogSpeaker"></div>
         <div id="dialogText"></div>
