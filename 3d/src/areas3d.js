@@ -236,7 +236,7 @@ function fenceSegment(x1, y1, x2, y2) {
 
 function buildMeadow(state) {
   const group = new THREE.Group();
-  group.add(ground(0x5faa4f));
+  group.add(ground(0x679a55));
 
   // The big old oak tree — heart of the story
   group.add(tree(295, 150, 'oak', 1.8));
@@ -287,7 +287,7 @@ function buildPark(state) {
   // Prospect Park energy: the Long Meadow's rolling mounds, a pond with
   // reeds, winding side paths, mixed trees, benches, and trail signs
   const group = new THREE.Group();
-  group.add(ground(0x63a653));
+  group.add(ground(0x6a9c5c));
 
   // Lighter grass patches break up the flat green
   for (const [px, py, r] of [[420, 180, 3.2], [180, 380, 2.6], [520, 300, 2.2]]) {
@@ -297,17 +297,15 @@ function buildPark(state) {
     group.add(patch);
   }
 
-  // Main crossing paths + winding spurs to the pond and the coffee shack
-  const path = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 2.2), mat(0xc2a875));
-  path.rotation.x = -Math.PI / 2;
-  path.position.y = 0.01;
-  group.add(path);
-  const pathV = new THREE.Mesh(new THREE.PlaneGeometry(2.2, HALF_D * 2), mat(0xc2a875));
-  pathV.rotation.x = -Math.PI / 2;
-  pathV.position.y = 0.01;
-  group.add(pathV);
+  // Winding park paths (no straight Union Jack lines): a meandering
+  // east–west walk, a wandering north–south one, and spurs to the pond
+  // and the coffee shack
+  group.add(windingPath(
+    [[0, 240], [90, 258], [180, 232], [270, 250], [340, 242], [430, 262], [530, 238], [640, 244]], 2.0));
+  group.add(windingPath(
+    [[320, 0], [302, 80], [332, 160], [318, 245], [296, 330], [322, 410], [320, 480]], 1.8));
   group.add(windingPath([[340, 260], [420, 310], [480, 360], [520, 395]], 1.2));
-  group.add(windingPath([[250, 240], [180, 195], [125, 145]], 1.1));
+  group.add(windingPath([[250, 245], [180, 195], [125, 145]], 1.1));
 
   // The pond, bottom-right, ringed with reeds
   const pond = new THREE.Mesh(new THREE.CircleGeometry(3.4, 18),
@@ -382,7 +380,7 @@ function buildPark(state) {
 
 function buildPlayground() {
   const group = new THREE.Group();
-  group.add(ground(0x6fae5c));
+  group.add(ground(0x71a061));
 
   // Sandbox
   const sand = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.08, 16), mat(0xe0cc90));
@@ -456,7 +454,7 @@ function buildPlayground() {
 
 function buildBoathouse() {
   const group = new THREE.Group();
-  group.add(ground(0x6aa858));
+  group.add(ground(0x6c9c5e));
 
   // Water along the top edge (y < 80)
   const water = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 80 * WORLD_SCALE * 2),
@@ -532,7 +530,7 @@ function buildBoathouse() {
 
 function buildGateArea(state) {
   const group = new THREE.Group();
-  group.add(ground(0x5a9a4a));
+  group.add(ground(0x639252));
 
   // Fenced corner (x > 380, y < 215) with the acorn tree inside.
   // Vertical run along x=380, horizontal run along y=215 with a gate at x~400-440.
@@ -592,7 +590,7 @@ function buildGateArea(state) {
 
 function buildWoods(state) {
   const group = new THREE.Group();
-  group.add(ground(0x3a6a34));
+  group.add(ground(0x45703f));
 
   // Dense trees — leave a wandering path clear
   const clearings = [

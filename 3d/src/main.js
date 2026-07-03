@@ -26,9 +26,12 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('app').prepend(renderer.domElement);
 
+// A partly cloudy day in the park: soft blue sky, gentle distance haze
+// (not fog), drifting clouds — with the low-poly warmth of Phoebe
+// Bridgers' "Lost Boys" game/video
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9fd4f0);
-scene.fog = new THREE.Fog(0x9fd4f0, 22, 48);
+scene.background = new THREE.Color(0xa4cbe4);
+scene.fog = new THREE.Fog(0xbcd4de, 26, 62);
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 8, 12);
@@ -40,7 +43,7 @@ window.addEventListener('resize', () => {
 });
 
 // Lighting: warm sun + soft sky fill
-const sun = new THREE.DirectionalLight(0xfff2dd, 2.2);
+const sun = new THREE.DirectionalLight(0xffe9c8, 1.9);
 sun.position.set(10, 16, 6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -49,7 +52,30 @@ sun.shadow.camera.right = 20;
 sun.shadow.camera.top = 20;
 sun.shadow.camera.bottom = -20;
 scene.add(sun);
-scene.add(new THREE.HemisphereLight(0xbde4ff, 0x4a7a3a, 1.1));
+scene.add(new THREE.HemisphereLight(0xc4d8dc, 0x55704a, 1.0));
+
+// Puffy clouds drifting overhead
+const clouds = [];
+{
+  const cloudMat = new THREE.MeshLambertMaterial({ color: 0xf7f9fa });
+  let seed = 13;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 7; i++) {
+    const cloud = new THREE.Group();
+    const puffs = 3 + Math.floor(rand() * 3);
+    for (let p = 0; p < puffs; p++) {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(1.2 + rand() * 1.4, 8, 6), cloudMat);
+      puff.position.set(p * 1.6 - puffs * 0.8 + rand(), rand() * 0.5, (rand() - 0.5) * 1.5);
+      puff.scale.y = 0.55;
+      puff.castShadow = true; // soft cloud shadows drifting over the grass
+      cloud.add(puff);
+    }
+    cloud.position.set(-30 + rand() * 60, 11 + rand() * 5, -28 + rand() * 34);
+    cloud.userData.speed = 0.12 + rand() * 0.18;
+    scene.add(cloud);
+    clouds.push(cloud);
+  }
+}
 
 // --- World -------------------------------------------------------------
 
@@ -188,6 +214,12 @@ let gateOpenT = 0;
 
 function updateWorldVisuals(dt) {
   const t = state.elapsed;
+
+  // Clouds drift east, wrapping around
+  for (const cloud of clouds) {
+    cloud.position.x += cloud.userData.speed * dt;
+    if (cloud.position.x > 34) cloud.position.x = -34;
+  }
 
   // Bird: flies a sine path until talked to, wings flap
   const birdMesh = npcMeshes.bird;

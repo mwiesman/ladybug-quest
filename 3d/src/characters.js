@@ -31,20 +31,20 @@ function addEyes(head, { y = 0.05, spread = 0.075, size = 0.032, forward = 0.17 
 // (radius just past the head's), wrapping toward the ears, with visible
 // straps. kerchief: true turns it into a bandana with a hanging point.
 function addMask(head, color, { dots = null, kerchief = false } = {}) {
-  // phi (around y) is centered on +z (the face); theta runs from just
-  // under the nose to the chin — mouth and nose covered, face visible
+  // phi (around y) is centered on +z (the face); theta runs from the nose
+  // down to the chin — eyes, forehead, and the sides of the face all show
   const mask = new THREE.Mesh(
     new THREE.SphereGeometry(0.212, 18, 10,
-      Math.PI / 2 - 0.8, 1.6, // partway toward the ears
-      1.52, 0.72),
+      Math.PI / 2 - 0.58, 1.16, // front of the face only
+      1.58, 0.66),
     new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
   head.add(mask);
 
-  // Straps: thicker, running from the mask edge back over the ears
+  // Straps from the mask edge back over the ears
   for (const side of [-1, 1]) {
-    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.16, 5), mat(color));
-    strap.position.set(side * 0.19, -0.04, -0.01);
-    strap.rotation.set(1.4, 0, side * 0.5);
+    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.15, 5), mat(color));
+    strap.position.set(side * 0.185, -0.06, 0.0);
+    strap.rotation.set(1.45, 0, side * 0.55);
     head.add(strap);
   }
 
@@ -53,9 +53,9 @@ function addMask(head, color, { dots = null, kerchief = false } = {}) {
     const dotGeo = new THREE.SphereGeometry(0.011, 5, 4);
     const pos = new THREE.Vector3();
     for (const [polar, azimuths] of [
-      [1.64, [-0.5, -0.17, 0.17, 0.5]],
-      [1.85, [-0.33, 0, 0.33]],
-      [2.05, [-0.4, -0.13, 0.13, 0.4]]
+      [1.7, [-0.38, -0.13, 0.13, 0.38]],
+      [1.88, [-0.25, 0, 0.25]],
+      [2.06, [-0.3, -0.1, 0.1, 0.3]]
     ]) {
       for (const az of azimuths) {
         const dot = new THREE.Mesh(dotGeo, mat(dots));
@@ -66,13 +66,13 @@ function addMask(head, color, { dots = null, kerchief = false } = {}) {
     }
   }
 
-  // Bandana: hanging point below the shell
+  // Bandana: a small draped point tucked under the chin
   if (kerchief) {
-    const point = new THREE.Mesh(new THREE.ConeGeometry(0.115, 0.18, 4),
+    const point = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.12, 4),
       new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
-    point.position.set(0, -0.2, 0.1);
+    point.position.set(0, -0.185, 0.09);
     point.rotation.set(Math.PI, Math.PI / 4, 0); // apex down
-    point.scale.z = 0.5;
+    point.scale.z = 0.45;
     head.add(point);
   }
   return mask;
@@ -112,7 +112,10 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
   if (dress) {
     const dressMesh = shadow(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.78, 8), torsoMat));
     dressMesh.position.y = 0.5;
-    g.add(dressMesh);
+    // Small bodice at the top of the cone so the shoulders/arms connect
+    const bodice = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.15, 0.22, 8), torsoMat));
+    bodice.position.y = 0.8;
+    g.add(dressMesh, bodice);
     parts.torso = dressMesh;
     for (const side of [-1, 1]) {
       const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.08, 0.16), mat(shoes));
@@ -138,7 +141,7 @@ function buildHumanoid({ skin = 0xffd1a3, torso = 0x4477cc, sleeves = null,
   // the hand at the end — pose by rotating parts.armL/armR
   for (const side of [-1, 1]) {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * (dress ? 0.2 : 0.24), dress ? 0.78 : 0.85, 0);
+    shoulder.position.set(side * (dress ? 0.16 : 0.22), dress ? 0.86 : 0.85, 0);
     const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.38, 6), mat(armColor)));
     arm.position.y = -0.18;
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), mat(skin));
@@ -212,13 +215,12 @@ export function buildBoy() {
   });
   const { head } = g.userData.parts;
 
-  // Tie-dye bandana (his sprite's covering is a bandana, not an ear-loop
-  // mask): violet with pink and blue swirl patches and a hanging point
-  addMask(head, 0x7b68ee, { kerchief: true });
+  // Fitted tie-dye mask: violet with pink and blue swirl patches
+  addMask(head, 0x7b68ee);
   const patchGeo = new THREE.SphereGeometry(0.026, 6, 5);
   const patchPos = new THREE.Vector3();
-  for (const [polar, az, color] of [[1.68, -0.4, 0xff1493], [1.78, 0.38, 0x4169e1],
-                                     [2.0, 0, 0x9370db], [1.62, 0.1, 0xff1493]]) {
+  for (const [polar, az, color] of [[1.74, -0.3, 0xff1493], [1.84, 0.28, 0x4169e1],
+                                     [2.02, 0, 0x9370db], [1.68, 0.08, 0xff1493]]) {
     const patch = new THREE.Mesh(patchGeo, mat(color));
     patch.scale.z = 0.4;
     patchPos.setFromSphericalCoords(0.214, polar, az);
