@@ -1,12 +1,13 @@
-// Dialog portraits — hand-drawn, Hades-style. Each character is a 2D
-// canvas illustration: cartoonish human proportions, bold ink lines, cel
-// shading, a colored glow behind the figure, hatching and a vignette on
-// warm paper. All drawn in code; no image assets.
+// Dialog portraits — anime-styled, Hades / JoJo direction: angular faces
+// with real jawlines, almond eyes under heavy lids, short strong necks,
+// asymmetric leaning poses, hard cel shadows, spiky hair shapes, and a rim
+// light — over a colored glow with hatching and vignette on warm paper.
+// All drawn in canvas code; no image assets.
 
 const W = 340;
 const H = 520;
-const INK = '#33241a';
-const PAPER = '#f0e6cf';
+const INK = '#2b1f16';
+const PAPER = '#efe4cb';
 
 let boundCtx = null;
 
@@ -50,22 +51,30 @@ function line(ctx, width, pathFn) {
   ctx.stroke();
 }
 
+function stroke(ctx, color, width, pathFn) {
+  ctx.beginPath();
+  pathFn(ctx);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
 function backdrop(ctx, accent) {
   ctx.fillStyle = PAPER;
   ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createRadialGradient(W / 2, H * 0.38, 30, W / 2, H * 0.45, H * 0.55);
+  const glow = ctx.createRadialGradient(W / 2, H * 0.36, 30, W / 2, H * 0.44, H * 0.58);
   glow.addColorStop(0, accent);
   glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.globalAlpha = 0.4;
+  ctx.globalAlpha = 0.45;
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
   ctx.globalAlpha = 1;
 }
 
 function finish(ctx) {
-  // Sketch hatching + vignette
   ctx.save();
-  ctx.strokeStyle = 'rgba(70, 52, 38, 0.06)';
+  ctx.strokeStyle = 'rgba(70, 52, 38, 0.055)';
   ctx.lineWidth = 2;
   for (let i = -H; i < W; i += 12) {
     ctx.beginPath();
@@ -73,476 +82,643 @@ function finish(ctx) {
     ctx.lineTo(i + H, H);
     ctx.stroke();
   }
-  const vig = ctx.createRadialGradient(W / 2, H * 0.42, H * 0.3, W / 2, H * 0.5, H * 0.75);
+  const vig = ctx.createRadialGradient(W / 2, H * 0.42, H * 0.3, W / 2, H * 0.5, H * 0.78);
   vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(58, 42, 28, 0.3)');
+  vig.addColorStop(1, 'rgba(50, 36, 24, 0.34)');
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
 }
 
-// Soft cel shadow down the right side of the face
-function faceShade(ctx, cx, cy, rx, ry) {
+// The whole figure drawn inside a leaning frame — Hades poses tilt
+function withLean(ctx, lean, fn) {
   ctx.save();
-  ctx.beginPath();
-  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.fillStyle = 'rgba(120, 80, 50, 0.16)';
-  ctx.beginPath();
-  ctx.ellipse(cx + rx * 0.62, cy, rx * 0.65, ry * 1.05, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.translate(W / 2, H * 0.6);
+  ctx.rotate(lean);
+  ctx.translate(-W / 2, -H * 0.6);
+  fn();
   ctx.restore();
 }
 
-// Big cartoon eyes with brows. mood: 'open' | 'happy' | 'calm'
-function eyes(ctx, cx, cy, { iris = '#5a3a1a', spread = 30, size = 1, mood = 'open',
-                              lashes = false, browY = -32, browTilt = 0 } = {}) {
-  for (const side of [-1, 1]) {
-    const ex = cx + side * spread;
-    if (mood === 'happy') {
-      // Closed happy arcs
-      line(ctx, 5, (c) => c.arc(ex, cy + 2, 13 * size, Math.PI * 1.15, Math.PI * 1.85));
-    } else {
-      shape(ctx, '#fdfaf2', 4, (c) => c.ellipse(ex, cy, 13 * size, 16 * size, 0, 0, Math.PI * 2));
-      ctx.fillStyle = iris;
-      ctx.beginPath();
-      ctx.ellipse(ex + 2, cy + 2, 7.5 * size, 9 * size, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = INK;
-      ctx.beginPath();
-      ctx.ellipse(ex + 2, cy + 2, 3.6 * size, 4.4 * size, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(ex - 2, cy - 3, 3 * size, 0, Math.PI * 2);
-      ctx.fill();
-      // Upper lid
-      line(ctx, 4, (c) => c.arc(ex, cy - 1, 13.5 * size, Math.PI * 1.1, Math.PI * 1.9));
-      if (lashes) {
-        line(ctx, 3, (c) => {
-          c.moveTo(ex + side * 12 * size, cy - 8 * size);
-          c.lineTo(ex + side * 19 * size, cy - 12 * size);
-        });
-      }
-    }
-    // Brow
-    line(ctx, 6, (c) => c.arc(ex + side * 2, cy + browY + 18, 16,
-      Math.PI * (1.2 + side * browTilt), Math.PI * (1.8 + side * browTilt)));
-  }
+// ------------------------------------------------------------ anime rig
+
+// Angular head with jawline and squared chin; slight 3/4 asymmetry.
+// Returns the path fn so masks/shadows can reuse it.
+function headPath(m) {
+  const { cx, cy, hw } = m;
+  return (c) => {
+    c.moveTo(cx - hw, cy - 6);
+    c.quadraticCurveTo(cx - hw - 6, cy - 74, cx - 16, cy - 84);
+    c.quadraticCurveTo(cx + hw - 10, cy - 90, cx + hw - 2, cy - 26);
+    c.quadraticCurveTo(cx + hw + 3, cy + 26, cx + 36, cy + 64);
+    c.quadraticCurveTo(cx + 20, cy + 84, cx - 2, cy + 86);
+    c.lineTo(cx - 16, cy + 82);
+    c.quadraticCurveTo(cx - hw + 2, cy + 48, cx - hw, cy - 6);
+    c.closePath();
+  };
 }
 
-// Face mask: sits across the lower half of the face with straps and folds
-function faceMask(ctx, cx, cy, faceRx, { color, pattern = null, crooked = 0, bandana = false } = {}) {
-  const top = cy + 8;
-  const bottom = cy + faceRx * 1.06;
-  ctx.save();
-  ctx.translate(cx, (top + bottom) / 2);
-  ctx.rotate(crooked);
-  ctx.translate(-cx, -(top + bottom) / 2);
+// Short strong neck + sloped shoulders/torso, one shoulder raised
+function animeBody(ctx, m, { skin, torso, sleeves = null, shoulderTilt = 8 }) {
+  const { cx } = m;
+  const chinY = m.cy + 84;
+  const shY = chinY + 62;
 
-  shape(ctx, color, 5, (c) => {
-    c.moveTo(cx - faceRx * 0.92, top);
-    c.quadraticCurveTo(cx, top + 14, cx + faceRx * 0.92, top);
-    c.quadraticCurveTo(cx + faceRx * 0.98, bottom - 26, cx, bottom);
-    c.quadraticCurveTo(cx - faceRx * 0.98, bottom - 26, cx - faceRx * 0.92, top);
+  // Neck first — the torso covers its flare so no stray lines cross the shirt
+  shape(ctx, skin, 5, (c) => {
+    c.moveTo(cx - 24, chinY - 14);
+    c.quadraticCurveTo(cx - 26, chinY + 26, cx - 38, shY - 12 - shoulderTilt);
+    c.lineTo(cx + 38, shY - 12 + shoulderTilt);
+    c.quadraticCurveTo(cx + 26, chinY + 26, cx + 24, chinY - 14);
     c.closePath();
   });
+  // Neck shadow under the jaw
+  ctx.fillStyle = 'rgba(110, 70, 45, 0.22)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 22, chinY - 12);
+  ctx.quadraticCurveTo(cx, chinY + 4, cx + 22, chinY - 12);
+  ctx.quadraticCurveTo(cx, chinY + 20, cx - 22, chinY - 12);
+  ctx.fill();
 
-  // Bandana hangs to a point below the chin
-  if (bandana) {
-    shape(ctx, color, 5, (c) => {
-      c.moveTo(cx - faceRx * 0.6, bottom - 18);
-      c.lineTo(cx, bottom + 34);
-      c.lineTo(cx + faceRx * 0.6, bottom - 18);
-    });
-  }
-
-  // Fold lines
-  ctx.globalAlpha = 0.35;
-  line(ctx, 3, (c) => c.moveTo(cx - faceRx * 0.6, top + 22) ||
-    c.quadraticCurveTo(cx, top + 32, cx + faceRx * 0.6, top + 22));
-  line(ctx, 3, (c) => c.moveTo(cx - faceRx * 0.55, top + 44) ||
-    c.quadraticCurveTo(cx, top + 54, cx + faceRx * 0.55, top + 44));
-  ctx.globalAlpha = 1;
-
-  if (pattern) pattern(ctx, cx, (top + bottom) / 2, faceRx);
-  ctx.restore();
-
-  // Straps to the ears
-  for (const side of [-1, 1]) {
-    line(ctx, 4, (c) => {
-      c.moveTo(cx + side * faceRx * 0.9, top + 4);
-      c.quadraticCurveTo(cx + side * (faceRx + 14), top - 6, cx + side * (faceRx + 8), top - 22);
-    });
-  }
-}
-
-// A human bust: torso, neck, head, ears. Returns face metrics.
-function bust(ctx, { skin, torso, sleeves = null, collar = null }) {
-  const cx = W / 2;
-  const headCy = 190;
-  const faceRx = 64;
-  const faceRy = 74;
-  const shoulderY = 330;
-
-  // Torso (waist-up, cropped by the frame)
+  // Torso, cropped by the frame; shoulders angled
   shape(ctx, torso, 6, (c) => {
-    c.moveTo(cx - 118, H + 10);
-    c.lineTo(cx - 112, shoulderY + 26);
-    c.quadraticCurveTo(cx - 104, shoulderY - 22, cx - 46, shoulderY - 30);
-    c.lineTo(cx + 46, shoulderY - 30);
-    c.quadraticCurveTo(cx + 104, shoulderY - 22, cx + 112, shoulderY + 26);
-    c.lineTo(cx + 118, H + 10);
+    c.moveTo(cx - 128, H + 20);
+    c.lineTo(cx - 120, shY + 30 - shoulderTilt);
+    c.quadraticCurveTo(cx - 110, shY - 14 - shoulderTilt, cx - 46, shY - 22 - shoulderTilt);
+    c.lineTo(cx + 46, shY - 22 + shoulderTilt);
+    c.quadraticCurveTo(cx + 110, shY - 14 + shoulderTilt, cx + 120, shY + 30 + shoulderTilt);
+    c.lineTo(cx + 128, H + 20);
   });
-  // Sleeve seams
+  // Soft fold hints at the shoulders
+  ctx.globalAlpha = 0.22;
+  line(ctx, 3, (c) => {
+    c.moveTo(cx - 78, shY + 26 - shoulderTilt);
+    c.lineTo(cx - 62, shY + 74);
+  });
+  line(ctx, 3, (c) => {
+    c.moveTo(cx + 74, shY + 22 + shoulderTilt);
+    c.lineTo(cx + 60, shY + 66);
+  });
+  ctx.globalAlpha = 1;
   if (sleeves) {
     for (const side of [-1, 1]) {
+      const st = side * shoulderTilt;
       shape(ctx, sleeves, 5, (c) => {
-        c.moveTo(cx + side * 112, shoulderY + 30);
-        c.quadraticCurveTo(cx + side * 106, shoulderY - 18, cx + side * 52, shoulderY - 28);
-        c.lineTo(cx + side * 70, shoulderY + 60);
-        c.lineTo(cx + side * 112, shoulderY + 70);
+        c.moveTo(cx + side * 118, shY + 34 + st);
+        c.quadraticCurveTo(cx + side * 110, shY - 12 + st, cx + side * 54, shY - 22 + st);
+        c.lineTo(cx + side * 72, shY + 62 + st);
+        c.lineTo(cx + side * 118, shY + 76 + st);
         c.closePath();
       });
     }
   }
-  if (collar) {
-    shape(ctx, collar, 5, (c) => {
-      c.moveTo(cx - 40, shoulderY - 30);
-      c.quadraticCurveTo(cx, shoulderY - 6, cx + 40, shoulderY - 30);
-      c.quadraticCurveTo(cx, shoulderY - 44, cx - 40, shoulderY - 30);
-    });
-  }
+}
 
-  // Neck
-  shape(ctx, skin, 5, (c) => {
-    c.moveTo(cx - 20, headCy + faceRy - 18);
-    c.lineTo(cx - 22, shoulderY - 26);
-    c.lineTo(cx + 22, shoulderY - 26);
-    c.lineTo(cx + 20, headCy + faceRy - 18);
-  });
-
+function animeHeadBase(ctx, m, skin) {
+  const { cx, cy, hw } = m;
   // Ears
   for (const side of [-1, 1]) {
-    shape(ctx, skin, 5, (c) =>
-      c.ellipse(cx + side * faceRx, headCy + 14, 13, 18, 0, 0, Math.PI * 2));
+    shape(ctx, skin, 4.5, (c) =>
+      c.ellipse(cx + side * (hw - 2), cy + 18, 10, 16, side * 0.15, 0, Math.PI * 2));
   }
+  shape(ctx, skin, 6, headPath(m));
 
-  // Head: rounded crown tapering to a soft chin
-  shape(ctx, skin, 6, (c) => {
-    c.moveTo(cx - faceRx, headCy - 8);
-    c.quadraticCurveTo(cx - faceRx * 1.02, headCy - faceRy, cx, headCy - faceRy);
-    c.quadraticCurveTo(cx + faceRx * 1.02, headCy - faceRy, cx + faceRx, headCy - 8);
-    c.quadraticCurveTo(cx + faceRx * 0.9, headCy + faceRy * 0.72, cx, headCy + faceRy);
-    c.quadraticCurveTo(cx - faceRx * 0.9, headCy + faceRy * 0.72, cx - faceRx, headCy - 8);
+  // Hard cel shadow: angular polygon down the right side of the face
+  ctx.save();
+  ctx.beginPath();
+  headPath(m)(ctx);
+  ctx.clip();
+  ctx.fillStyle = 'rgba(120, 76, 48, 0.2)';
+  ctx.beginPath();
+  ctx.moveTo(cx + hw * 0.34, cy - 88);
+  ctx.lineTo(cx + hw + 6, cy - 60);
+  ctx.lineTo(cx + hw + 6, cy + 90);
+  ctx.lineTo(cx + 6, cy + 90);
+  ctx.lineTo(cx + hw * 0.5, cy + 30);
+  ctx.lineTo(cx + hw * 0.3, cy - 30);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Nose-bridge hint above where the mask sits
+  line(ctx, 2.5, (c) => {
+    c.moveTo(cx + 4, cy + 6);
+    c.lineTo(cx + 9, cy + 16);
+  });
+}
+
+// Almond anime eyes: heavy angled top lid, iris partly covered, crease line
+function animeEyes(ctx, m, { iris = '#5a3a1a', mood = 'open', lashes = false } = {}) {
+  const { cx, cy } = m;
+  const ey = cy + 2;
+  for (const side of [-1, 1]) {
+    const ex = cx + side * 29;
+    if (mood === 'happy') {
+      line(ctx, 5, (c) => c.arc(ex, ey + 2, 12, Math.PI * 1.15, Math.PI * 1.85));
+    } else {
+      // Eye white between the lids
+      shape(ctx, '#f8f3e6', 0, (c) => {
+        c.moveTo(ex - 16, ey + 3);
+        c.quadraticCurveTo(ex - 4, ey - 8, ex + 14, ey - 4);
+        c.quadraticCurveTo(ex + 15, ey + 7, ex + 8, ey + 10);
+        c.quadraticCurveTo(ex - 8, ey + 12, ex - 16, ey + 3);
+        c.closePath();
+      });
+      // Iris (tall, clipped by the lids)
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(ex - 16, ey + 3);
+      ctx.quadraticCurveTo(ex - 4, ey - 8, ex + 14, ey - 4);
+      ctx.quadraticCurveTo(ex + 15, ey + 7, ex + 8, ey + 10);
+      ctx.quadraticCurveTo(ex - 8, ey + 12, ex - 16, ey + 3);
+      ctx.closePath();
+      ctx.clip();
+      ctx.fillStyle = iris;
+      ctx.beginPath();
+      ctx.ellipse(ex + 1, ey + 2, 8, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.ellipse(ex + 1, ey + 3, 4, 5.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.arc(ex - 2, ey - 1, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Heavy top lid, angled up at the outer corner
+      line(ctx, 5.5, (c) => {
+        c.moveTo(ex - 17, ey + 4);
+        c.quadraticCurveTo(ex - 4, ey - 9, ex + 15, ey - 5);
+      });
+      // Lower lid, light
+      line(ctx, 2.2, (c) => {
+        c.moveTo(ex - 12, ey + 9);
+        c.quadraticCurveTo(ex, ey + 12, ex + 9, ey + 9);
+      });
+      // Crease
+      ctx.globalAlpha = 0.5;
+      line(ctx, 2.2, (c) => {
+        c.moveTo(ex - 12, ey - 11);
+        c.quadraticCurveTo(ex, ey - 15, ex + 12, ey - 11);
+      });
+      ctx.globalAlpha = 1;
+      if (lashes) {
+        line(ctx, 3, (c) => {
+          c.moveTo(ex + side * 14, ey - 5);
+          c.lineTo(ex + side * 21, ey - 10);
+        });
+      }
+    }
+    // Angular brow
+    line(ctx, 6, (c) => {
+      c.moveTo(ex - 17, ey - 20);
+      c.lineTo(ex + 2, ey - 26);
+      c.lineTo(ex + 16, ey - 19);
+    });
+  }
+}
+
+// Angular mask across the lower face, following the jaw to the chin
+function animeMask(ctx, m, { color, pattern = null, crooked = 0, bandana = false } = {}) {
+  const { cx, cy, hw } = m;
+  const top = cy + 22;
+  const chinY = cy + 86;
+
+  ctx.save();
+  if (crooked) {
+    ctx.translate(cx, (top + chinY) / 2);
+    ctx.rotate(crooked);
+    ctx.translate(-cx, -(top + chinY) / 2);
+  }
+  shape(ctx, color, 5, (c) => {
+    c.moveTo(cx - hw * 0.94, top + 4);
+    c.quadraticCurveTo(cx, top + 16, cx + hw * 0.9, top);
+    c.lineTo(cx + hw * 0.62, chinY - 16);
+    c.quadraticCurveTo(cx + 16, chinY + 6, cx - 4, chinY + 6);
+    c.quadraticCurveTo(cx - hw * 0.6, chinY - 6, cx - hw * 0.94, top + 4);
     c.closePath();
   });
-  faceShade(ctx, cx, headCy, faceRx, faceRy);
+  if (bandana) {
+    shape(ctx, color, 5, (c) => {
+      c.moveTo(cx - hw * 0.55, chinY - 10);
+      c.lineTo(cx - 2, chinY + 44);
+      c.lineTo(cx + hw * 0.55, chinY - 14);
+    });
+  }
+  // Angular fold lines
+  ctx.globalAlpha = 0.35;
+  line(ctx, 2.5, (c) => {
+    c.moveTo(cx - hw * 0.6, top + 20);
+    c.lineTo(cx + 4, top + 28);
+    c.lineTo(cx + hw * 0.55, top + 18);
+  });
+  line(ctx, 2.5, (c) => {
+    c.moveTo(cx - hw * 0.45, top + 40);
+    c.lineTo(cx + 2, top + 46);
+  });
+  ctx.globalAlpha = 1;
+  if (pattern) pattern(ctx, cx, (top + chinY) / 2, hw);
+  ctx.restore();
 
-  return { cx, headCy, faceRx, faceRy, shoulderY };
+  // Straps
+  for (const side of [-1, 1]) {
+    line(ctx, 4, (c) => {
+      c.moveTo(cx + side * hw * 0.88, top + 6);
+      c.lineTo(cx + side * (hw + 10), cy + 12);
+    });
+  }
+}
+
+// Warm rim light along the left contour — the Hades pop
+function rimLight(ctx, m) {
+  const { cx, cy, hw } = m;
+  stroke(ctx, 'rgba(255, 238, 200, 0.9)', 4, (c) => {
+    c.moveTo(cx - hw + 2, cy - 8);
+    c.quadraticCurveTo(cx - hw - 3, cy - 70, cx - 18, cy - 80);
+  });
+  stroke(ctx, 'rgba(255, 238, 200, 0.75)', 4, (c) => {
+    c.moveTo(cx - hw + 3, cy + 40);
+    c.quadraticCurveTo(cx - 30, cy + 118, cx - 44, cy + 150);
+  });
+}
+
+function metrics() {
+  return { cx: W / 2, cy: 180, hw: 58 };
 }
 
 // ---------------------------------------------------------------- people
 
 function drawGirl(ctx) {
   backdrop(ctx, 'rgba(220, 60, 80, 0.5)');
+  withLean(ctx, -0.05, () => {
+    const m = metrics();
 
-  const gingham = (() => {
-    const p = document.createElement('canvas');
-    p.width = p.height = 26;
-    const px = p.getContext('2d');
-    px.fillStyle = '#f6f1e7';
-    px.fillRect(0, 0, 26, 26);
-    px.fillStyle = 'rgba(204,34,34,0.55)';
-    px.fillRect(0, 0, 13, 26);
-    px.fillRect(0, 0, 26, 13);
-    return ctx.createPattern(p, 'repeat');
-  })();
+    const gingham = (() => {
+      const p = document.createElement('canvas');
+      p.width = p.height = 24;
+      const px = p.getContext('2d');
+      px.fillStyle = '#f6f1e7';
+      px.fillRect(0, 0, 24, 24);
+      px.fillStyle = 'rgba(204,34,34,0.55)';
+      px.fillRect(0, 0, 12, 24);
+      px.fillRect(0, 0, 24, 12);
+      return ctx.createPattern(p, 'repeat');
+    })();
 
-  const m = bust(ctx, { skin: '#ffd9b0', torso: gingham, collar: '#cc2222' });
-
-  // Pigtails behind the head
-  for (const side of [-1, 1]) {
-    shape(ctx, '#8b4513', 5, (c) =>
-      c.ellipse(m.cx + side * (m.faceRx + 26), m.headCy + 34, 26, 34, side * 0.25, 0, Math.PI * 2));
-    shape(ctx, '#8b4513', 5, (c) =>
-      c.ellipse(m.cx + side * (m.faceRx + 34), m.headCy + 86, 18, 24, side * 0.3, 0, Math.PI * 2));
-  }
-  // Hair: rounded cap with a soft fringe
-  shape(ctx, '#8b4513', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 4, m.headCy + 16);
-    c.quadraticCurveTo(m.cx - m.faceRx * 1.14, m.headCy - m.faceRy * 1.02, m.cx, m.headCy - m.faceRy * 1.12);
-    c.quadraticCurveTo(m.cx + m.faceRx * 1.14, m.headCy - m.faceRy * 1.02, m.cx + m.faceRx + 4, m.headCy + 16);
-    c.quadraticCurveTo(m.cx + m.faceRx * 0.7, m.headCy - 26, m.cx + 20, m.headCy - 44);
-    c.quadraticCurveTo(m.cx - 30, m.headCy - 62, m.cx - m.faceRx * 0.72, m.headCy - 18);
-    c.closePath();
-  });
-  // Red bow
-  shape(ctx, '#dc143c', 4, (c) => c.ellipse(m.cx + 44, m.headCy - m.faceRy + 6, 15, 10, 0.5, 0, Math.PI * 2));
-  shape(ctx, '#dc143c', 4, (c) => c.ellipse(m.cx + 66, m.headCy - m.faceRy + 16, 15, 10, -0.2, 0, Math.PI * 2));
-  shape(ctx, INK, 0, (c) => c.arc(m.cx + 55, m.headCy - m.faceRy + 12, 5, 0, Math.PI * 2));
-
-  eyes(ctx, m.cx, m.headCy - 6, { iris: '#6a4020', lashes: true, size: 1.05 });
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, {
-    color: '#dc143c',
-    pattern: (c, x, y, r) => {
-      c.fillStyle = '#fff';
-      for (const [dx, dy] of [[-r * 0.5, -8], [0, -14], [r * 0.5, -8], [-r * 0.28, 16], [r * 0.28, 16], [0, 34]]) {
-        c.beginPath();
-        c.arc(x + dx, y + dy, 5, 0, Math.PI * 2);
-        c.fill();
-      }
+    // Pigtails: sharp swept bunches behind the head
+    for (const side of [-1, 1]) {
+      shape(ctx, '#7a3d10', 5, (c) => {
+        c.moveTo(m.cx + side * (m.hw - 6), m.cy - 20);
+        c.quadraticCurveTo(m.cx + side * (m.hw + 58), m.cy - 6, m.cx + side * (m.hw + 46), m.cy + 88);
+        c.lineTo(m.cx + side * (m.hw + 18), m.cy + 116);
+        c.quadraticCurveTo(m.cx + side * (m.hw + 6), m.cy + 40, m.cx + side * (m.hw - 10), m.cy + 8);
+        c.closePath();
+      });
     }
+
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: gingham, shoulderTilt: 9 });
+    animeHeadBase(ctx, m, '#fbd3a2');
+
+    // Hair: swept bangs with pointed clumps
+    shape(ctx, '#8b4513', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 4, m.cy + 8);
+      c.quadraticCurveTo(m.cx - m.hw - 10, m.cy - 78, m.cx - 8, m.cy - 90);
+      c.quadraticCurveTo(m.cx + m.hw + 2, m.cy - 96, m.cx + m.hw + 2, m.cy - 12);
+      c.lineTo(m.cx + m.hw - 14, m.cy + 2);
+      c.lineTo(m.cx + 34, m.cy - 44);
+      c.lineTo(m.cx + 12, m.cy - 28);
+      c.lineTo(m.cx - 8, m.cy - 52);
+      c.lineTo(m.cx - 26, m.cy - 26);
+      c.lineTo(m.cx - m.hw + 12, m.cy - 44);
+      c.lineTo(m.cx - m.hw + 4, m.cy + 4);
+      c.closePath();
+    });
+    // Bow, sharper
+    shape(ctx, '#dc143c', 4, (c) => {
+      c.moveTo(m.cx + 34, m.cy - 84);
+      c.lineTo(m.cx + 10, m.cy - 70);
+      c.lineTo(m.cx + 34, m.cy - 58);
+      c.closePath();
+    });
+    shape(ctx, '#dc143c', 4, (c) => {
+      c.moveTo(m.cx + 40, m.cy - 84);
+      c.lineTo(m.cx + 64, m.cy - 74);
+      c.lineTo(m.cx + 42, m.cy - 58);
+      c.closePath();
+    });
+    shape(ctx, INK, 0, (c) => c.arc(m.cx + 37, m.cy - 71, 5, 0, Math.PI * 2));
+
+    animeEyes(ctx, m, { iris: '#6a4020', lashes: true });
+    animeMask(ctx, m, {
+      color: '#dc143c',
+      pattern: (c, x, y, r) => {
+        c.fillStyle = '#fff';
+        for (const [dx, dy] of [[-r * 0.45, -6], [0, -12], [r * 0.45, -8], [-r * 0.24, 14], [r * 0.24, 12], [-2, 32]]) {
+          c.beginPath();
+          c.arc(x + dx, y + dy, 4.5, 0, Math.PI * 2);
+          c.fill();
+        }
+      }
+    });
+    rimLight(ctx, m);
   });
   finish(ctx);
 }
 
 function drawBoy(ctx) {
   backdrop(ctx, 'rgba(80, 130, 200, 0.5)');
-  const m = bust(ctx, { skin: '#ffd9b0', torso: '#4682b4', sleeves: '#5a9bd4' });
+  withLean(ctx, 0.06, () => {
+    const m = metrics();
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#4682b4', sleeves: '#5a9bd4', shoulderTilt: -10 });
+    animeHeadBase(ctx, m, '#fbd3a2');
 
-  // Short messy dark hair
-  shape(ctx, '#2c2c2c', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 4, m.headCy + 4);
-    c.quadraticCurveTo(m.cx - m.faceRx * 1.16, m.headCy - m.faceRy, m.cx - 16, m.headCy - m.faceRy * 1.12);
-    c.lineTo(m.cx + 2, m.headCy - m.faceRy * 0.98);
-    c.lineTo(m.cx + 22, m.headCy - m.faceRy * 1.14);
-    c.lineTo(m.cx + 34, m.headCy - m.faceRy * 0.96);
-    c.quadraticCurveTo(m.cx + m.faceRx * 1.12, m.headCy - m.faceRy * 0.9, m.cx + m.faceRx + 4, m.headCy + 4);
-    c.quadraticCurveTo(m.cx + m.faceRx * 0.72, m.headCy - 34, m.cx + 12, m.headCy - 48);
-    c.quadraticCurveTo(m.cx - 40, m.headCy - 56, m.cx - m.faceRx * 0.74, m.headCy - 24);
-    c.closePath();
-  });
+    // Spiky dark hair, JoJo energy
+    shape(ctx, '#23201e', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 6, m.cy + 6);
+      c.lineTo(m.cx - m.hw - 18, m.cy - 40);
+      c.lineTo(m.cx - m.hw + 10, m.cy - 52);
+      c.lineTo(m.cx - 34, m.cy - 96);
+      c.lineTo(m.cx - 10, m.cy - 66);
+      c.lineTo(m.cx + 6, m.cy - 104);
+      c.lineTo(m.cx + 24, m.cy - 64);
+      c.lineTo(m.cx + 46, m.cy - 92);
+      c.lineTo(m.cx + m.hw + 10, m.cy - 36);
+      c.lineTo(m.cx + m.hw - 2, m.cy - 10);
+      c.lineTo(m.cx + m.hw - 16, m.cy - 2);
+      c.lineTo(m.cx + 30, m.cy - 40);
+      c.lineTo(m.cx + 6, m.cy - 26);
+      c.lineTo(m.cx - 18, m.cy - 48);
+      c.lineTo(m.cx - 34, m.cy - 22);
+      c.lineTo(m.cx - m.hw + 6, m.cy - 12);
+      c.closePath();
+    });
 
-  eyes(ctx, m.cx, m.headCy - 4, { iris: '#4a3018' });
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, {
-    color: '#7b68ee',
-    pattern: (c, x, y, r) => {
-      // Tie-dye swirl rings
-      const cols = ['#ff1493', '#4169e1', '#e6d8ff', '#9370db'];
-      for (let ring = 0; ring < 4; ring++) {
-        c.strokeStyle = cols[ring];
-        c.lineWidth = 7 - ring;
-        c.beginPath();
-        for (let a = 0; a <= Math.PI * 2; a += 0.3) {
-          const rr = (26 - ring * 6) + Math.sin(a * 3 + ring) * 3;
-          const px = x - 6 + Math.cos(a) * rr;
-          const py = y + 6 + Math.sin(a) * rr * 0.7;
-          a === 0 ? c.moveTo(px, py) : c.lineTo(px, py);
+    animeEyes(ctx, m, { iris: '#3c5a78' });
+    animeMask(ctx, m, {
+      color: '#7b68ee',
+      pattern: (c, x, y, r) => {
+        const cols = ['#ff1493', '#4169e1', '#e6d8ff', '#9370db'];
+        for (let ring = 0; ring < 4; ring++) {
+          c.strokeStyle = cols[ring];
+          c.lineWidth = 6 - ring;
+          c.beginPath();
+          for (let a = 0; a <= Math.PI * 2; a += 0.32) {
+            const rr = (24 - ring * 5.5) + Math.sin(a * 3 + ring) * 3;
+            const px = x - 6 + Math.cos(a) * rr;
+            const py = y + 2 + Math.sin(a) * rr * 0.62;
+            if (a === 0) c.moveTo(px, py);
+            else c.lineTo(px, py);
+          }
+          c.closePath();
+          c.stroke();
         }
-        c.closePath();
-        c.stroke();
       }
-    }
+    });
+    rimLight(ctx, m);
   });
   finish(ctx);
 }
 
 function drawFisherman(ctx) {
   backdrop(ctx, 'rgba(70, 110, 110, 0.5)');
-  const m = bust(ctx, { skin: '#f0c8a0', torso: '#2f4f4f', collar: '#3d5f5f' });
+  withLean(ctx, -0.045, () => {
+    const m = metrics();
+    animeBody(ctx, m, { skin: '#eec294', torso: '#2f4f4f', sleeves: '#3d5f5f', shoulderTilt: 7 });
+    animeHeadBase(ctx, m, '#eec294');
 
-  // Bushy gray brows drawn by eyes(); gray tufts by the ears
-  for (const side of [-1, 1]) {
-    shape(ctx, '#9a9a96', 4, (c) =>
-      c.ellipse(m.cx + side * (m.faceRx - 4), m.headCy + 6, 10, 16, side * 0.3, 0, Math.PI * 2));
-  }
-  eyes(ctx, m.cx, m.headCy - 2, { iris: '#4a5a5a', size: 0.85, browY: -26 });
-  // Weathered crow's feet
-  for (const side of [-1, 1]) {
-    line(ctx, 2.5, (c) => {
-      c.moveTo(m.cx + side * 46, m.headCy - 4);
-      c.lineTo(m.cx + side * 56, m.headCy - 8);
+    // Gray temple tufts
+    for (const side of [-1, 1]) {
+      shape(ctx, '#9a9a96', 4, (c) => {
+        c.moveTo(m.cx + side * (m.hw - 8), m.cy - 8);
+        c.lineTo(m.cx + side * (m.hw + 8), m.cy + 10);
+        c.lineTo(m.cx + side * (m.hw - 8), m.cy + 22);
+        c.closePath();
+      });
+    }
+    animeEyes(ctx, m, { iris: '#4a5a5a' });
+    // Crow's feet
+    for (const side of [-1, 1]) {
+      ctx.globalAlpha = 0.6;
+      line(ctx, 2.2, (c) => {
+        c.moveTo(m.cx + side * 48, m.cy + 4);
+        c.lineTo(m.cx + side * 58, m.cy - 2);
+      });
+      ctx.globalAlpha = 1;
+    }
+    animeMask(ctx, m, { color: '#8a8a86' });
+
+    // Bucket hat, brim angled
+    shape(ctx, '#7a4416', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 30, m.cy - 34);
+      c.lineTo(m.cx + m.hw + 24, m.cy - 46);
+      c.lineTo(m.cx + m.hw - 8, m.cy - 72);
+      c.quadraticCurveTo(m.cx + 30, m.cy - 122, m.cx - 8, m.cy - 120);
+      c.quadraticCurveTo(m.cx - 52, m.cy - 116, m.cx - m.hw + 2, m.cy - 62);
+      c.closePath();
     });
-  }
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, { color: '#8a8a86' });
+    line(ctx, 3, (c) => {
+      c.moveTo(m.cx - m.hw + 4, m.cy - 56);
+      c.lineTo(m.cx + m.hw - 10, m.cy - 66);
+    });
 
-  // Bucket hat
-  shape(ctx, '#8b4513', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 24, m.headCy - 42);
-    c.quadraticCurveTo(m.cx, m.headCy - 18, m.cx + m.faceRx + 24, m.headCy - 42);
-    c.lineTo(m.cx + m.faceRx - 2, m.headCy - 66);
-    c.quadraticCurveTo(m.cx + 40, m.headCy - m.faceRy - 34, m.cx, m.headCy - m.faceRy - 36);
-    c.quadraticCurveTo(m.cx - 40, m.headCy - m.faceRy - 34, m.cx - m.faceRx + 2, m.headCy - 66);
-    c.closePath();
-  });
-  line(ctx, 3, (c) => {
-    c.moveTo(m.cx - m.faceRx + 6, m.headCy - 60);
-    c.quadraticCurveTo(m.cx, m.headCy - 46, m.cx + m.faceRx - 6, m.headCy - 60);
-  });
+    // Rod over the shoulder
+    line(ctx, 7, (c) => {
+      c.moveTo(m.cx + 100, H - 20);
+      c.lineTo(m.cx + 152, m.cy - 130);
+    });
+    line(ctx, 2.2, (c) => {
+      c.moveTo(m.cx + 152, m.cy - 130);
+      c.quadraticCurveTo(m.cx + 162, m.cy - 40, m.cx + 150, m.cy + 20);
+    });
+    shape(ctx, '#ff6347', 3, (c) => c.arc(m.cx + 150, m.cy + 28, 8, 0, Math.PI * 2));
 
-  // Fishing rod over the shoulder
-  line(ctx, 7, (c) => {
-    c.moveTo(m.cx + 96, H - 30);
-    c.lineTo(m.cx + 150, m.headCy - 120);
+    rimLight(ctx, m);
   });
-  line(ctx, 2.5, (c) => {
-    c.moveTo(m.cx + 150, m.headCy - 120);
-    c.quadraticCurveTo(m.cx + 158, m.headCy - 40, m.cx + 148, m.headCy + 10);
-  });
-  shape(ctx, '#ff6347', 3, (c) => c.arc(m.cx + 148, m.headCy + 18, 8, 0, Math.PI * 2));
-
   finish(ctx);
 }
 
 function drawHippie(ctx) {
   backdrop(ctx, 'rgba(150, 110, 220, 0.5)');
-  const m = bust(ctx, { skin: '#ffd9b0', torso: '#9370db' });
+  withLean(ctx, 0.055, () => {
+    const m = metrics();
 
-  // Long flowing hair behind the shoulders
-  shape(ctx, '#8b7355', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 6, m.headCy - 20);
-    c.quadraticCurveTo(m.cx - m.faceRx - 40, m.headCy + 120, m.cx - m.faceRx - 20, m.shoulderY + 90);
-    c.lineTo(m.cx - m.faceRx + 26, m.shoulderY + 60);
-    c.quadraticCurveTo(m.cx - m.faceRx - 4, m.headCy + 90, m.cx - m.faceRx + 8, m.headCy + 20);
-    c.closePath();
-  });
-  shape(ctx, '#8b7355', 6, (c) => {
-    c.moveTo(m.cx + m.faceRx + 6, m.headCy - 20);
-    c.quadraticCurveTo(m.cx + m.faceRx + 40, m.headCy + 120, m.cx + m.faceRx + 20, m.shoulderY + 90);
-    c.lineTo(m.cx + m.faceRx - 26, m.shoulderY + 60);
-    c.quadraticCurveTo(m.cx + m.faceRx + 4, m.headCy + 90, m.cx + m.faceRx - 8, m.headCy + 20);
-    c.closePath();
-  });
-  // Top of the hair
-  shape(ctx, '#8b7355', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 6, m.headCy - 16);
-    c.quadraticCurveTo(m.cx - m.faceRx * 1.15, m.headCy - m.faceRy * 1.05, m.cx, m.headCy - m.faceRy * 1.14);
-    c.quadraticCurveTo(m.cx + m.faceRx * 1.15, m.headCy - m.faceRy * 1.05, m.cx + m.faceRx + 6, m.headCy - 16);
-    c.quadraticCurveTo(m.cx + m.faceRx * 0.66, m.headCy - 40, m.cx, m.headCy - 46);
-    c.quadraticCurveTo(m.cx - m.faceRx * 0.66, m.headCy - 40, m.cx - m.faceRx - 6, m.headCy - 16);
-    c.closePath();
-  });
-  // Headband
-  shape(ctx, '#ff6347', 5, (c) => {
-    c.moveTo(m.cx - m.faceRx - 4, m.headCy - 34);
-    c.quadraticCurveTo(m.cx, m.headCy - 52, m.cx + m.faceRx + 4, m.headCy - 34);
-    c.quadraticCurveTo(m.cx, m.headCy - 30, m.cx - m.faceRx - 4, m.headCy - 34);
-  });
+    // Long straight hair with pointed ends, behind
+    for (const side of [-1, 1]) {
+      shape(ctx, '#82683e', 5, (c) => {
+        c.moveTo(m.cx + side * (m.hw - 10), m.cy - 44);
+        c.quadraticCurveTo(m.cx + side * (m.hw + 34), m.cy + 60, m.cx + side * (m.hw + 20), m.cy + 210);
+        c.lineTo(m.cx + side * (m.hw - 4), m.cy + 186);
+        c.lineTo(m.cx + side * (m.hw + 2), m.cy + 220);
+        c.lineTo(m.cx + side * (m.hw - 26), m.cy + 190);
+        c.quadraticCurveTo(m.cx + side * (m.hw - 16), m.cy + 60, m.cx + side * (m.hw - 22), m.cy - 20);
+        c.closePath();
+      });
+    }
 
-  eyes(ctx, m.cx, m.headCy - 4, { iris: '#5a4a2a', mood: 'calm', size: 0.95 });
-  // Round glasses
-  for (const side of [-1, 1]) {
-    line(ctx, 4, (c) => c.arc(m.cx + side * 30, m.headCy - 4, 22, 0, Math.PI * 2));
-  }
-  line(ctx, 4, (c) => {
-    c.moveTo(m.cx - 8, m.headCy - 4);
-    c.lineTo(m.cx + 8, m.headCy - 4);
-  });
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#9370db', shoulderTilt: -8 });
+    animeHeadBase(ctx, m, '#fbd3a2');
 
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, { color: '#ff6347', bandana: true,
-    pattern: (c, x, y, r) => {
-      c.fillStyle = 'rgba(255, 230, 200, 0.8)';
-      for (const [dx, dy] of [[-r * 0.4, 0], [0, 10], [r * 0.4, 0], [0, -12]]) {
-        c.beginPath();
-        c.arc(x + dx, y + dy, 3.5, 0, Math.PI * 2);
-        c.fill();
+    // Center-parted top
+    shape(ctx, '#82683e', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 6, m.cy - 4);
+      c.quadraticCurveTo(m.cx - m.hw - 8, m.cy - 84, m.cx - 4, m.cy - 92);
+      c.quadraticCurveTo(m.cx + m.hw + 4, m.cy - 88, m.cx + m.hw + 4, m.cy - 8);
+      c.lineTo(m.cx + m.hw - 12, m.cy - 20);
+      c.quadraticCurveTo(m.cx + 20, m.cy - 60, m.cx + 2, m.cy - 62);
+      c.quadraticCurveTo(m.cx - 20, m.cy - 60, m.cx - m.hw + 10, m.cy - 22);
+      c.closePath();
+    });
+    // Headband
+    shape(ctx, '#ff6347', 5, (c) => {
+      c.moveTo(m.cx - m.hw - 4, m.cy - 36);
+      c.lineTo(m.cx + m.hw + 4, m.cy - 44);
+      c.lineTo(m.cx + m.hw + 2, m.cy - 30);
+      c.lineTo(m.cx - m.hw - 6, m.cy - 22);
+      c.closePath();
+    });
+
+    animeEyes(ctx, m, { iris: '#5a4a2a', mood: 'calm' });
+    // Round glasses
+    for (const side of [-1, 1]) {
+      line(ctx, 4, (c) => c.arc(m.cx + side * 29, m.cy + 2, 21, 0, Math.PI * 2));
+    }
+    line(ctx, 4, (c) => {
+      c.moveTo(m.cx - 8, m.cy + 2);
+      c.lineTo(m.cx + 8, m.cy + 2);
+    });
+
+    animeMask(ctx, m, {
+      color: '#ff6347', bandana: true,
+      pattern: (c, x, y, r) => {
+        c.fillStyle = 'rgba(255, 230, 200, 0.8)';
+        for (const [dx, dy] of [[-r * 0.35, -2], [0, 8], [r * 0.35, -4], [0, -14]]) {
+          c.beginPath();
+          c.arc(x + dx, y + dy, 3.2, 0, Math.PI * 2);
+          c.fill();
+        }
       }
-    } });
+    });
 
-  // Peace pendant
-  line(ctx, 4, (c) => c.arc(m.cx, m.shoulderY + 26, 34, Math.PI * 0.15, Math.PI * 0.85));
-  shape(ctx, '#e8c840', 4, (c) => c.arc(m.cx, m.shoulderY + 62, 13, 0, Math.PI * 2));
-  line(ctx, 2.5, (c) => {
-    c.moveTo(m.cx, m.shoulderY + 49);
-    c.lineTo(m.cx, m.shoulderY + 75);
-    c.moveTo(m.cx, m.shoulderY + 62);
-    c.lineTo(m.cx - 9, m.shoulderY + 71);
-    c.moveTo(m.cx, m.shoulderY + 62);
-    c.lineTo(m.cx + 9, m.shoulderY + 71);
+    // Peace pendant
+    const shY = m.cy + 150;
+    line(ctx, 4, (c) => c.arc(m.cx, shY + 8, 36, Math.PI * 0.12, Math.PI * 0.88));
+    shape(ctx, '#e8c840', 4, (c) => c.arc(m.cx, shY + 46, 13, 0, Math.PI * 2));
+    line(ctx, 2.5, (c) => {
+      c.moveTo(m.cx, shY + 33);
+      c.lineTo(m.cx, shY + 59);
+      c.moveTo(m.cx, shY + 46);
+      c.lineTo(m.cx - 9, shY + 55);
+      c.moveTo(m.cx, shY + 46);
+      c.lineTo(m.cx + 9, shY + 55);
+    });
+    rimLight(ctx, m);
   });
   finish(ctx);
 }
 
 function drawKid(ctx) {
   backdrop(ctx, 'rgba(255, 160, 40, 0.5)');
-  const m = bust(ctx, { skin: '#ffd9b0', torso: '#ffa500', sleeves: '#ff8c00' });
+  withLean(ctx, -0.07, () => {
+    const m = metrics();
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#ffa500', sleeves: '#ff8c00', shoulderTilt: 11 });
+    animeHeadBase(ctx, m, '#fbd3a2');
 
-  // Backwards cap
-  shape(ctx, '#ff8c00', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 4, m.headCy - 24);
-    c.quadraticCurveTo(m.cx - m.faceRx * 1.08, m.headCy - m.faceRy * 1.06, m.cx, m.headCy - m.faceRy * 1.12);
-    c.quadraticCurveTo(m.cx + m.faceRx * 1.08, m.headCy - m.faceRy * 1.06, m.cx + m.faceRx + 4, m.headCy - 24);
-    c.quadraticCurveTo(m.cx, m.headCy - 56, m.cx - m.faceRx - 4, m.headCy - 24);
-    c.closePath();
-  });
-  // Brim poking out the back-left
-  shape(ctx, '#ff8c00', 5, (c) => {
-    c.moveTo(m.cx - m.faceRx - 2, m.headCy - 44);
-    c.quadraticCurveTo(m.cx - m.faceRx - 46, m.headCy - 56, m.cx - m.faceRx - 40, m.headCy - 30);
-    c.quadraticCurveTo(m.cx - m.faceRx - 12, m.headCy - 26, m.cx - m.faceRx - 2, m.headCy - 44);
-  });
-  // Cap button + seam
-  line(ctx, 3, (c) => {
-    c.moveTo(m.cx, m.headCy - m.faceRy * 1.1);
-    c.lineTo(m.cx, m.headCy - 40);
-  });
-  // Tuft of hair under the cap
-  shape(ctx, '#654321', 4, (c) => {
-    c.moveTo(m.cx + 24, m.headCy - 40);
-    c.quadraticCurveTo(m.cx + 44, m.headCy - 50, m.cx + 52, m.headCy - 32);
-    c.quadraticCurveTo(m.cx + 36, m.headCy - 32, m.cx + 24, m.headCy - 40);
-  });
+    // Backwards cap with attitude
+    shape(ctx, '#e87c00', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 6, m.cy - 26);
+      c.quadraticCurveTo(m.cx - m.hw - 4, m.cy - 90, m.cx, m.cy - 96);
+      c.quadraticCurveTo(m.cx + m.hw + 6, m.cy - 92, m.cx + m.hw + 4, m.cy - 30);
+      c.quadraticCurveTo(m.cx, m.cy - 52, m.cx - m.hw - 6, m.cy - 26);
+      c.closePath();
+    });
+    shape(ctx, '#e87c00', 5, (c) => {
+      c.moveTo(m.cx - m.hw - 2, m.cy - 48);
+      c.lineTo(m.cx - m.hw - 52, m.cy - 66);
+      c.lineTo(m.cx - m.hw - 44, m.cy - 34);
+      c.closePath();
+    });
+    line(ctx, 3, (c) => {
+      c.moveTo(m.cx, m.cy - 96);
+      c.lineTo(m.cx, m.cy - 56);
+    });
+    // Hair spikes poking out
+    shape(ctx, '#5a3a14', 4, (c) => {
+      c.moveTo(m.cx + 26, m.cy - 44);
+      c.lineTo(m.cx + 48, m.cy - 58);
+      c.lineTo(m.cx + 52, m.cy - 34);
+      c.closePath();
+    });
 
-  eyes(ctx, m.cx, m.headCy - 6, { iris: '#5a3a1a', size: 1.15, browY: -36 });
-  // Freckles above the mask
-  ctx.fillStyle = 'rgba(200, 130, 90, 0.7)';
-  for (const [dx, dy] of [[-42, 16], [-34, 22], [-46, 24], [42, 16], [34, 22], [46, 24]]) {
-    ctx.beginPath();
-    ctx.arc(m.cx + dx, m.headCy + dy - 10, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, { color: '#87ceeb', crooked: 0.06 });
+    animeEyes(ctx, m, { iris: '#5a3a1a' });
+    ctx.fillStyle = 'rgba(200, 130, 90, 0.7)';
+    for (const [dx, dy] of [[-44, 22], [-36, 28], [-48, 30], [44, 20], [36, 26], [48, 28]]) {
+      ctx.beginPath();
+      ctx.arc(m.cx + dx, m.cy + dy - 6, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    animeMask(ctx, m, { color: '#87ceeb', crooked: 0.07 });
+    rimLight(ctx, m);
+  });
   finish(ctx);
 }
 
 function drawParent(ctx) {
   backdrop(ctx, 'rgba(120, 160, 80, 0.5)');
-  const m = bust(ctx, { skin: '#ffd9b0', torso: '#6b8e23', collar: '#7ba02e' });
+  withLean(ctx, 0.05, () => {
+    const m = metrics();
 
-  // Shoulder-length hair
-  for (const side of [-1, 1]) {
-    shape(ctx, '#3b2412', 6, (c) => {
-      c.moveTo(m.cx + side * (m.faceRx - 8), m.headCy - 30);
-      c.quadraticCurveTo(m.cx + side * (m.faceRx + 34), m.headCy + 40, m.cx + side * (m.faceRx + 18), m.shoulderY + 10);
-      c.quadraticCurveTo(m.cx + side * (m.faceRx - 10), m.shoulderY + 4, m.cx + side * (m.faceRx - 20), m.headCy + 60);
+    // Shoulder-length hair behind
+    for (const side of [-1, 1]) {
+      shape(ctx, '#33200e', 5, (c) => {
+        c.moveTo(m.cx + side * (m.hw - 12), m.cy - 40);
+        c.quadraticCurveTo(m.cx + side * (m.hw + 30), m.cy + 40, m.cx + side * (m.hw + 16), m.cy + 150);
+        c.lineTo(m.cx + side * (m.hw - 18), m.cy + 128);
+        c.quadraticCurveTo(m.cx + side * (m.hw - 12), m.cy + 40, m.cx + side * (m.hw - 20), m.cy - 16);
+        c.closePath();
+      });
+    }
+    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#6b8e23', sleeves: '#7ba02e', shoulderTilt: -7 });
+    animeHeadBase(ctx, m, '#fbd3a2');
+
+    shape(ctx, '#33200e', 6, (c) => {
+      c.moveTo(m.cx - m.hw - 6, m.cy - 8);
+      c.quadraticCurveTo(m.cx - m.hw - 6, m.cy - 84, m.cx - 2, m.cy - 90);
+      c.quadraticCurveTo(m.cx + m.hw + 6, m.cy - 86, m.cx + m.hw + 6, m.cy - 12);
+      c.lineTo(m.cx + m.hw - 10, m.cy - 24);
+      c.quadraticCurveTo(m.cx + 24, m.cy - 56, m.cx - 12, m.cy - 58);
+      c.quadraticCurveTo(m.cx - 44, m.cy - 52, m.cx - m.hw + 8, m.cy - 24);
       c.closePath();
     });
-  }
-  shape(ctx, '#3b2412', 6, (c) => {
-    c.moveTo(m.cx - m.faceRx - 8, m.headCy - 10);
-    c.quadraticCurveTo(m.cx - m.faceRx * 1.15, m.headCy - m.faceRy, m.cx, m.headCy - m.faceRy * 1.1);
-    c.quadraticCurveTo(m.cx + m.faceRx * 1.15, m.headCy - m.faceRy, m.cx + m.faceRx + 8, m.headCy - 10);
-    c.quadraticCurveTo(m.cx + m.faceRx * 0.6, m.headCy - 38, m.cx - 10, m.headCy - 44);
-    c.quadraticCurveTo(m.cx - m.faceRx * 0.7, m.headCy - 36, m.cx - m.faceRx - 8, m.headCy - 10);
-    c.closePath();
-  });
-  // Wide sun hat
-  shape(ctx, '#4a4a4a', 6, (c) =>
-    c.ellipse(m.cx, m.headCy - m.faceRy + 4, m.faceRx + 52, 26, 0, 0, Math.PI * 2));
-  shape(ctx, '#5a5a5a', 5, (c) => {
-    c.moveTo(m.cx - 48, m.headCy - m.faceRy + 2);
-    c.quadraticCurveTo(m.cx, m.headCy - m.faceRy - 52, m.cx + 48, m.headCy - m.faceRy + 2);
-    c.quadraticCurveTo(m.cx, m.headCy - m.faceRy + 22, m.cx - 48, m.headCy - m.faceRy + 2);
-  });
+    // Sun hat: wide ellipse at an angle
+    shape(ctx, '#4a4a4a', 6, (c) =>
+      c.ellipse(m.cx + 2, m.cy - 78, m.hw + 54, 22, -0.08, 0, Math.PI * 2));
+    shape(ctx, '#5a5a5a', 5, (c) => {
+      c.moveTo(m.cx - 46, m.cy - 80);
+      c.quadraticCurveTo(m.cx, m.cy - 132, m.cx + 46, m.cy - 86);
+      c.quadraticCurveTo(m.cx, m.cy - 62, m.cx - 46, m.cy - 80);
+    });
 
-  eyes(ctx, m.cx, m.headCy - 4, { iris: '#4a3018', lashes: true, mood: 'calm' });
-  faceMask(ctx, m.cx, m.headCy, m.faceRx, { color: '#f5f0e6' });
+    animeEyes(ctx, m, { iris: '#4a3018', lashes: true, mood: 'calm' });
+    animeMask(ctx, m, { color: '#f5f0e6' });
 
-  // Coffee cup in hand at the frame's edge
-  shape(ctx, '#f5f0e6', 5, (c) => {
-    c.moveTo(m.cx + 74, H - 60);
-    c.lineTo(m.cx + 122, H - 60);
-    c.lineTo(m.cx + 116, H - 4);
-    c.lineTo(m.cx + 80, H - 4);
-    c.closePath();
-  });
-  shape(ctx, '#8b4513', 4, (c) => {
-    c.moveTo(m.cx + 70, H - 60);
-    c.lineTo(m.cx + 126, H - 60);
-    c.lineTo(m.cx + 124, H - 48);
-    c.lineTo(m.cx + 72, H - 48);
-    c.closePath();
+    // Coffee raised near the shoulder
+    shape(ctx, '#f5f0e6', 5, (c) => {
+      c.moveTo(m.cx + 96, m.cy + 190);
+      c.lineTo(m.cx + 140, m.cy + 190);
+      c.lineTo(m.cx + 134, m.cy + 250);
+      c.lineTo(m.cx + 102, m.cy + 250);
+      c.closePath();
+    });
+    shape(ctx, '#8b4513', 4, (c) => {
+      c.moveTo(m.cx + 92, m.cy + 190);
+      c.lineTo(m.cx + 144, m.cy + 190);
+      c.lineTo(m.cx + 142, m.cy + 178);
+      c.lineTo(m.cx + 94, m.cy + 178);
+      c.closePath();
+    });
+    rimLight(ctx, m);
   });
   finish(ctx);
 }
@@ -551,159 +727,291 @@ function drawParent(ctx) {
 
 function drawDog(ctx) {
   backdrop(ctx, 'rgba(218, 165, 32, 0.55)');
-  const cx = W / 2, cy = 250;
+  withLean(ctx, -0.06, () => {
+    const cx = W / 2;
+    const cy = 210; // head center
 
-  // Chest
-  shape(ctx, '#daa520', 6, (c) => {
-    c.moveTo(cx - 110, H + 10);
-    c.quadraticCurveTo(cx - 96, 380, cx - 60, 360);
-    c.lineTo(cx + 60, 360);
-    c.quadraticCurveTo(cx + 96, 380, cx + 110, H + 10);
-  });
-  shape(ctx, '#f0e68c', 5, (c) => c.ellipse(cx, H - 40, 58, 80, 0, Math.PI, Math.PI * 2));
-
-  // Floppy ears
-  for (const side of [-1, 1]) {
-    shape(ctx, '#b8860b', 6, (c) => {
-      c.moveTo(cx + side * 52, cy - 88);
-      c.quadraticCurveTo(cx + side * 132, cy - 66, cx + side * 108, cy + 38);
-      c.quadraticCurveTo(cx + side * 92, cy + 60, cx + side * 70, cy + 30);
+    // Short neck first, then chest over its base
+    shape(ctx, '#daa520', 5, (c) => {
+      c.moveTo(cx - 34, cy + 68);
+      c.quadraticCurveTo(cx - 40, cy + 104, cx - 56, cy + 138);
+      c.lineTo(cx + 56, cy + 132);
+      c.quadraticCurveTo(cx + 40, cy + 100, cx + 34, cy + 68);
       c.closePath();
     });
-  }
-  // Head
-  shape(ctx, '#daa520', 6, (c) => {
-    c.moveTo(cx - 78, cy - 40);
-    c.quadraticCurveTo(cx - 78, cy - 108, cx, cy - 108);
-    c.quadraticCurveTo(cx + 78, cy - 108, cx + 78, cy - 40);
-    c.quadraticCurveTo(cx + 76, cy + 50, cx, cy + 66);
-    c.quadraticCurveTo(cx - 76, cy + 50, cx - 78, cy - 40);
-    c.closePath();
-  });
-  // Muzzle
-  shape(ctx, '#f0e68c', 5, (c) => c.ellipse(cx, cy + 28, 44, 36, 0, 0, Math.PI * 2));
-  shape(ctx, INK, 0, (c) => c.ellipse(cx, cy + 10, 14, 10, 0, 0, Math.PI * 2));
-  // Tongue
-  shape(ctx, '#ff8da1', 4, (c) => {
-    c.moveTo(cx - 12, cy + 46);
-    c.quadraticCurveTo(cx - 12, cy + 84, cx + 4, cy + 84);
-    c.quadraticCurveTo(cx + 18, cy + 84, c.lineTo ? cx + 14 : cx + 14, cy + 46);
-    c.closePath();
-  });
-  line(ctx, 3, (c) => {
-    c.moveTo(cx + 1, cy + 56);
-    c.lineTo(cx + 1, cy + 76);
-  });
+    shape(ctx, '#c8941c', 6, (c) => {
+      c.moveTo(cx - 124, H + 20);
+      c.quadraticCurveTo(cx - 112, cy + 190, cx - 66, cy + 136);
+      c.lineTo(cx + 66, cy + 130);
+      c.quadraticCurveTo(cx + 112, cy + 180, cx + 124, H + 20);
+    });
+    shape(ctx, '#f0e68c', 5, (c) => c.ellipse(cx, H - 20, 56, 104, 0, Math.PI, Math.PI * 2));
 
-  eyes(ctx, cx, cy - 40, { iris: '#4a3018', spread: 34, size: 1.1, mood: 'happy' });
-  // Collar + tag
-  shape(ctx, '#dc143c', 5, (c) => {
-    c.moveTo(cx - 62, 352);
-    c.quadraticCurveTo(cx, 386, cx + 62, 352);
-    c.lineTo(cx + 58, 376);
-    c.quadraticCurveTo(cx, 408, cx - 58, 376);
-    c.closePath();
+    // Collar at the base of the neck
+    shape(ctx, '#dc143c', 5, (c) => {
+      c.moveTo(cx - 48, cy + 108);
+      c.quadraticCurveTo(cx, cy + 134, cx + 48, cy + 106);
+      c.lineTo(cx + 44, cy + 128);
+      c.quadraticCurveTo(cx, cy + 154, cx - 44, cy + 130);
+      c.closePath();
+    });
+    shape(ctx, '#ffd700', 4, (c) => c.arc(cx, cy + 152, 12, 0, Math.PI * 2));
+
+    // Ears: one flopped forward, one back — asymmetry
+    shape(ctx, '#a8791a', 5, (c) => {
+      c.moveTo(cx - 48, cy - 66);
+      c.quadraticCurveTo(cx - 110, cy - 54, cx - 96, cy + 32);
+      c.quadraticCurveTo(cx - 84, cy + 52, cx - 62, cy + 22);
+      c.closePath();
+    });
+    shape(ctx, '#a8791a', 5, (c) => {
+      c.moveTo(cx + 46, cy - 70);
+      c.quadraticCurveTo(cx + 116, cy - 66, cx + 94, cy + 14);
+      c.quadraticCurveTo(cx + 80, cy + 40, cx + 60, cy + 8);
+      c.closePath();
+    });
+
+    // Head: angular skull with a defined brow and muzzle
+    shape(ctx, '#daa520', 6, (c) => {
+      c.moveTo(cx - 62, cy - 30);
+      c.quadraticCurveTo(cx - 58, cy - 82, cx, cy - 84);
+      c.quadraticCurveTo(cx + 58, cy - 82, cx + 62, cy - 30);
+      c.quadraticCurveTo(cx + 64, cy + 22, cx + 34, cy + 60);
+      c.quadraticCurveTo(cx + 16, cy + 76, cx - 16, cy + 76);
+      c.quadraticCurveTo(cx - 46, cy + 60, cx - 62, cy - 30);
+      c.closePath();
+    });
+    // Brow ridge
+    line(ctx, 3.5, (c) => {
+      c.moveTo(cx - 40, cy - 36);
+      c.lineTo(cx - 12, cy - 42);
+      c.moveTo(cx + 12, cy - 42);
+      c.lineTo(cx + 40, cy - 36);
+    });
+    // Muzzle
+    shape(ctx, '#f0e68c', 5, (c) => {
+      c.moveTo(cx - 34, cy + 14);
+      c.quadraticCurveTo(cx, cy + 2, cx + 34, cy + 14);
+      c.quadraticCurveTo(cx + 30, cy + 66, cx, cy + 72);
+      c.quadraticCurveTo(cx - 30, cy + 66, cx - 34, cy + 14);
+      c.closePath();
+    });
+    shape(ctx, INK, 0, (c) => {
+      c.moveTo(cx - 12, cy + 22);
+      c.quadraticCurveTo(cx, cy + 14, cx + 12, cy + 22);
+      c.quadraticCurveTo(cx, cy + 36, cx - 12, cy + 22);
+    });
+    // Tongue
+    shape(ctx, '#ff8da1', 4, (c) => {
+      c.moveTo(cx - 10, cy + 58);
+      c.quadraticCurveTo(cx - 10, cy + 92, cx + 2, cy + 92);
+      c.quadraticCurveTo(cx + 14, cy + 92, cx + 12, cy + 58);
+      c.closePath();
+    });
+
+    // Keen anime eyes
+    for (const side of [-1, 1]) {
+      const ex = cx + side * 30;
+      const ey = cy - 18;
+      shape(ctx, '#f8f3e6', 0, (c) => {
+        c.moveTo(ex - 13, ey + 3);
+        c.quadraticCurveTo(ex, ey - 7, ex + 12, ey - 2);
+        c.quadraticCurveTo(ex + 11, ey + 8, ex - 2, ey + 9);
+        c.closePath();
+      });
+      ctx.fillStyle = '#4a3018';
+      ctx.beginPath();
+      ctx.ellipse(ex, ey + 1, 6.5, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath();
+      ctx.arc(ex - 2, ey - 2, 2, 0, Math.PI * 2);
+      ctx.fill();
+      line(ctx, 4.5, (c) => {
+        c.moveTo(ex - 14, ey + 4);
+        c.quadraticCurveTo(ex, ey - 8, ex + 13, ey - 3);
+      });
+    }
+    // Rim light
+    stroke(ctx, 'rgba(255, 238, 200, 0.85)', 4, (c) => {
+      c.moveTo(cx - 60, cy - 34);
+      c.quadraticCurveTo(cx - 56, cy - 80, cx - 4, cy - 83);
+    });
   });
-  shape(ctx, '#ffd700', 4, (c) => c.arc(cx, 404, 14, 0, Math.PI * 2));
   finish(ctx);
 }
 
 function drawSquirrel(ctx) {
   backdrop(ctx, 'rgba(160, 82, 45, 0.55)');
-  const cx = W / 2, cy = 260;
+  withLean(ctx, 0.06, () => {
+    const cx = W / 2;
+    const cy = 220;
 
-  // Big tail curling behind
-  shape(ctx, '#8b6914', 6, (c) => {
-    c.moveTo(cx + 60, H);
-    c.quadraticCurveTo(cx + 170, H - 130, cx + 130, cy - 90);
-    c.quadraticCurveTo(cx + 110, cy - 170, cx + 30, cy - 150);
-    c.quadraticCurveTo(cx + 100, cy - 130, cx + 92, cy - 60);
-    c.quadraticCurveTo(cx + 96, 60, cx + 20, H);
-    c.closePath();
-  });
-
-  // Body/chest
-  shape(ctx, '#a0522d', 6, (c) => {
-    c.moveTo(cx - 96, H + 10);
-    c.quadraticCurveTo(cx - 90, 390, cx - 50, 368);
-    c.lineTo(cx + 50, 368);
-    c.quadraticCurveTo(cx + 90, 390, cx + 96, H + 10);
-  });
-  shape(ctx, '#d2a679', 5, (c) => c.ellipse(cx, H - 30, 52, 74, 0, Math.PI, Math.PI * 2));
-
-  // Ears
-  for (const side of [-1, 1]) {
-    shape(ctx, '#a0522d', 5, (c) => {
-      c.moveTo(cx + side * 28, cy - 96);
-      c.lineTo(cx + side * 52, cy - 150);
-      c.lineTo(cx + side * 64, cy - 92);
+    // Sweeping tail behind — one big S flourish
+    shape(ctx, '#7a5a10', 6, (c) => {
+      c.moveTo(cx + 66, H);
+      c.quadraticCurveTo(cx + 190, cy + 140, cx + 130, cy - 60);
+      c.quadraticCurveTo(cx + 100, cy - 170, cx - 10, cy - 148);
+      c.quadraticCurveTo(cx + 82, cy - 140, cx + 92, cy - 40);
+      c.quadraticCurveTo(cx + 108, cy + 120, cx + 26, H);
       c.closePath();
     });
-  }
-  // Head with big cheeks
-  shape(ctx, '#a0522d', 6, (c) => {
-    c.moveTo(cx - 66, cy - 60);
-    c.quadraticCurveTo(cx - 60, cy - 110, cx, cy - 110);
-    c.quadraticCurveTo(cx + 60, cy - 110, cx + 66, cy - 60);
-    c.quadraticCurveTo(cx + 78, cy + 30, cx, cy + 44);
-    c.quadraticCurveTo(cx - 78, cy + 30, cx - 66, cy - 60);
-    c.closePath();
-  });
-  shape(ctx, '#d2a679', 5, (c) => c.ellipse(cx, cy + 8, 34, 28, 0, 0, Math.PI * 2));
-  shape(ctx, INK, 0, (c) => c.ellipse(cx, cy - 6, 9, 7, 0, 0, Math.PI * 2));
-  // Buck teeth
-  shape(ctx, '#fdfaf2', 3, (c) => {
-    c.rect(cx - 8, cy + 12, 8, 14);
-    c.rect(cx, cy + 12, 8, 14);
-  });
 
-  eyes(ctx, cx, cy - 44, { iris: '#3a2a10', spread: 32, size: 1.05 });
+    // Short neck first, then chest/shoulders over its base
+    shape(ctx, '#a0522d', 5, (c) => {
+      c.moveTo(cx - 26, cy + 60);
+      c.quadraticCurveTo(cx - 30, cy + 96, cx - 44, cy + 128);
+      c.lineTo(cx + 44, cy + 124);
+      c.quadraticCurveTo(cx + 30, cy + 94, cx + 26, cy + 60);
+      c.closePath();
+    });
+    shape(ctx, '#96491f', 6, (c) => {
+      c.moveTo(cx - 110, H + 20);
+      c.quadraticCurveTo(cx - 102, cy + 180, cx - 56, cy + 126);
+      c.lineTo(cx + 56, cy + 122);
+      c.quadraticCurveTo(cx + 102, cy + 170, cx + 110, H + 20);
+    });
+    shape(ctx, '#d2a679', 5, (c) => c.ellipse(cx, H - 16, 50, 96, 0, Math.PI, Math.PI * 2));
 
-  // Acorn clutched at the chest
-  shape(ctx, '#c8a038', 5, (c) => c.ellipse(cx, 420, 24, 30, 0, 0, Math.PI * 2));
-  shape(ctx, '#654321', 4, (c) => {
-    c.moveTo(cx - 26, 402);
-    c.quadraticCurveTo(cx, 384, cx + 26, 402);
-    c.quadraticCurveTo(cx, 412, cx - 26, 402);
+    // Ears, sharp
+    for (const side of [-1, 1]) {
+      shape(ctx, '#a0522d', 5, (c) => {
+        c.moveTo(cx + side * 22, cy - 66);
+        c.lineTo(cx + side * 52, cy - 122);
+        c.lineTo(cx + side * 54, cy - 58);
+        c.closePath();
+      });
+    }
+    // Head with cheeks, slightly angular
+    shape(ctx, '#a0522d', 6, (c) => {
+      c.moveTo(cx - 54, cy - 40);
+      c.quadraticCurveTo(cx - 48, cy - 78, cx, cy - 80);
+      c.quadraticCurveTo(cx + 48, cy - 78, cx + 54, cy - 40);
+      c.quadraticCurveTo(cx + 64, cy + 18, cx + 24, cy + 46);
+      c.lineTo(cx - 24, cy + 46);
+      c.quadraticCurveTo(cx - 64, cy + 18, cx - 54, cy - 40);
+      c.closePath();
+    });
+    shape(ctx, '#d2a679', 5, (c) => c.ellipse(cx, cy + 16, 30, 24, 0, 0, Math.PI * 2));
+    shape(ctx, INK, 0, (c) => c.ellipse(cx, cy + 2, 8, 6, 0, 0, Math.PI * 2));
+    shape(ctx, '#f8f3e6', 3, (c) => {
+      c.rect(cx - 7, cy + 18, 7, 12);
+      c.rect(cx, cy + 18, 7, 12);
+    });
+
+    // Sharp little eyes
+    for (const side of [-1, 1]) {
+      const ex = cx + side * 27;
+      const ey = cy - 32;
+      shape(ctx, '#f8f3e6', 0, (c) => {
+        c.moveTo(ex - 11, ey + 3);
+        c.quadraticCurveTo(ex, ey - 6, ex + 10, ey - 1);
+        c.quadraticCurveTo(ex + 9, ey + 7, ex - 2, ey + 8);
+        c.closePath();
+      });
+      ctx.fillStyle = '#2a1a08';
+      ctx.beginPath();
+      ctx.ellipse(ex, ey + 1, 5.5, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath();
+      ctx.arc(ex - 2, ey - 1, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      line(ctx, 4, (c) => {
+        c.moveTo(ex - 12, ey + 4);
+        c.quadraticCurveTo(ex, ey - 7, ex + 11, ey - 2);
+      });
+    }
+
+    // Acorn held up by little paws
+    shape(ctx, '#c8a038', 5, (c) => c.ellipse(cx - 10, cy + 150, 22, 28, 0.1, 0, Math.PI * 2));
+    shape(ctx, '#654321', 4, (c) => {
+      c.moveTo(cx - 34, cy + 132);
+      c.quadraticCurveTo(cx - 10, cy + 114, cx + 14, cy + 132);
+      c.quadraticCurveTo(cx - 10, cy + 142, cx - 34, cy + 132);
+    });
+    for (const side of [-1, 1]) {
+      shape(ctx, '#96491f', 4, (c) =>
+        c.ellipse(cx - 10 + side * 26, cy + 156, 11, 14, side * 0.5, 0, Math.PI * 2));
+    }
+    stroke(ctx, 'rgba(255, 238, 200, 0.85)', 4, (c) => {
+      c.moveTo(cx - 52, cy - 44);
+      c.quadraticCurveTo(cx - 46, cy - 76, cx - 2, cy - 79);
+    });
   });
-  for (const side of [-1, 1]) {
-    shape(ctx, '#a0522d', 4, (c) => c.ellipse(cx + side * 30, 424, 12, 16, side * 0.5, 0, Math.PI * 2));
-  }
   finish(ctx);
 }
 
 function drawBird(ctx) {
   backdrop(ctx, 'rgba(255, 99, 71, 0.5)');
-  const cx = W / 2, cy = 265;
+  withLean(ctx, -0.05, () => {
+    const cx = W / 2;
+    const cy = 250;
 
-  // Tail feathers
-  shape(ctx, '#654321', 5, (c) => {
-    c.moveTo(cx + 40, cy + 120);
-    c.lineTo(cx + 150, cy + 190);
-    c.lineTo(cx + 120, cy + 230);
-    c.lineTo(cx + 30, cy + 160);
-    c.closePath();
+    // Tail feathers, sharp
+    shape(ctx, '#54360e', 5, (c) => {
+      c.moveTo(cx + 44, cy + 116);
+      c.lineTo(cx + 158, cy + 176);
+      c.lineTo(cx + 150, cy + 204);
+      c.lineTo(cx + 128, cy + 190);
+      c.lineTo(cx + 134, cy + 218);
+      c.lineTo(cx + 30, cy + 156);
+      c.closePath();
+    });
+    // Body
+    shape(ctx, '#8b4513', 6, (c) => c.ellipse(cx, cy + 58, 104, 126, -0.08, 0, Math.PI * 2));
+    shape(ctx, '#ff6347', 5, (c) => c.ellipse(cx - 12, cy + 90, 72, 88, -0.06, 0, Math.PI * 2));
+    // Wing, pointed
+    shape(ctx, '#54360e', 5, (c) => {
+      c.moveTo(cx + 54, cy + 4);
+      c.quadraticCurveTo(cx + 132, cy + 54, cx + 104, cy + 150);
+      c.lineTo(cx + 84, cy + 118);
+      c.lineTo(cx + 88, cy + 154);
+      c.lineTo(cx + 62, cy + 104);
+      c.closePath();
+    });
+    // Head, tilted forward with intent
+    shape(ctx, '#8b4513', 6, (c) => c.ellipse(cx - 32, cy - 62, 70, 64, 0.1, 0, Math.PI * 2));
+    // Beak, sharp
+    shape(ctx, '#e88c00', 5, (c) => {
+      c.moveTo(cx - 96, cy - 74);
+      c.lineTo(cx - 158, cy - 50);
+      c.lineTo(cx - 94, cy - 40);
+      c.closePath();
+    });
+    line(ctx, 3, (c) => {
+      c.moveTo(cx - 96, cy - 58);
+      c.lineTo(cx - 148, cy - 51);
+    });
+    // Keen eye (one visible, profile-ish)
+    const ex = cx - 44;
+    const ey = cy - 76;
+    shape(ctx, '#f8f3e6', 0, (c) => {
+      c.moveTo(ex - 12, ey + 3);
+      c.quadraticCurveTo(ex, ey - 7, ex + 12, ey - 2);
+      c.quadraticCurveTo(ex + 10, ey + 8, ex - 2, ey + 9);
+      c.closePath();
+    });
+    ctx.fillStyle = '#2a1a08';
+    ctx.beginPath();
+    ctx.ellipse(ex, ey + 1, 6, 7.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.arc(ex - 2, ey - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    line(ctx, 4.5, (c) => {
+      c.moveTo(ex - 13, ey + 4);
+      c.quadraticCurveTo(ex, ey - 8, ex + 13, ey - 3);
+    });
+    line(ctx, 3.5, (c) => {
+      c.moveTo(ex - 14, ey - 10);
+      c.lineTo(ex + 10, ey - 14);
+    });
+    stroke(ctx, 'rgba(255, 238, 200, 0.85)', 4, (c) => {
+      c.arc(cx - 44, cy - 68, 58, Math.PI * 0.9, Math.PI * 1.35);
+    });
   });
-  // Body: round robin with red breast
-  shape(ctx, '#8b4513', 6, (c) => c.ellipse(cx, cy + 60, 108, 130, 0, 0, Math.PI * 2));
-  shape(ctx, '#ff6347', 5, (c) => c.ellipse(cx - 10, cy + 92, 76, 92, 0, 0, Math.PI * 2));
-  // Wing
-  shape(ctx, '#654321', 5, (c) => {
-    c.moveTo(cx + 58, cy + 10);
-    c.quadraticCurveTo(cx + 130, cy + 60, cx + 96, cy + 150);
-    c.quadraticCurveTo(cx + 66, cy + 110, cx + 58, cy + 10);
-    c.closePath();
-  });
-  // Head
-  shape(ctx, '#8b4513', 6, (c) => c.arc(cx - 30, cy - 60, 72, 0, Math.PI * 2));
-  // Beak
-  shape(ctx, '#ffa500', 5, (c) => {
-    c.moveTo(cx - 96, cy - 66);
-    c.lineTo(cx - 150, cy - 48);
-    c.lineTo(cx - 94, cy - 38);
-    c.closePath();
-  });
-  eyes(ctx, cx - 30, cy - 70, { iris: '#2a1a08', spread: 26, size: 0.95 });
   finish(ctx);
 }
 
@@ -711,72 +1019,67 @@ function drawCoffee(ctx) {
   backdrop(ctx, 'rgba(139, 69, 19, 0.55)');
   const cx = W / 2;
 
-  // Service window frame
-  shape(ctx, '#6b3410', 7, (c) => c.rect(26, 60, W - 52, H - 140));
-  shape(ctx, '#241408', 0, (c) => c.rect(40, 74, W - 80, H - 168));
-  // Counter
-  shape(ctx, '#d8c8a8', 6, (c) => c.rect(26, H - 90, W - 52, 34));
+  // Window frame + dark interior
+  shape(ctx, '#6b3410', 7, (c) => c.rect(26, 54, W - 52, H - 130));
+  shape(ctx, '#241408', 0, (c) => c.rect(40, 68, W - 80, H - 158));
+  shape(ctx, '#d8c8a8', 6, (c) => c.rect(26, H - 88, W - 52, 32));
 
-  // The barista, lit from the window: cap, mask, apron
-  const m = { cx, headCy: 210, faceRx: 60, faceRy: 70, shoulderY: 340 };
-  shape(ctx, '#5a3a22', 6, (c) => {
-    c.moveTo(cx - 104, H - 92);
-    c.quadraticCurveTo(cx - 98, m.shoulderY - 18, cx - 44, m.shoulderY - 26);
-    c.lineTo(cx + 44, m.shoulderY - 26);
-    c.quadraticCurveTo(cx + 98, m.shoulderY - 18, cx + 104, H - 92);
-    c.closePath();
-  });
-  shape(ctx, '#cfc5ae', 5, (c) => {
-    c.moveTo(cx - 54, m.shoulderY - 10);
-    c.lineTo(cx + 54, m.shoulderY - 10);
-    c.lineTo(cx + 46, H - 92);
-    c.lineTo(cx - 46, H - 92);
-    c.closePath();
-  });
-  shape(ctx, '#c9a175', 5, (c) => {
-    c.moveTo(cx - 18, m.headCy + m.faceRy - 16);
-    c.lineTo(cx - 20, m.shoulderY - 22);
-    c.lineTo(cx + 20, m.shoulderY - 22);
-    c.lineTo(cx + 18, m.headCy + m.faceRy - 16);
-  });
-  shape(ctx, '#c9a175', 6, (c) => {
-    c.moveTo(cx - m.faceRx, m.headCy - 6);
-    c.quadraticCurveTo(cx - m.faceRx, m.headCy - m.faceRy, cx, m.headCy - m.faceRy);
-    c.quadraticCurveTo(cx + m.faceRx, m.headCy - m.faceRy, cx + m.faceRx, m.headCy - 6);
-    c.quadraticCurveTo(cx + m.faceRx * 0.88, m.headCy + m.faceRy * 0.7, cx, m.headCy + m.faceRy);
-    c.quadraticCurveTo(cx - m.faceRx * 0.88, m.headCy + m.faceRy * 0.7, cx - m.faceRx, m.headCy - 6);
-    c.closePath();
-  });
-  faceShade(ctx, cx, m.headCy, m.faceRx, m.faceRy);
-  eyes(ctx, cx, m.headCy - 4, { iris: '#3a2a1a', size: 0.95 });
-  faceMask(ctx, cx, m.headCy, m.faceRx, { color: '#2c2c2c' });
-  // Cap pulled low
-  shape(ctx, '#2c2c2c', 6, (c) => {
-    c.moveTo(cx - m.faceRx - 4, m.headCy - 30);
-    c.quadraticCurveTo(cx - m.faceRx, m.headCy - m.faceRy * 1.1, cx, m.headCy - m.faceRy * 1.14);
-    c.quadraticCurveTo(cx + m.faceRx, m.headCy - m.faceRy * 1.1, cx + m.faceRx + 4, m.headCy - 30);
-    c.quadraticCurveTo(cx, m.headCy - 54, cx - m.faceRx - 4, m.headCy - 30);
-    c.closePath();
-  });
-  shape(ctx, '#2c2c2c', 5, (c) => {
-    c.moveTo(cx - 56, m.headCy - 40);
-    c.quadraticCurveTo(cx, m.headCy - 16, cx + 56, m.headCy - 40);
-    c.quadraticCurveTo(cx, m.headCy - 28, cx - 56, m.headCy - 40);
+  withLean(ctx, 0.04, () => {
+    const m = { cx, cy: 208, hw: 56 };
+    // Shoulders + apron
+    shape(ctx, '#5a3a22', 6, (c) => {
+      c.moveTo(cx - 108, H - 88);
+      c.quadraticCurveTo(cx - 100, m.cy + 168, cx - 46, m.cy + 152);
+      c.lineTo(cx + 46, m.cy + 148);
+      c.quadraticCurveTo(cx + 100, m.cy + 162, cx + 108, H - 88);
+    });
+    shape(ctx, '#cfc5ae', 5, (c) => {
+      c.moveTo(cx - 52, m.cy + 168);
+      c.lineTo(cx + 52, m.cy + 164);
+      c.lineTo(cx + 44, H - 88);
+      c.lineTo(cx - 44, H - 88);
+      c.closePath();
+    });
+    // Neck
+    shape(ctx, '#c9a175', 5, (c) => {
+      c.moveTo(cx - 22, m.cy + 70);
+      c.quadraticCurveTo(cx - 24, m.cy + 110, cx - 38, m.cy + 152);
+      c.lineTo(cx + 38, m.cy + 148);
+      c.quadraticCurveTo(cx + 24, m.cy + 108, cx + 22, m.cy + 70);
+      c.closePath();
+    });
+    animeHeadBase(ctx, m, '#c9a175');
+    animeEyes(ctx, m, { iris: '#3a2a1a' });
+    animeMask(ctx, m, { color: '#2c2c2c' });
+    // Cap pulled low, brim shading the eyes
+    shape(ctx, '#2c2c2c', 6, (c) => {
+      c.moveTo(cx - m.hw - 6, m.cy - 22);
+      c.quadraticCurveTo(cx - m.hw - 2, m.cy - 84, cx, m.cy - 88);
+      c.quadraticCurveTo(cx + m.hw + 2, m.cy - 84, cx + m.hw + 6, m.cy - 26);
+      c.quadraticCurveTo(cx, m.cy - 48, cx - m.hw - 6, m.cy - 22);
+      c.closePath();
+    });
+    shape(ctx, '#232323', 5, (c) => {
+      c.moveTo(cx - 58, m.cy - 32);
+      c.quadraticCurveTo(cx, m.cy - 8, cx + 58, m.cy - 34);
+      c.quadraticCurveTo(cx, m.cy - 22, cx - 58, m.cy - 32);
+    });
+    rimLight(ctx, m);
   });
 
-  // A cup on the counter with steam
+  // Cup + steam on the counter
   shape(ctx, '#f5f0e6', 5, (c) => {
-    c.moveTo(cx + 70, H - 90);
-    c.lineTo(cx + 110, H - 90);
-    c.lineTo(cx + 104, H - 132);
-    c.lineTo(cx + 76, H - 132);
+    c.moveTo(cx + 72, H - 88);
+    c.lineTo(cx + 112, H - 88);
+    c.lineTo(cx + 106, H - 130);
+    c.lineTo(cx + 78, H - 130);
     c.closePath();
   });
   ctx.globalAlpha = 0.5;
   line(ctx, 3, (c) => {
-    c.moveTo(cx + 90, H - 140);
-    c.quadraticCurveTo(cx + 80, H - 160, cx + 92, H - 178);
-    c.quadraticCurveTo(cx + 102, H - 192, cx + 94, H - 206);
+    c.moveTo(cx + 92, H - 138);
+    c.quadraticCurveTo(cx + 82, H - 158, cx + 94, H - 176);
+    c.quadraticCurveTo(cx + 104, H - 190, cx + 96, H - 204);
   });
   ctx.globalAlpha = 1;
   finish(ctx);
@@ -784,49 +1087,51 @@ function drawCoffee(ctx) {
 
 function drawLadybug(ctx) {
   backdrop(ctx, 'rgba(221, 34, 34, 0.5)');
-  const cx = W / 2, cy = 290;
+  withLean(ctx, -0.04, () => {
+    const cx = W / 2;
+    const cy = 285;
 
-  // Leaf underneath
-  shape(ctx, '#55aa44', 5, (c) => {
-    c.moveTo(cx - 130, cy + 130);
-    c.quadraticCurveTo(cx, cy + 60, cx + 130, cy + 130);
-    c.quadraticCurveTo(cx, cy + 200, cx - 130, cy + 130);
-  });
-  line(ctx, 3, (c) => {
-    c.moveTo(cx - 110, cy + 128);
-    c.quadraticCurveTo(cx, cy + 118, cx + 110, cy + 128);
-  });
-
-  // Shell
-  shape(ctx, '#cc1111', 6, (c) => c.ellipse(cx, cy, 105, 92, 0, 0, Math.PI * 2));
-  line(ctx, 5, (c) => {
-    c.moveTo(cx, cy - 92);
-    c.lineTo(cx, cy + 92);
-  });
-  ctx.fillStyle = INK;
-  for (const [dx, dy, r] of [[-52, -30, 15], [52, -30, 15], [-38, 34, 12], [38, 34, 12], [-70, 10, 9], [70, 10, 9]]) {
-    ctx.beginPath();
-    ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Head
-  shape(ctx, '#1a1a1a', 5, (c) => c.ellipse(cx, cy - 96, 46, 34, 0, Math.PI, Math.PI * 2));
-  // Big friendly eyes on the head
-  for (const side of [-1, 1]) {
-    shape(ctx, '#fdfaf2', 3, (c) => c.arc(cx + side * 20, cy - 108, 10, 0, Math.PI * 2));
-    ctx.fillStyle = INK;
-    ctx.beginPath();
-    ctx.arc(cx + side * 21, cy - 107, 4.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Antennae
-  for (const side of [-1, 1]) {
-    line(ctx, 3.5, (c) => {
-      c.moveTo(cx + side * 16, cy - 126);
-      c.quadraticCurveTo(cx + side * 34, cy - 160, cx + side * 56, cy - 168);
+    shape(ctx, '#4d9a3c', 5, (c) => {
+      c.moveTo(cx - 132, cy + 128);
+      c.quadraticCurveTo(cx, cy + 58, cx + 132, cy + 122);
+      c.quadraticCurveTo(cx, cy + 196, cx - 132, cy + 128);
     });
-    shape(ctx, '#1a1a1a', 0, (c) => c.arc(cx + side * 58, cy - 169, 5, 0, Math.PI * 2));
-  }
+    line(ctx, 3, (c) => {
+      c.moveTo(cx - 112, cy + 126);
+      c.quadraticCurveTo(cx, cy + 114, cx + 112, cy + 124);
+    });
+
+    shape(ctx, '#c11', 6, (c) => c.ellipse(cx, cy - 4, 104, 92, -0.06, 0, Math.PI * 2));
+    line(ctx, 5, (c) => {
+      c.moveTo(cx + 6, cy - 96);
+      c.lineTo(cx - 6, cy + 88);
+    });
+    ctx.fillStyle = INK;
+    for (const [dx, dy, r] of [[-52, -32, 14], [50, -36, 14], [-40, 32, 11], [40, 28, 11], [-72, 2, 8], [72, -6, 8]]) {
+      ctx.beginPath();
+      ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Head with keen little eyes
+    shape(ctx, '#1a1a1a', 5, (c) => c.ellipse(cx, cy - 98, 44, 32, 0, Math.PI, Math.PI * 2));
+    for (const side of [-1, 1]) {
+      shape(ctx, '#f8f3e6', 2.5, (c) => c.arc(cx + side * 19, cy - 110, 8, 0, Math.PI * 2));
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.arc(cx + side * 20, cy - 109, 3.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (const side of [-1, 1]) {
+      line(ctx, 3.5, (c) => {
+        c.moveTo(cx + side * 15, cy - 126);
+        c.quadraticCurveTo(cx + side * 34, cy - 158, cx + side * 55, cy - 165);
+      });
+      shape(ctx, '#1a1a1a', 0, (c) => c.arc(cx + side * 57, cy - 166, 5, 0, Math.PI * 2));
+    }
+    stroke(ctx, 'rgba(255, 238, 200, 0.8)', 4, (c) => {
+      c.arc(cx - 8, cy - 4, 96, Math.PI * 0.85, Math.PI * 1.25);
+    });
+  });
   finish(ctx);
 }
 
