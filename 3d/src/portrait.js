@@ -431,11 +431,12 @@ function drawBoy(ctx) {
   backdrop(ctx, 'rgba(80, 130, 200, 0.5)');
   withLean(ctx, 0.06, () => {
     const m = metrics();
-    animeBody(ctx, m, { skin: '#fbd3a2', torso: '#4682b4', sleeves: '#5a9bd4', shoulderTilt: -10 });
-    animeHeadBase(ctx, m, '#fbd3a2');
+    const skin = '#b0714a'; // mixed race — warm brown skin
+    animeBody(ctx, m, { skin, torso: '#4682b4', sleeves: '#5a9bd4', shoulderTilt: -10 });
+    animeHeadBase(ctx, m, skin);
 
     // Spiky dark hair, JoJo energy
-    shape(ctx, '#23201e', 6, (c) => {
+    shape(ctx, '#1c1815', 6, (c) => {
       c.moveTo(m.cx - m.hw - 6, m.cy + 6);
       c.lineTo(m.cx - m.hw - 18, m.cy - 40);
       c.lineTo(m.cx - m.hw + 10, m.cy - 52);
@@ -455,7 +456,7 @@ function drawBoy(ctx) {
       c.closePath();
     });
 
-    animeEyes(ctx, m, { iris: '#3c5a78' });
+    animeEyes(ctx, m, { iris: '#3a2415' });
     animeMask(ctx, m, {
       color: '#7b68ee',
       pattern: (c, x, y, r) => {
@@ -1051,18 +1052,32 @@ function drawCoffee(ctx) {
     animeHeadBase(ctx, m, '#c9a175');
     animeEyes(ctx, m, { iris: '#3a2a1a' });
     animeMask(ctx, m, { color: '#2c2c2c' });
-    // Cap pulled low, brim shading the eyes
+    // Brim shadow falling across the upper face
+    ctx.save();
+    ctx.beginPath();
+    headPath(m)(ctx);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(20, 14, 10, 0.38)';
+    ctx.beginPath();
+    ctx.moveTo(cx - m.hw - 4, m.cy - 30);
+    ctx.quadraticCurveTo(cx, m.cy - 2, cx + m.hw + 4, m.cy - 32);
+    ctx.lineTo(cx + m.hw + 4, m.cy - 90);
+    ctx.lineTo(cx - m.hw - 4, m.cy - 90);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    // Cap pulled low — the brim cuts across the top of his eyes
     shape(ctx, '#2c2c2c', 6, (c) => {
-      c.moveTo(cx - m.hw - 6, m.cy - 22);
+      c.moveTo(cx - m.hw - 6, m.cy - 16);
       c.quadraticCurveTo(cx - m.hw - 2, m.cy - 84, cx, m.cy - 88);
-      c.quadraticCurveTo(cx + m.hw + 2, m.cy - 84, cx + m.hw + 6, m.cy - 26);
-      c.quadraticCurveTo(cx, m.cy - 48, cx - m.hw - 6, m.cy - 22);
+      c.quadraticCurveTo(cx + m.hw + 2, m.cy - 84, cx + m.hw + 6, m.cy - 20);
+      c.quadraticCurveTo(cx, m.cy - 44, cx - m.hw - 6, m.cy - 16);
       c.closePath();
     });
     shape(ctx, '#232323', 5, (c) => {
-      c.moveTo(cx - 58, m.cy - 32);
-      c.quadraticCurveTo(cx, m.cy - 8, cx + 58, m.cy - 34);
-      c.quadraticCurveTo(cx, m.cy - 22, cx - 58, m.cy - 32);
+      c.moveTo(cx - 62, m.cy - 24);
+      c.quadraticCurveTo(cx, m.cy + 6, cx + 62, m.cy - 26);
+      c.quadraticCurveTo(cx, m.cy - 12, cx - 62, m.cy - 24);
     });
     rimLight(ctx, m);
   });

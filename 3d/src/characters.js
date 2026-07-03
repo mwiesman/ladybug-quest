@@ -262,10 +262,11 @@ export function buildGirl() {
 }
 
 export function buildBoy() {
-  // drawBoy palette: steel-blue shirt, lighter sleeves, dark hair,
-  // navy pants, tie-dye mask (pink/purple/blue)
+  // Steel-blue shirt, lighter sleeves, dark hair, navy pants, tie-dye
+  // bandana. He's mixed race — warm brown skin.
   const g = buildHumanoid({
-    torso: 0x4682b4, sleeves: 0x5a9bd4, legs: 0x2c5aa0, shoes: 0x1a1a1a, hair: 0x2c2c2c
+    skin: 0xb5764d, torso: 0x4682b4, sleeves: 0x5a9bd4, legs: 0x2c5aa0,
+    shoes: 0x1a1a1a, hair: 0x201c1a
   });
   const { head } = g.userData.parts;
 
@@ -659,10 +660,12 @@ export function buildCoffeeCart() {
   bMask.scale.set(0.95, 0.6, 0.56);
   bMask.position.set(0, -0.065, 0.095);
   bHead.add(bMask);
-  const bCap = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.185, 0.09, 10), mat(0x2c2c2c));
-  bCap.position.y = 0.1;
-  const bBrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.12), mat(0x2c2c2c));
-  bBrim.position.set(0, 0.06, 0.18);
+  // Cap pulled low — the brim tilts down over the top of his eyes
+  const bCap = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.19, 0.1, 10), mat(0x2c2c2c));
+  bCap.position.y = 0.08;
+  const bBrim = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.025, 0.17), mat(0x2c2c2c));
+  bBrim.position.set(0, 0.045, 0.17);
+  bBrim.rotation.x = 0.3;
   bHead.add(bCap, bBrim);
   barista.add(torso, apron, bHead);
   barista.position.set(0.08, 0, 0.02);
